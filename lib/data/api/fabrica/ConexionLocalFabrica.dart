@@ -1,3 +1,4 @@
+import 'package:dpt_movil/data/api/conexion/ConexionAlumnos.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionCurso.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionEstadisticas.dart';
@@ -33,6 +34,12 @@ class ConexionLocalFabrica implements ConexionFabricaAbstracta {
   @override
   Conexionhorarios crearConexionHorarios() {
     // TODO: implement crearConexionHorarios
+    throw UnimplementedError();
+  }
+
+  @override
+  Conexionalumnos crearConexionAlumnos() {
+    // TODO: implement crearConexionAlumnos
     throw UnimplementedError();
   }
 }

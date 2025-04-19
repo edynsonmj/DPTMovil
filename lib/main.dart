@@ -1,3 +1,4 @@
+import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => EstadisticasViewModel()),
         ChangeNotifierProvider(create: (_) => Gruposviewmodel()),
         ChangeNotifierProvider(create: (_) => Horariosviewmodel()),
+        ChangeNotifierProvider(create: (_) => Alumnosviewmodel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

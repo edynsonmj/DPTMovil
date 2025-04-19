@@ -6,6 +6,7 @@ import 'package:dpt_movil/data/models/horarioModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexionhorariosremoto extends Conexionhorarios {
+  final _dio = Dio(BaseOptions(baseUrl: ConfigServicio().obtenerBaseApi()));
   @override
   Future<RespuestaModelo> obtenerHorariosGrupo(
     String categoria,
@@ -13,8 +14,6 @@ class Conexionhorariosremoto extends Conexionhorarios {
     int anio,
     int iterable,
   ) async {
-    final _dio = Dio(BaseOptions(baseUrl: ConfigServicio().obtenerBaseApi()));
-
     String metodo = "GET";
     try {
       String path =
