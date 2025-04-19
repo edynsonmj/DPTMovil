@@ -1,11 +1,13 @@
 import 'package:dpt_movil/data/api/conexion/ConexionAlumnos.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/ConexionClases.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionCurso.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionEstadisticas.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionGrupos.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionHorarios.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAlumnosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
@@ -41,5 +43,10 @@ class ConexionRemotaFabrica implements ConexionFabricaAbstracta {
   @override
   Conexionalumnos crearConexionAlumnos() {
     return Conexionalumnosremoto();
+  }
+
+  @override
+  Conexionclases crearConexionClases() {
+    return Conexionclasesremoto();
   }
 }

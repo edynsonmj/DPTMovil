@@ -1,6 +1,7 @@
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionAlumnos.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/ConexionClases.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionCurso.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionEstadisticas.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionGrupos.dart';
@@ -28,4 +29,5 @@ abstract class ConexionFabricaAbstracta {
   Conexiongrupos crearConexionGrupos();
   Conexionhorarios crearConexionHorarios();
   Conexionalumnos crearConexionAlumnos();
+  Conexionclases crearConexionClases();
 }

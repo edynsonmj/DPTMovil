@@ -10,7 +10,7 @@ import 'package:dpt_movil/presentation/view/views/categorias/CategoriaFormulario
 import 'package:dpt_movil/presentation/view/views/curso.dart';
 import 'package:dpt_movil/presentation/view/views/cursos.dart';
 import 'package:dpt_movil/presentation/view/views/estadisticas/estadisticasGeneralesView.dart';
-import 'package:dpt_movil/presentation/view/views/grupo.dart';
+import 'package:dpt_movil/presentation/view/views/grupo/grupo.dart';
 import 'package:dpt_movil/presentation/view/views/inscripciones/inscripcionesGeneralesView.dart';
 import 'package:dpt_movil/presentation/view/views/inscripciones/inscripcionesParticulares.dart';
 import 'package:dpt_movil/presentation/view/views/instructores/InstructorView.dart';

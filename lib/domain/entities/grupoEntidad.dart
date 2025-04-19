@@ -1,5 +1,5 @@
 import 'package:dpt_movil/data/models/grupoModelo.dart';
-import 'package:dpt_movil/presentation/view/views/grupo.dart';
+import 'package:dpt_movil/presentation/view/views/grupo/grupo.dart';
 import 'package:flutter/foundation.dart';
 
 class Grupoentidad {

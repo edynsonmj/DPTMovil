@@ -3,7 +3,7 @@ import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
-import 'package:dpt_movil/presentation/view/views/grupo.dart';
+import 'package:dpt_movil/presentation/view/views/grupo/grupo.dart';
 
 class ServicioCurso {
   CursoRepositorio repositorio;
