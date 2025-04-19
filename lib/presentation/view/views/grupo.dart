@@ -160,6 +160,12 @@ class Grupo extends StatelessWidget {
         try {
           List<dynamic> listaDynamic = promesa.data!.datos;
           List<Alumnoentidad> lista = listaDynamic as List<Alumnoentidad>;
+          if (lista.isEmpty) {
+            return Text(
+              'No hay alumnos aun!',
+              style: Tipografia.cuerpo1(color: ColorTheme.secondaryDark),
+            );
+          }
           return mostrarListadoAlumnos(lista);
         } catch (e) {
           return Text(
