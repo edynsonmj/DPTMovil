@@ -1,5 +1,7 @@
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
+import 'package:dpt_movil/domain/entities/entidadesRutas/clase_grupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
+import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
@@ -68,6 +70,12 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
     case AppRutas.estadisticasGenerales:
       return MaterialPageRoute(builder: (_) => EstadisticasGeneralesView());
+
+    case AppRutas.clase:
+      ClaseGrupoargumentos? datos = settings.arguments as ClaseGrupoargumentos;
+      return MaterialPageRoute(
+        builder: (_) => Claseview(grupo: datos.grupo, clase: datos.clase),
+      );
 
     default:
       return MaterialPageRoute(builder: (_) => Page1());

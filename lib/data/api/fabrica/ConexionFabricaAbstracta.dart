@@ -1,5 +1,6 @@
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionAlumnos.dart';
+import 'package:dpt_movil/data/api/conexion/ConexionAtenciones.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionClases.dart';
 import 'package:dpt_movil/data/api/conexion/ConexionCurso.dart';
@@ -30,4 +31,5 @@ abstract class ConexionFabricaAbstracta {
   Conexionhorarios crearConexionHorarios();
   Conexionalumnos crearConexionAlumnos();
   Conexionclases crearConexionClases();
+  Conexionatenciones crearConexionAtenciones();
 }

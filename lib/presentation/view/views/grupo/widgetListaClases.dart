@@ -1,6 +1,8 @@
+import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
+import 'package:dpt_movil/domain/entities/entidadesRutas/clase_grupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
@@ -85,16 +87,29 @@ class Widgetlistaclases extends StatelessWidget {
                 itemCount: lista.length, // Cambia esto según tu lista
                 itemBuilder: (BuildContext context, int index) {
                   Claseentidad clase = lista[index];
-                  return MiniTarjeta(
-                    atrTitulo: 'Fecha clase: ${clase.fecha}',
-                    atrSubTitulo: 'Tiempo: ${clase.horas}h:${clase.minutos}m',
-                    existeBotonCierre: true,
-                    existeCampoImagen: false,
-                  );
+                  return mostrarTarjeta(context, clase);
                 },
               ),
         ],
       ),
+    );
+  }
+
+  Widget mostrarTarjeta(BuildContext context, Claseentidad clase) {
+    return InkWell(
+      child: MiniTarjeta(
+        atrTitulo: 'Fecha clase: ${clase.fecha}',
+        atrSubTitulo: 'Tiempo: ${clase.horas}h:${clase.minutos}m',
+        existeBotonCierre: true,
+        existeCampoImagen: false,
+      ),
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          AppRutas.clase,
+          arguments: ClaseGrupoargumentos(clase: clase, grupo: grupo),
+        );
+      },
     );
   }
 }

@@ -32,4 +32,17 @@ class Alumnomodelo {
       eliminadoestado: json['eliminadoestado'],
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'eliminadoestado': 0,
+      'id': id,
+      'codigo': codigo,
+      'tipo': tipo,
+      'nombre': nombre,
+      'correo': correo,
+      'sexo': sexo,
+      'tipoid': tipoid,
+      'imagen': imagen,
+    };
+  }
 }
