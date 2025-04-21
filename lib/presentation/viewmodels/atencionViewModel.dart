@@ -47,19 +47,6 @@ class Atencionviewmodel with ChangeNotifier {
         atenciones,
         idClase,
       );
-      /*if (respuesta.codigoHttp != 200) {
-        _mostrarError(context, "falllo al registrar", respuesta.error);
-      }
-      showDialog(
-        context: context,
-        builder: (context) {
-          return DialogError(
-            titulo: "operacion exitosa",
-            mensaje: "se han registrado las asistencias-atenciones",
-            codigo: 0,
-          );
-        },
-      );*/
       return respuesta;
     } on Exception catch (e) {
       //_mostrarError(context, "fallo al registrar", null);

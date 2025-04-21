@@ -1,3 +1,4 @@
+import 'package:dpt_movil/data/models/claseModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 abstract class Conexionclases {
@@ -7,4 +8,6 @@ abstract class Conexionclases {
     int anio,
     int iterable,
   );
+  Future<RespuestaModelo> agregarClaseGrupo(Clasemodelo modelo);
+  Future<RespuestaModelo> eliminarClase(int id);
 }

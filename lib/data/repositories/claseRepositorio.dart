@@ -7,6 +7,42 @@ class Claserepositorio {
   Conexionclases cliente;
   Claserepositorio({required this.cliente});
 
+  Future<RespuestaModelo> eliminarClase(int id) async {
+    try {
+      final RespuestaModelo respuesta = await cliente.eliminarClase(id);
+      return respuesta;
+    } on Exception catch (error) {
+      return RespuestaModelo.fromException(
+        error,
+        'DELETE',
+        'Clase',
+        'repositorio',
+      );
+    }
+  }
+
+  Future<RespuestaModelo> agregarClase(Claseentidad entidad) async {
+    try {
+      Clasemodelo modelo = Clasemodelo.fromEntidad(entidad);
+      final RespuestaModelo respuesta = await cliente.agregarClaseGrupo(modelo);
+      return respuesta;
+    } on FormatException catch (formatError) {
+      return RespuestaModelo.fromFormatException(
+        formatError,
+        'POST',
+        'agregarClaseGrupo',
+        'Repositorio',
+      );
+    } on Exception catch (error) {
+      return RespuestaModelo.fromException(
+        error,
+        'POST',
+        'AgregarClaseGrupo',
+        'repositorio',
+      );
+    }
+  }
+
   Future<RespuestaModelo> listarClaseGrupo(
     String categoria,
     String curso,

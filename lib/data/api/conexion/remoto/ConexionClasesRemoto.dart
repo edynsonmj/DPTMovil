@@ -52,4 +52,56 @@ class Conexionclasesremoto implements Conexionclases {
       return RespuestaModelo.fromException(error, metodo, path, 'conexion');
     }
   }
+
+  @override
+  Future<RespuestaModelo> agregarClaseGrupo(Clasemodelo modelo) async {
+    String metodo = "POST";
+    String path = "/claseGrupo";
+    try {
+      final response = await _dio.post(
+        path,
+        data: modelo,
+        options: Options(contentType: 'application/json'),
+      );
+      if (response.statusCode != 201) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      return RespuestaModelo(codigoHttp: 201);
+    } on DioException catch (dioError) {
+      return RespuestaModelo.fromDioException(dioError, metodo);
+    } on FormatException catch (formatError) {
+      return RespuestaModelo.fromFormatException(
+        formatError,
+        metodo,
+        path,
+        'conexion',
+      );
+    } on Exception catch (error) {
+      return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    }
+  }
+
+  @override
+  Future<RespuestaModelo> eliminarClase(int id) async {
+    String metodo = "delete";
+    String path = "/clase?id=$id";
+    try {
+      final response = await _dio.delete(path);
+      if (response.statusCode != 200) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      return RespuestaModelo(codigoHttp: 200);
+    } on DioException catch (dioError) {
+      return RespuestaModelo.fromDioException(dioError, metodo);
+    } on FormatException catch (formatError) {
+      return RespuestaModelo.fromFormatException(
+        formatError,
+        metodo,
+        path,
+        'conexion',
+      );
+    } on Exception catch (error) {
+      return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    }
+  }
 }
