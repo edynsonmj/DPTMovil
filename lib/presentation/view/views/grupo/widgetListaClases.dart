@@ -1,115 +1,194 @@
+import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
+import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/clase_grupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
+import 'package:dpt_movil/presentation/utils/Utilidades.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class Widgetlistaclases extends StatelessWidget {
-  Grupoentidad grupo;
-  Widgetlistaclases({super.key, required this.grupo});
+class Widgetlistaclases extends StatefulWidget {
+  final Grupoentidad grupo;
+  const Widgetlistaclases({super.key, required this.grupo});
+
   @override
-  Widget build(BuildContext context) {
-    return clases();
+  State<Widgetlistaclases> createState() => _WidgetlistaclasesState();
+}
+
+class _WidgetlistaclasesState extends State<Widgetlistaclases> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final vmClase = Provider.of<Clasesviewmodel>(context, listen: false);
+      vmClase.inicializarGrupo(
+        widget.grupo.categoria,
+        widget.grupo.curso,
+        widget.grupo.anio,
+        widget.grupo.iterable,
+      );
+      vmClase.listarYNotificarClases();
+    });
   }
 
-  Widget clases() {
-    Clasesviewmodel vmClases = Clasesviewmodel();
-    return FutureBuilder(
-      future: vmClases.listarClasesGrupo(
-        grupo.categoria,
-        grupo.curso,
-        grupo.anio,
-        grupo.iterable,
-      ),
-      builder: (context, promesa) {
-        if (promesa.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (promesa.hasError) {
-          return Text(
-            'Error: ${promesa.error}',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        } else if (!promesa.hasData) {
-          return Text(
-            'Sin informacion',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<Clasesviewmodel>(
+      builder: (context, vm, _) {
+        if (vm.cargando) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (vm.error != null) {
+          return Center(
+            child: Text(
+              vm.error!,
+              style: Tipografia.cuerpo1(color: ColorTheme.error),
+            ),
           );
         }
-        if (promesa.data!.codigoHttp != 200) {
-          return Text(
-            'no se logro obtener informacion: ${promesa.data!.codigoHttp} - ${promesa.data!.error?.mensaje}',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-        if (promesa.data!.datos is! List) {
-          return Text(
-            'informacion sobre el curso en formato erroneo',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-        try {
-          List<dynamic> listaDynamic = promesa.data!.datos;
-          List<Claseentidad> lista = listaDynamic as List<Claseentidad>;
-          return mostrarClases(lista);
-        } catch (e) {
-          return Text(
-            'Informacion no compatible en view',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
+
+        return mostrarClases(vm.clases);
       },
     );
   }
 
   Widget mostrarClases(List<Claseentidad> lista) {
-    return Container(
-      child: Column(
-        children: [
-          Text('Clases', style: Tipografia.h6()),
-          OutlinedButton.icon(
-            onPressed: () {},
-            label: Text('AGREGAR CLASE'),
-            icon: Icon(Icons.add),
-          ),
-          (lista.isEmpty)
-              ? Text(
-                'No hay clases aun!',
-                style: Tipografia.cuerpo1(color: ColorTheme.secondaryDark),
-              )
-              : ListView.builder(
-                shrinkWrap: true, // Ajusta el tamaño de la lista al contenido
-                physics:
-                    const NeverScrollableScrollPhysics(), // Desactiva scroll interno
-                itemCount: lista.length, // Cambia esto según tu lista
-                itemBuilder: (BuildContext context, int index) {
-                  Claseentidad clase = lista[index];
-                  return mostrarTarjeta(context, clase);
-                },
-              ),
-        ],
-      ),
+    return Column(
+      children: [
+        Text('Clases', style: Tipografia.h6()),
+        OutlinedButton.icon(
+          onPressed: () async {
+            print("hola");
+            Claseentidad entidad = Claseentidad(
+              idGrupoCategoria: widget.grupo.categoria,
+              idGrupoCurso: widget.grupo.curso,
+              idGrupoAnio: widget.grupo.anio,
+              idGrupoIterable: widget.grupo.iterable,
+              idInstructor: "1234567890",
+              fecha: null,
+              horas: null,
+              minutos: null,
+              eliminado: 0,
+            );
+            final resultado = await Navigator.pushNamed(
+              context,
+              AppRutas.formularioClase,
+              arguments: entidad,
+            );
+
+            if (resultado == true) {
+              final vmClase = Provider.of<Clasesviewmodel>(
+                context,
+                listen: false,
+              );
+              vmClase.listarYNotificarClases();
+            }
+          },
+          label: Text('AGREGAR CLASE'),
+          icon: Icon(Icons.add),
+        ),
+        (lista.isEmpty)
+            ? Text(
+              'No hay clases aún!',
+              style: Tipografia.cuerpo1(color: ColorTheme.secondaryDark),
+            )
+            : ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: lista.length,
+              itemBuilder: (context, index) {
+                Claseentidad clase = lista[index];
+                return mostrarTarjeta(context, clase);
+              },
+            ),
+      ],
     );
   }
 
   Widget mostrarTarjeta(BuildContext context, Claseentidad clase) {
     return InkWell(
-      child: MiniTarjeta(
-        atrTitulo: 'Fecha clase: ${clase.fecha}',
-        atrSubTitulo: 'Tiempo: ${clase.horas}h:${clase.minutos}m',
-        existeBotonCierre: true,
-        existeCampoImagen: false,
+      child: Stack(
+        children: [
+          MiniTarjeta(
+            atrTitulo:
+                'Fecha clase: ${FormatDate.fechaACadena(clase.fecha!, "-")}',
+            atrSubTitulo: 'Tiempo: ${clase.horas}h:${clase.minutos}m',
+            existeBotonCierre: false,
+            existeCampoImagen: false,
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: IconButton(
+              onPressed: () async {
+                final eliminado = await Utilidades.mostrarDialogoConfirmacion(
+                  context,
+                  '¿Esta seguro de eliminar la clase ${clase.codigo} con fecha ${FormatDate.fechaACadena(clase.fecha!, '-')}',
+                  'Eliminar clase',
+                );
+                if (eliminado) {
+                  final vmClase = Provider.of<Clasesviewmodel>(
+                    context,
+                    listen: false,
+                  );
+                  await vmClase.eliminarClase(clase.codigo!);
+                  await vmClase.listarYNotificarClases();
+                }
+              },
+              icon: Icon(Icons.close),
+            ),
+          ),
+        ],
       ),
       onTap: () {
         Navigator.pushNamed(
           context,
           AppRutas.clase,
-          arguments: ClaseGrupoargumentos(clase: clase, grupo: grupo),
+          arguments: ClaseGrupoargumentos(clase: clase, grupo: widget.grupo),
         );
       },
     );
+  }
+
+  Future<bool> _confirmarEliminacion(
+    BuildContext context,
+    Claseentidad clase,
+  ) async {
+    return await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Confirmar eliminación'),
+              content: Text(
+                '¿Está seguro de eliminar la clase ${clase.codigo} del ${clase.fecha}?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop(true); // Confirmado
+                    final vmClase = Provider.of<Clasesviewmodel>(
+                      context,
+                      listen: false,
+                    );
+                    await vmClase.eliminarClase(clase.codigo!);
+                    await vmClase.listarYNotificarClases();
+                  },
+                  child: Text('Eliminar'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('Cancelar'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
   }
 }

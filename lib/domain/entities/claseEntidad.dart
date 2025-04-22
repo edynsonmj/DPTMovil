@@ -7,9 +7,9 @@ class Claseentidad {
   int idGrupoAnio;
   int idGrupoIterable;
   String idInstructor;
-  String fecha;
-  int horas;
-  int minutos;
+  DateTime? fecha;
+  int? horas;
+  int? minutos;
   String? observacion;
   int eliminado;
 
@@ -20,9 +20,9 @@ class Claseentidad {
     required this.idGrupoAnio,
     required this.idGrupoIterable,
     required this.idInstructor,
-    required this.fecha,
-    required this.horas,
-    required this.minutos,
+    this.fecha,
+    this.horas,
+    this.minutos,
     this.observacion,
     required this.eliminado,
   });

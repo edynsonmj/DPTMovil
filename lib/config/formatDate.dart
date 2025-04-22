@@ -3,6 +3,6 @@ class FormatDate {
     if (fecha == null || separador == null) {
       return '';
     }
-    return '${fecha.day}/${fecha.month}/${fecha.year}';
+    return '${fecha.year}-${fecha.month}-${fecha.day}';
   }
 }

@@ -1,6 +1,8 @@
+import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/clase_grupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
+import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
@@ -76,6 +78,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (_) => Claseview(grupo: datos.grupo, clase: datos.clase),
       );
+
+    case AppRutas.formularioClase:
+      Claseentidad datos = settings.arguments as Claseentidad;
+      return MaterialPageRoute(builder: (_) => Claseformulario(entidad: datos));
 
     default:
       return MaterialPageRoute(builder: (_) => Page1());

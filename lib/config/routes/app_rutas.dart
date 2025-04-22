@@ -15,4 +15,5 @@ class AppRutas {
   static const String instructor = '/instructores/instructor';
   static const String estadisticasGenerales = '/estadisticas/generales';
   static const String clase = '/claseGrupo';
+  static const String formularioClase = 'clase/formulario';
 }

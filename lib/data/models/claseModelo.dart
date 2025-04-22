@@ -1,3 +1,4 @@
+import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:flutter/material.dart';
 
@@ -8,7 +9,7 @@ class Clasemodelo {
   int idGrupoAnio;
   int idGrupoIterable;
   String idInstructor;
-  String fecha;
+  DateTime fecha;
   int horas;
   int minutos;
   String? observacion;
@@ -36,7 +37,7 @@ class Clasemodelo {
       idGrupoAnio: json['idGrupoAnio'],
       idGrupoIterable: json['idGrupoIterable'],
       idInstructor: json['idInstructor'],
-      fecha: json['fecha'],
+      fecha: DateTime.parse(json['fecha']),
       horas: json['horas'],
       minutos: json['minutos'],
       observacion: json['observacion'],
@@ -51,12 +52,37 @@ class Clasemodelo {
       idGrupoAnio: entidad.idGrupoAnio,
       idGrupoIterable: entidad.idGrupoIterable,
       idInstructor: entidad.idInstructor,
-      fecha: entidad.fecha,
-      horas: entidad.horas,
-      minutos: entidad.minutos,
+      fecha: entidad.fecha!,
+      horas: entidad.horas!,
+      minutos: entidad.minutos!,
       eliminado: entidad.eliminado,
       codigo: entidad.codigo,
       observacion: entidad.observacion,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'codigo': codigo,
+      'idGrupoCategoria': idGrupoCategoria,
+
+      'idGrupoCurso': idGrupoCurso,
+
+      'idGrupoAnio': idGrupoAnio,
+
+      'idGrupoIterable': idGrupoIterable,
+
+      'idInstructor': idInstructor,
+
+      'fecha': fecha.toIso8601String(),
+
+      'horas': horas,
+
+      'minutos': minutos,
+
+      'observacion': observacion,
+
+      'eliminado': eliminado,
+    };
   }
 }
