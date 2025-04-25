@@ -83,6 +83,17 @@ class Tarjeta extends StatelessWidget {
                 child: Image.network(
                   '${basepath}/imagenStream?idImagen=$idImagen',
                   fit: BoxFit.cover,
+                  loadingBuilder:
+                      (BuildContext context, Widget child, ImageChunkEvent? progresoCarga){
+                        if(progresoCarga==null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: progresoCarga.expectedTotalBytes != null
+                                ? progresoCarga.cumulativeBytesLoaded / (progresoCarga.expectedTotalBytes ?? 1)
+                                :null,
+                          ),
+                        );
+                      },
                   errorBuilder:
                       (context, error, stackTrace) =>
                       Image.asset('assets/images/1.jpg', fit: BoxFit.cover),
