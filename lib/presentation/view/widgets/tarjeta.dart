@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/presentation/view/widgets/imagenTarjeta.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
@@ -58,8 +59,8 @@ class Tarjeta extends StatelessWidget {
     return Column(
       children: [
         //if (atrUrlImagen != null) imagen(context, dimension),
-        //imagen(context, dimension),
-        Imagentarjeta(idImagen: idImagen),
+        imagen(context, dimension),
+        //Imagentarjeta(idImagen: idImagen),
         titulo(),
         //notese que se hacen las validaciones previo a pasar los datos, para no tener errores de null
         if (atrInfo2 != null && atrInfo1 != null) info(atrInfo1!, atrInfo2!),
@@ -70,26 +71,22 @@ class Tarjeta extends StatelessWidget {
   }
 
   Widget imagen(BuildContext context, Size dimension) {
+    String basepath = ConfigServicio().obtenerBaseApi();
+    atrDatosImagen=null;
     return ClipRRect(
       //border redondeador en la parte superior
       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      child:
-          atrDatosImagen != null
-              ? SizedBox(
+      child: SizedBox(
                 height: 200,
                 width: double.infinity,
-                child: Image.memory(
-                  atrDatosImagen!,
+                //child: Image.asset('assets/images/1.jpg', fit: BoxFit.cover),
+                child: Image.network(
+                  '${basepath}/imagenStream?idImagen=$idImagen',
                   fit: BoxFit.cover,
                   errorBuilder:
                       (context, error, stackTrace) =>
-                          Image.asset('assets/images/1.jpg'),
-                ),
-              )
-              : SizedBox(
-                height: 200,
-                width: double.infinity,
-                child: Image.asset('assets/images/1.jpg', fit: BoxFit.cover),
+                      Image.asset('assets/images/1.jpg', fit: BoxFit.cover),
+                )
               ),
     );
   }
