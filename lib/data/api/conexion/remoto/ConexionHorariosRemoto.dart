@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configServicio.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionHorarios.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionHorarios.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/horarioModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';

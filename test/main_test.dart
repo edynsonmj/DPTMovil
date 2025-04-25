@@ -10,18 +10,54 @@ import 'dart:math';
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/local/ConexionCategoriaLocal.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
+import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
+import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/imagenViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'local/categorias/insertarCategoriaLocal.dart';
 import 'local/categorias/obtenerCategoriasLocal.dart';
 import 'remoto/categorias/insertarCategoriaTest.dart';
 import 'remoto/categorias/listarCategoriaTest.dart';
+import 'remoto/imagenes/obtenerImagenTest.dart';
+import 'remoto/viewModel/categoria/vmGuardarCategoriaTest.dart';
+import 'remoto/viewModel/imagen/vmObtenerImagenTest.dart';
 
 void main() {
-  probarRepositorioCategoriaLocal();
+  //probarRepositorioCategoriaLocal();
+  //probarViewModelImagen();
+  probarViewModelCategoria();
+}
+probarViewModelCategoria(){
+  String ip = "192.168.0.14";
+  CategoriaRepositorio repo = configuracionCategoriaRepositorio(false, ip);
+  CategoriaViewModel vm = CategoriaViewModel();
+  grupoVMCategoriaRegistrar(vm);
+}
+grupoVMCategoriaRegistrar(CategoriaViewModel vm){
+  group('Obtener imagen remota:', () {
+    VmGuardarCategoriaTest test = VmGuardarCategoriaTest();
+    test.prueba1codigo201(vm);
+  });
+}
+
+probarViewModelImagen()async{
+  String ip = "192.168.0.14";
+  Imagenrepositorio repo = configuracionImagenRepositorio(ip);
+  configuracionImagenRepositorio(ip);
+  Imagenviewmodel vm = Imagenviewmodel();
+  grupoVMImagenObtener(vm);
+}
+
+grupoVMImagenObtener(Imagenviewmodel vm){
+  group('Obtener imagen remota:', () {
+    Vmobtenerimagentest test = Vmobtenerimagentest();
+    test.prueba1codigo200(vm);
+  });
 }
 
 probarRepositorioCategoriaLocal() {
@@ -41,6 +77,12 @@ probarRepositorioCategoriaLocal() {
     test.prueba2InsercionRepetida(repositorio);
     test.prueba3InsercionIncompleta(repositorio);
   });
+}
+
+probarRepositorioImagenRemota() {
+  String ip = "192.168.0.14";
+  Imagenrepositorio repo = configuracionImagenRepositorio(ip);
+  grupoObtenerImagenRemota(repo);
 }
 
 probarRepositorioCategoriaRemota() {
@@ -74,6 +116,13 @@ grupoObtenerCateogoriaRemota(CategoriaRepositorio repositorio) {
   });
 }
 
+grupoObtenerImagenRemota(Imagenrepositorio repositorio) {
+  group('Obtener imagen remota:', () {
+    Obtenerimagentest test = Obtenerimagentest();
+    test.prueba1codigo200(repositorio);
+  });
+}
+
 CategoriaRepositorio configuracionCategoriaRepositorio(bool local, String? ip) {
   CategoriaRepositorio repositorio;
   if (local) {
@@ -86,5 +135,15 @@ CategoriaRepositorio configuracionCategoriaRepositorio(bool local, String? ip) {
     ConfigServicio.ip = ip;
     repositorio = CategoriaRepositorio(cliente: ConexionCategoriaRemota());
   }
+  return repositorio;
+}
+
+Imagenrepositorio configuracionImagenRepositorio(String? ip) {
+  Imagenrepositorio repositorio;
+
+  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
+  ConfigServicio.ip = ip;
+  repositorio = Imagenrepositorio(conexion: Conexionimagenremoto());
+
   return repositorio;
 }

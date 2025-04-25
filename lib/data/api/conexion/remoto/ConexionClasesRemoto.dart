@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configServicio.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionClases.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
 import 'package:dpt_movil/data/models/claseModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';

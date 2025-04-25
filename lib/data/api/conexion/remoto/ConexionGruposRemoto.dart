@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configServicio.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionGrupos.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';

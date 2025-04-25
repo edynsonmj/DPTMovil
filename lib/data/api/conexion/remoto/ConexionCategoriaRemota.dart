@@ -1,6 +1,12 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/data/models/imagenModelo.dart';
+import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
+import 'package:flutter/material.dart';
 import 'package:mime/mime.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/models/categoriaModelo.dart';
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
@@ -10,9 +16,9 @@ class ConexionCategoriaRemota implements ConexionCategoria {
   final _dio = Dio(
     BaseOptions(
       baseUrl: ConfigServicio().obtenerBaseApi(),
-      connectTimeout: Duration(seconds: 10),
-      receiveTimeout: Duration(seconds: 10),
-      sendTimeout: Duration(seconds: 10),
+      connectTimeout: Duration(seconds: 20),
+      receiveTimeout: Duration(seconds: 20),
+      sendTimeout: Duration(seconds: 20),
     ),
   );
 
@@ -79,25 +85,27 @@ class ConexionCategoriaRemota implements ConexionCategoria {
   Future<RespuestaModelo> guardarCategoria(categoriaModelo datos) async {
     final String metodo = 'POST';
     late String tipoMime;
-    if (datos.imagenFile != null) {
-      tipoMime = lookupMimeType(datos.imagenFile!.path)!;
-    }
-    //Se crea el formData a enviar
-    FormData formData = FormData.fromMap({
-      'titulo': datos.titulo,
-      'descripcion': datos.descripcion,
-      'imagen':
-          (datos.imagenFile != null)
-              ? (await MultipartFile.fromFile(
-                datos.imagenFile!.path,
-                filename: datos.imagenFile!.path.split('/').last,
-                contentType: DioMediaType.parse(tipoMime),
-              ))
-              : '',
-    });
     try {
+      Conexionimagenremoto conexionImagen = Conexionimagenremoto();
+      //se inserta la imagen
+      RespuestaModelo responseImagen = await conexionImagen.insertarImagenFile(
+        datos.imagenFile!,
+      );
+      if (responseImagen.codigoHttp != 201) {
+        return responseImagen;
+      }
+      ImagenModelo imagen = responseImagen.datos as ImagenModelo;
+      categoriaModelo categoria = categoriaModelo(
+        titulo: datos.titulo,
+        descripcion: datos.descripcion,
+        imagenId: imagen.id,
+      );
       //se hace la peticion con el formdata
-      final response = await _dio.post('/categoriass', data: formData);
+      final response = await _dio.post(
+        '/categoria',
+        data: categoria,
+        options: Options(contentType: ContentType.json.toString()),
+      );
       //Si hay error se retorna una respuesta segun el codigo
       if (response.statusCode != 201) {
         RespuestaModelo.fromResponse(response, metodo);

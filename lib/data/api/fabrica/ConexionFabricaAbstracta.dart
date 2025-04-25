@@ -1,12 +1,13 @@
 import 'package:dpt_movil/config/configServicio.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionAlumnos.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionAtenciones.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionClases.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionCurso.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionEstadisticas.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionGrupos.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionHorarios.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAlumnos.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionHorarios.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionRemotaFabrica.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionLocalFabrica.dart';
 
@@ -32,4 +33,5 @@ abstract class ConexionFabricaAbstracta {
   Conexionalumnos crearConexionAlumnos();
   Conexionclases crearConexionClases();
   Conexionatenciones crearConexionAtenciones();
+  Conexionimagen crearConexionImagenes();
 }

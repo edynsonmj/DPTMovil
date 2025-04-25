@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:mime/mime.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/models/categoriaModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/imagenModelo.dart';
@@ -70,7 +71,7 @@ class ConexionCategoriaLocal implements ConexionCategoria {
       nombre: nombre,
       tipoArchivo: tipoArchivo ?? '',
       longitud: longitud,
-      datos: datos,
+      datos: File("path"),
     );
     //lleno los datos en un tipo de dato que responde el servicio
     categoriaModelo modelo = categoriaModelo(
@@ -186,7 +187,7 @@ class ConexionCategoriaLocal implements ConexionCategoria {
       nombre: nombre,
       tipoArchivo: tipoArchivo ?? '',
       longitud: longitud,
-      datos: datos,
+      datos: File("path"),
     );
     //lleno los datos en un tipo de dato que responde el servicio
     categoriaModelo modelo = categoriaModelo(

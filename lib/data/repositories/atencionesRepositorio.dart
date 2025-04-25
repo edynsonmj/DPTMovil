@@ -1,4 +1,4 @@
-import 'package:dpt_movil/data/api/conexion/ConexionAtenciones.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
 import 'package:dpt_movil/data/models/alumnoModelo.dart';
 import 'package:dpt_movil/data/models/atencionModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';

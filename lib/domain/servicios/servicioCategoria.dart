@@ -1,4 +1,4 @@
-import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';

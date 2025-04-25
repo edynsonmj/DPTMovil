@@ -107,6 +107,7 @@ class _CategoriasViewState extends State<CategoriasView> {
             atrDescripcion: categoria.descripcion,
             atrRutaTarjeta: AppRutas.cursos,
             atrDatosImagen: categoria.imagen?.datos,
+            idImagen: categoria.idImagen,
           ),
         ),
         Positioned(

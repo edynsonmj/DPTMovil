@@ -1,7 +1,7 @@
 //TODO: construir contrato (interface) que sea implementado por un repositorio
 import 'dart:typed_data';
 
-import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/models/categoriaModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/imagenModelo.dart';
@@ -37,8 +37,10 @@ class CategoriaRepositorio {
                     nombre: item.imagen!.nombre,
                     tipoArchivo: item.imagen!.tipoArchivo,
                     longitud: item.imagen!.longitud,
-                    datos: item.imagen!.convertirDeBase64(),
-                  ), //se convierte la imagen a un tipo de dato manejable en el sistema
+                    datos: Uint8List(8),
+                  ),
+          idImagen:
+              item.imagenId, //se convierte la imagen a un tipo de dato manejable en el sistema
         );
         listaEntidad.add(entidad);
       }
@@ -52,11 +54,9 @@ class CategoriaRepositorio {
     categoriaModelo modeloPeticion = categoriaModelo(
       titulo: entidad.titulo,
       descripcion: entidad.descripcion,
+      imagenFile: entidad.imagenFile,
     );
     CategoriaEntidad entidadRespuesta;
-    if (entidad.imagenFile != null) {
-      modeloPeticion.imagenFile = entidad.imagenFile;
-    }
 
     final RespuestaModelo respuesta = await cliente.guardarCategoria(
       modeloPeticion,
@@ -73,16 +73,8 @@ class CategoriaRepositorio {
       entidadRespuesta = CategoriaEntidad(
         titulo: modelo.titulo,
         descripcion: modelo.descripcion,
+        idImagen: modelo.imagenId,
       );
-      if (modelo.imagen != null) {
-        ImagenModelo img = modelo.imagen!;
-        entidadRespuesta.imagen = ImagenEntidad(
-          nombre: img.nombre,
-          tipoArchivo: img.tipoArchivo,
-          longitud: img.longitud,
-          datos: img.convertirDeBase64(),
-        );
-      }
       //escribo los datos transformados
       respuesta.datos = entidadRespuesta;
     }

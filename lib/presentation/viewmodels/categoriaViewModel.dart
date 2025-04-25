@@ -1,3 +1,5 @@
+import 'package:dpt_movil/data/models/errorModelo.dart';
+import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
@@ -93,7 +95,6 @@ class CategoriaViewModel with ChangeNotifier {
     RespuestaModelo? respuesta;
     try {
       respuesta = await servicioCategoria.insertarCategoria(entidad);
-      Navigator.pushNamed(context, AppRutas.categorias);
       if (respuesta != null) {
         if (respuesta.codigoHttp == 201) {
           showDialog(
@@ -147,6 +148,35 @@ class CategoriaViewModel with ChangeNotifier {
             codigo: -1,
           );
         },
+      );
+    }
+  }
+
+  //TODO: Para que sea funcional, hay que poner la logica de error en el formulario, de momento hay que seguir usando guardarCategoria
+  Future<RespuestaModelo> registrarCategoria(CategoriaEntidad entidad) async {
+    RespuestaModelo? respuesta;
+    try {
+      respuesta = await servicioCategoria.insertarCategoria(entidad);
+      if (respuesta.codigoHttp != 201) {
+        return RespuestaModelo(
+          codigoHttp: 0,
+          error: ErrorModelo(
+            codigoHttp: 0,
+            mensaje: "la imagen no pudo ser insertada",
+            url: "registrar categoria",
+            metodo: "POST",
+          ),
+        );
+      }
+      respuesta = await servicioCategoria.insertarCategoria(entidad);
+      return respuesta;
+    } on Exception catch (e) {
+      //_mostrarError(context, "fallo al registrar", null);
+      return RespuestaModelo.fromException(
+        e,
+        "POST",
+        "registro atenciones",
+        "viewmodel",
       );
     }
   }

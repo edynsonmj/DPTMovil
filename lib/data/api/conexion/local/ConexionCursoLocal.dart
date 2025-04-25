@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:dpt_movil/data/api/conexion/ConexionCurso.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
 import 'package:dpt_movil/data/models/cursoModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';

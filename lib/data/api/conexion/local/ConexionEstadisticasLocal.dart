@@ -1,4 +1,4 @@
-import 'package:dpt_movil/data/api/conexion/ConexionEstadisticas.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/estadisticaModelo.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';

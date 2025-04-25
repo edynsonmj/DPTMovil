@@ -1,17 +1,19 @@
-import 'package:dpt_movil/data/api/conexion/ConexionAlumnos.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionAtenciones.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionCategoria.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionClases.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionCurso.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionEstadisticas.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionGrupos.dart';
-import 'package:dpt_movil/data/api/conexion/ConexionHorarios.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAlumnos.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionHorarios.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAlumnosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAtencionesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
 
@@ -55,5 +57,10 @@ class ConexionRemotaFabrica implements ConexionFabricaAbstracta {
   @override
   Conexionatenciones crearConexionAtenciones() {
     return Conexionatencionesremoto();
+  }
+
+  @override
+  Conexionimagen crearConexionImagenes() {
+    return Conexionimagenremoto();
   }
 }
