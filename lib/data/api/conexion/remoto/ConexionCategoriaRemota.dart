@@ -26,7 +26,7 @@ class ConexionCategoriaRemota implements ConexionCategoria {
   Future<RespuestaModelo> encontrarCategorias() async {
     final String metodo = 'GET';
     try {
-      final response = await _dio.get('/categorias');
+      final response = await _dio.get('/categorias2');
       //si el codigo no es 200, generar respuesta segun el codigo recibido
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
@@ -135,7 +135,31 @@ class ConexionCategoriaRemota implements ConexionCategoria {
   }
 
   @override
-  Future<RespuestaModelo> eliminarCategoria(String titulo) {
+  Future<RespuestaModelo> eliminarCategoria(String titulo) async {
+    String metodo = "DELETE";
+    String path = "/categoria?titulo=$titulo";
+    String capa = "CONEXION";
+    try {
+      final response = await _dio.delete(path);
+      if (response.statusCode != 200) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      return RespuestaModelo(codigoHttp: 200);
+    } on DioException catch (excepcion) {
+      return RespuestaModelo.fromDioException(excepcion, metodo);
+    } on Exception catch (exc) {
+      return RespuestaModelo(
+        codigoHttp: 0,
+        datos: null,
+        error: ErrorModelo(
+          codigoHttp: 0,
+          mensaje:
+              'Error fuera de la conexion -$capa-$metodo-$path: ${exc.toString()}',
+          url: '',
+          metodo: metodo,
+        ),
+      );
+    }
     // TODO: implement eliminarCategoria
     throw UnimplementedError();
   }

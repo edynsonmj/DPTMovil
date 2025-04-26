@@ -83,34 +83,6 @@ class CategoriaRepositorio {
 
   Future<RespuestaModelo> eliminarCategoria(String titulo) async {
     RespuestaModelo respuesta = await cliente.eliminarCategoria(titulo);
-    if (respuesta.codigoHttp != 200) {
-      return respuesta;
-    }
-    //Si la peticion es correcta pero no retorna el elemento esperado
-    if (respuesta.datos == null) {
-      respuesta.error = ErrorModelo(
-        codigoHttp: 204,
-        mensaje:
-            'La peticion ha sido correcta pero no ha retornado el contenido esperado',
-        url: '/categoria/$titulo',
-        metodo: 'DELETE',
-      );
-    }
-    //Se ha retornado informacion pero no es del tipo de dato esperado
-    if (respuesta.datos is! categoriaModelo) {
-      respuesta.codigoHttp = 0;
-      respuesta.datos = null;
-      respuesta.error = ErrorModelo(
-        codigoHttp: 0,
-        mensaje:
-            'La operacion ha sido exitosa pero se ha retornado un tipo de dato no esperado',
-        url: 'categoria/$titulo',
-        metodo: 'DELETE',
-      );
-    }
-    categoriaModelo datos = respuesta.datos as categoriaModelo;
-    //Si la peticion es correcta, transformar datos
-    respuesta.datos = CategoriaEntidad.fromModelo(datos);
     return respuesta;
   }
 

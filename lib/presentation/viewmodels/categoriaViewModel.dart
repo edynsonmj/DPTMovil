@@ -243,51 +243,17 @@ class CategoriaViewModel with ChangeNotifier {
     }
   }
 
-  Future<void> eliminarCategoria(String titulo, context) async {
+  Future<RespuestaModelo> eliminarCategoria(String titulo) async {
+    String metodo = "DELETE";
+    String url = "eliminar categoria";
+    String capa = "ViewModel";
     try {
       RespuestaModelo respuesta = await servicioCategoria.eliminarCategoria(
         titulo,
       );
-      //si la respuesta fue exitosa muestra mensaje con la categoria eliminada
-      if (respuesta.codigoHttp == 200) {
-        cargarCategorias(context);
-        notifyListeners();
-        CategoriaEntidad entidad = respuesta.datos as CategoriaEntidad;
-        showDialog(
-          context: context,
-          builder: (context) {
-            return DialogExito(
-              titulo: 'Eliminacion exitosa',
-              mensaje:
-                  'se ha eliminado correctamente la categoria ${entidad.titulo}',
-            );
-          },
-        );
-      } else {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return DialogError(
-              titulo: 'Fallo en eliminacion',
-              mensaje:
-                  respuesta.error?.mensaje ?? 'No hay informacion del error',
-              codigo: respuesta.error?.codigoHttp ?? respuesta.codigoHttp,
-            );
-          },
-        );
-      }
-    } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return DialogError(
-            titulo: 'Error inesperado',
-            mensaje:
-                'Se ha encontrado un error no controlado con definicion: $e',
-            codigo: -1,
-          );
-        },
-      );
+      return respuesta;
+    } on Exception catch (e) {
+      return RespuestaModelo.fromException(e, metodo, url, capa);
     }
   }
 

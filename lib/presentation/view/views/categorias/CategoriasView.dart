@@ -129,35 +129,7 @@ class _CategoriasViewState extends State<CategoriasView> {
           top: 50,
           child: IconButton(
             onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text('Confirmar eliminacion'),
-                    content: Text(
-                      '¿Esta seguro de eliminar la categoria ${categoria.titulo}?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          categoriaViewModel.eliminarCategoria(
-                            categoria.titulo,
-                            context,
-                          );
-                        },
-                        child: Text('Eliminar'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Cancelar'),
-                      ),
-                    ],
-                  );
-                },
-              );
+              _confirmarEliminacion(categoria.titulo);
             },
             icon: Icon(
               Icons.delete,
@@ -173,6 +145,34 @@ class _CategoriasViewState extends State<CategoriasView> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _confirmarEliminacion(String titulo) async {
+    return await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Confirmar eliminacion'),
+          content: Text('¿Esta seguro de eliminar la categoria $titulo?'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await categoriaViewModel.eliminarCategoria(titulo);
+                await categoriaViewModel.cargarCategorias(context);
+              },
+              child: Text('Eliminar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
