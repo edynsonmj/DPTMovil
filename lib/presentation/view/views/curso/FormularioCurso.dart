@@ -254,6 +254,7 @@ class _FormularioCursoState extends State<FormularioCurso> {
           );
         },
       );
+      return;
     }
     if (_formKey.currentState!.validate()) {
       CursoEntidad entidad = CursoEntidad(

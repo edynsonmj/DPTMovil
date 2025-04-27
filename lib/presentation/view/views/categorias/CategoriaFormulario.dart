@@ -97,6 +97,7 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
           );
         },
       );
+      return;
     }
     if (_formKey.currentState!.validate()) {
       CategoriaEntidad entidad = CategoriaEntidad(
