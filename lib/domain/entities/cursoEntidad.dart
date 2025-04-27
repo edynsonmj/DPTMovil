@@ -1,12 +1,15 @@
+import 'dart:io';
+
 import 'package:dpt_movil/data/models/cursoModelo.dart';
 import 'package:dpt_movil/domain/entities/imagenEntidad.dart';
 
 class CursoEntidad {
-  final String nombreCurso;
-  final String nombreDeporte;
-  final String tituloCategoria;
-  final String descripcion;
-  final int? imagen;
+  String nombreCurso;
+  String nombreDeporte;
+  String tituloCategoria;
+  String descripcion;
+  int? imagen;
+  File? imagenFile;
 
   CursoEntidad({
     required this.nombreCurso,
@@ -14,6 +17,7 @@ class CursoEntidad {
     required this.tituloCategoria,
     required this.descripcion,
     this.imagen,
+    this.imagenFile,
   });
 
   factory CursoEntidad.fromModelo(CursoModelo modelo) {
@@ -23,6 +27,7 @@ class CursoEntidad {
       tituloCategoria: modelo.tituloCategoria,
       descripcion: modelo.descripcion,
       imagen: modelo.imagen,
+      imagenFile: modelo.imagenFile,
     );
   }
 }

@@ -1,4 +1,6 @@
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
+import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
+import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
@@ -102,7 +104,16 @@ class _CursosViewState extends State<CursosView> {
       ),
     );
     Widget ajustes = OutlinedButton.icon(
-      onPressed: () {},
+      onPressed: () {
+        Navigator.pushNamed(
+          context,
+          AppRutas.formularioCurso,
+          arguments: Formcursoargumentos(
+            esEdicion: false,
+            categoria: widget.categoria.titulo,
+          ),
+        );
+      },
       label: Text('AGREGAR CURSO'),
       icon: Icon(Icons.add),
     );
@@ -122,28 +133,65 @@ class _CursosViewState extends State<CursosView> {
           itemCount: viewModel.getListaCursos?.length ?? 0,
           itemBuilder: (BuildContext context, int index) {
             final CursoEntidad curso = viewModel.getListaCursos![index];
-            return Center(
-              child: InkWell(
-                child: Tarjeta(
-                  atrDatosImagen: null, //curso.imagen?.datos,
-                  atrTitulo: curso.nombreCurso,
-                  atrInfo1: curso.nombreDeporte,
-                  atrInfo2: curso.tituloCategoria,
-                  atrDescripcion: curso.descripcion,
-                  atrInfoPie: '${(index + 1) * 5} grupos',
-                ),
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    AppRutas.curso,
-                    arguments: curso,
-                  );
-                },
-              ),
-            );
+            return _mostrarTarjeta(curso);
           },
         ),
       ),
+    );
+  }
+
+  Widget _mostrarTarjeta(CursoEntidad curso) {
+    return Stack(
+      children: [
+        Center(
+          child: InkWell(
+            child: Tarjeta(
+              idImagen: curso.imagen,
+              atrTitulo: curso.nombreCurso,
+              atrInfo1: curso.nombreDeporte,
+              atrInfo2: curso.tituloCategoria,
+              atrDescripcion: curso.descripcion,
+            ),
+            onTap: () {
+              Navigator.pushNamed(context, AppRutas.curso, arguments: curso);
+            },
+          ),
+        ),
+        Positioned(
+          right: 30,
+          top: 8,
+          child: IconButton(
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                AppRutas.formularioCurso,
+                arguments: curso,
+              );
+            },
+            icon: EditIcon(),
+          ),
+        ),
+        Positioned(
+          right: 30,
+          top: 50,
+          child: IconButton(
+            onPressed: () {
+              //_confirmarEliminacion(categoria.titulo);
+            },
+            icon: Icon(
+              Icons.delete,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  color: Colors.black,
+                  offset: Offset(2, 2),
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

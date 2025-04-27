@@ -1,9 +1,11 @@
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/clase_grupoArgumentos.dart';
+import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
+import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
@@ -11,8 +13,8 @@ import 'package:dpt_movil/presentation/view/views/Categorias/CategoriasView.dart
 import 'package:dpt_movil/presentation/view/views/alumnos/AlumnoView.dart';
 import 'package:dpt_movil/presentation/view/views/alumnos/alumnosView.dart';
 import 'package:dpt_movil/presentation/view/views/categorias/CategoriaFormulario.dart';
-import 'package:dpt_movil/presentation/view/views/curso.dart';
-import 'package:dpt_movil/presentation/view/views/cursos.dart';
+import 'package:dpt_movil/presentation/view/views/curso/curso.dart';
+import 'package:dpt_movil/presentation/view/views/curso/cursos.dart';
 import 'package:dpt_movil/presentation/view/views/estadisticas/estadisticasGeneralesView.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/grupo.dart';
 import 'package:dpt_movil/presentation/view/views/inscripciones/inscripcionesGeneralesView.dart';
@@ -82,6 +84,12 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case AppRutas.formularioClase:
       Claseentidad datos = settings.arguments as Claseentidad;
       return MaterialPageRoute(builder: (_) => Claseformulario(entidad: datos));
+
+    case AppRutas.formularioCurso:
+      Formcursoargumentos datos = settings.arguments as Formcursoargumentos;
+      return MaterialPageRoute(
+        builder: (_) => FormularioCurso(argumentos: datos),
+      );
 
     default:
       return MaterialPageRoute(builder: (_) => Page1());

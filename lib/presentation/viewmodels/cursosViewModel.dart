@@ -31,6 +31,11 @@ class CursosViewModel with ChangeNotifier {
     }
   }
 
+  Future<RespuestaModelo> agregarCurso(CursoEntidad entidad) async {
+    RespuestaModelo respuesta = await servicioCurso.insertarCurso(entidad);
+    return respuesta;
+  }
+
   Future<void> listarTodosCursos(context) async {
     RespuestaModelo? respuesta;
     _listaCursos = [];

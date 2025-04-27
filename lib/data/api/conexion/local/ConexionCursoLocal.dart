@@ -4,7 +4,7 @@ import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
 import 'package:dpt_movil/data/models/cursoModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
-import 'package:dpt_movil/presentation/view/views/curso.dart';
+import 'package:dpt_movil/presentation/view/views/curso/curso.dart';
 
 class ConexionCursoLocal implements ConexionCurso {
   String data = '''

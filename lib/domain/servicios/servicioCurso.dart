@@ -29,4 +29,8 @@ class ServicioCurso {
   Future<RespuestaModelo> obtenerCurso(String categoria, String curso) async {
     return await repositorio.obtenerCurso(categoria, curso);
   }
+
+  Future<RespuestaModelo> insertarCurso(CursoEntidad entidad) async {
+    return await repositorio.guardaCurso(entidad);
+  }
 }

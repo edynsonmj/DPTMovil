@@ -81,4 +81,16 @@ class CursoRepositorio {
     respuesta.datos = entidad;
     return respuesta;
   }
+
+  Future<RespuestaModelo> guardaCurso(CursoEntidad entidad) async {
+    CursoModelo modeloPeticion = CursoModelo.fromEntidad(entidad);
+    RespuestaModelo respuesta = await cliente.agregarCurso(modeloPeticion);
+    if (respuesta.codigoHttp == 201) {
+      CursoEntidad entidadRespuesta = CursoEntidad.fromModelo(
+        respuesta.datos as CursoModelo,
+      );
+      respuesta.datos = entidadRespuesta;
+    }
+    return respuesta;
+  }
 }

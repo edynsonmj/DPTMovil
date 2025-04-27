@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/models/cursoModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
+import 'package:dpt_movil/data/models/imagenModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
+import 'package:flutter/material.dart';
 
 class ConexionCursoRemoto implements ConexionCurso {
   final _dio = Dio(BaseOptions(baseUrl: ConfigServicio().obtenerBaseApi()));
@@ -55,9 +60,42 @@ class ConexionCursoRemoto implements ConexionCurso {
   }
 
   @override
-  Future<RespuestaModelo> agregarCurso(CursoModelo curso) {
-    // TODO: implement agregarCurso
-    throw UnimplementedError();
+  Future<RespuestaModelo> agregarCurso(CursoModelo curso) async {
+    String path = "/curso";
+    String metodo = "POST";
+    String capa = "Conexion";
+    try {
+      Conexionimagenremoto conexionImagen = Conexionimagenremoto();
+      //se inserta la imagen
+      RespuestaModelo responseImagen = await conexionImagen.insertarImagenFile(
+        curso.imagenFile!,
+      );
+      if (responseImagen.codigoHttp != 201) {
+        return responseImagen;
+      }
+      ImagenModelo imagen = responseImagen.datos as ImagenModelo;
+      curso.imagen = imagen.id;
+      final response = await _dio.post(
+        path,
+        data: curso,
+        options: Options(contentType: ContentType.json.toString()),
+      );
+      if (response.statusCode != 201) {
+        RespuestaModelo.fromResponse(response, metodo);
+      }
+      CursoModelo respuesta = CursoModelo.fromJson(response.data);
+      return RespuestaModelo(
+        codigoHttp: response.statusCode!,
+        datos: respuesta,
+      );
+    } on DioException catch (dioExc) {
+      //Se ha generado un error en la peticion, generar respuesta segun tipo de excepcion
+      return RespuestaModelo.fromDioException(dioExc, metodo);
+    } on FormatException catch (exception) {
+      return RespuestaModelo.fromFormatException(exception, metodo, path, capa);
+    } on Exception catch (exception) {
+      return RespuestaModelo.fromException(exception, metodo, path, capa);
+    }
   }
 
   @override
