@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:dpt_movil/config/configServicio.dart';
+import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dpt_movil/config/convertFile.dart';
@@ -84,10 +86,23 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
   }
 
   void _submitForm() {
+    if (_imagen == null && _categoria?.idImagen == null) {
+      showDialog(
+        context: context,
+        builder: (_) {
+          return DialogError(
+            titulo: "Falta informacion",
+            mensaje: "Carga una imagen por favor",
+            codigo: 0,
+          );
+        },
+      );
+    }
     if (_formKey.currentState!.validate()) {
       CategoriaEntidad entidad = CategoriaEntidad(
         titulo: _tituloController.text,
         descripcion: _descripcionController.text,
+        idImagen: _categoria?.idImagen,
       );
 
       if (_imagen != null) {
@@ -228,11 +243,22 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
   }
 
   Widget _mostrarImagen() {
-    if (_imagen == null) {
+    //hay id -> existe imagen
+    //hay file -> se ha cargado o modificado
+    if (_categoria?.idImagen == null && _imagen == null) {
       return Text('No se ha seleccionado ninguna imagen');
     }
-
-    Image img = Image.file(this._imagen!, fit: BoxFit.cover);
+    Image img;
+    //Si hay imagen en a cargar
+    if (_categoria?.idImagen != null && _imagen == null) {
+      String basepath = ConfigServicio().obtenerBaseApi();
+      img = Image.network(
+        '$basepath/imagenStream?idImagen=${_categoria?.idImagen}',
+        fit: BoxFit.cover,
+      );
+    } else {
+      img = Image.file(_imagen!, fit: BoxFit.cover);
+    }
 
     Container contenedor = Container(height: 300, child: img);
 
@@ -249,6 +275,6 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
       ),
     );
 
-    return Stack(children: [contenedor, posicion]);
+    return Stack(children: [contenedor]);
   }
 }

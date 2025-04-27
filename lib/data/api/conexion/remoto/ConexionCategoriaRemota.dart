@@ -82,6 +82,56 @@ class ConexionCategoriaRemota implements ConexionCategoria {
   }
 
   @override
+  Future<RespuestaModelo> actualizarCategoria(categoriaModelo categoria) async {
+    String path = "/categoria?titulo=${categoria.titulo}";
+    String metodo = "PUT";
+    String capa = "conexion";
+    Conexionimagenremoto conexionImagen = Conexionimagenremoto();
+    try {
+      //hay cambio en la imagen, insertar imagen antes de continuar
+      if (categoria.imagenFile != null) {
+        Conexionimagenremoto conexionImagen = Conexionimagenremoto();
+        //se inserta la imagen
+        RespuestaModelo responseImagen = await conexionImagen
+            .insertarImagenFile(categoria.imagenFile!);
+        //si falla retone inmediatamente el error antes de continuar
+        if (responseImagen.codigoHttp != 201) {
+          return responseImagen;
+        }
+        ImagenModelo imagenModelo = responseImagen.datos as ImagenModelo;
+        categoria.imagenId = imagenModelo.id;
+      }
+      final response = await _dio.put(
+        path,
+        data: categoria,
+        options: Options(contentType: ContentType.json.toString()),
+      );
+      if (response.statusCode != 200) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      categoriaModelo respuesta = categoriaModelo.fromJson(response.data);
+      return RespuestaModelo(codigoHttp: 200, datos: respuesta);
+    } on DioException catch (dioExc) {
+      //Se ha generado un error en la peticion, generar respuesta segun tipo de excepcion
+      return RespuestaModelo.fromDioException(dioExc, metodo);
+    } on FormatException catch (format) {
+      return RespuestaModelo.fromFormatException(format, metodo, path, capa);
+    } on Exception catch (exc) {
+      //se ha generado un error desconocido
+      return RespuestaModelo(
+        codigoHttp: 0,
+        datos: null,
+        error: ErrorModelo(
+          codigoHttp: 0,
+          mensaje: 'Error fuera de la conexion: ${exc.toString()}',
+          url: '',
+          metodo: metodo,
+        ),
+      );
+    }
+  }
+
+  @override
   Future<RespuestaModelo> guardarCategoria(categoriaModelo datos) async {
     final String metodo = 'POST';
     late String tipoMime;
@@ -160,13 +210,5 @@ class ConexionCategoriaRemota implements ConexionCategoria {
         ),
       );
     }
-    // TODO: implement eliminarCategoria
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<RespuestaModelo> actualizarCategoria(categoriaModelo categoria) {
-    // TODO: implement actualizarCategoria
-    throw UnimplementedError();
   }
 }

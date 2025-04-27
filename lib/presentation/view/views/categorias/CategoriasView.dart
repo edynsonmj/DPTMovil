@@ -82,11 +82,6 @@ class _CategoriasViewState extends State<CategoriasView> {
       itemCount: viewModel.categorias?.length ?? 0,
       itemBuilder: (context, index) {
         final CategoriaEntidad categoria = viewModel.categorias![index];
-        if (categoria.imagen != null) {
-          print('este tiene datos');
-        } else {
-          print('sin datos');
-        }
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [mostrarTarjeta(categoria)],

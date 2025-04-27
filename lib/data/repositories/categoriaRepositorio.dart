@@ -90,6 +90,7 @@ class CategoriaRepositorio {
     categoriaModelo modeloPeticion = categoriaModelo(
       titulo: entidad.titulo,
       descripcion: entidad.descripcion,
+      imagenId: entidad.idImagen,
     );
     CategoriaEntidad entidadRespuesta;
     if (entidad.imagenFile != null) {
