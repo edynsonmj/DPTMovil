@@ -3,6 +3,7 @@ import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionDeporte.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionHorarios.dart';
@@ -61,6 +62,12 @@ class ConexionLocalFabrica implements ConexionFabricaAbstracta {
   @override
   Conexionimagen crearConexionImagenes() {
     // TODO: implement crearConexionImagenes
+    throw UnimplementedError();
+  }
+
+  @override
+  Conexiondeporte crearConexionDeporte() {
+    // TODO: implement crearConexionDeporte
     throw UnimplementedError();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/imagenViewModel.dart';
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => Atencionviewmodel()),
         ChangeNotifierProvider(create: (_) => Clasesviewmodel()),
         ChangeNotifierProvider(create: (_) => Imagenviewmodel()),
+        ChangeNotifierProvider(create: (_) => Deporteviewmodel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

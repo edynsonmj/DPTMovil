@@ -1,11 +1,14 @@
 import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
+import 'package:dpt_movil/config/theme/tipografia.dart';
+import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

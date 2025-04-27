@@ -3,6 +3,7 @@ import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionDeporte.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionHorarios.dart';
@@ -11,6 +12,7 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionAlumnosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAtencionesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionDeporteRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
@@ -62,5 +64,10 @@ class ConexionRemotaFabrica implements ConexionFabricaAbstracta {
   @override
   Conexionimagen crearConexionImagenes() {
     return Conexionimagenremoto();
+  }
+
+  @override
+  Conexiondeporte crearConexionDeporte() {
+    return Conexiondeporteremoto();
   }
 }

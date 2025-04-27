@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
+import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
@@ -10,6 +11,7 @@ import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -25,6 +27,9 @@ class FormularioCurso extends StatefulWidget {
 }
 
 class _FormularioCursoState extends State<FormularioCurso> {
+  String? _deporte;
+  Future<RespuestaModelo>? _futureDeportes;
+
   final CursosViewModel _vmCurso = CursosViewModel();
   late Formcursoargumentos _estado;
   late bool _esEdicion;
@@ -39,6 +44,8 @@ class _FormularioCursoState extends State<FormularioCurso> {
   @override
   void initState() {
     super.initState();
+    Deporteviewmodel vmDeporte = Deporteviewmodel();
+    _futureDeportes = vmDeporte.obtenerDeportes();
     _estado = widget.argumentos;
     _esEdicion = widget.argumentos.esEdicion;
     _nombreController.value =
@@ -83,8 +90,8 @@ class _FormularioCursoState extends State<FormularioCurso> {
           child: Column(
             children: [
               _inputNombre(),
-              _inputDeporte(),
               _inputDescripcion(),
+              _inputComboDeporte(),
               _inputImagen(),
               _acciones(),
             ],
@@ -104,37 +111,6 @@ class _FormularioCursoState extends State<FormularioCurso> {
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Ingrese el nombre del curso';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _inputDeporte() {
-    return TextFormField(
-      controller: _deporteController,
-      maxLines: 1,
-      minLines: 1,
-      decoration: InputDecoration(label: Text('Deporte')),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Ingrese el deporte';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _inputCategoria() {
-    return TextFormField(
-      controller: _categoriaController,
-      maxLines: 1,
-      minLines: 1,
-      enabled: false,
-      decoration: InputDecoration(label: Text('categoria')),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '';
         }
         return null;
       },
@@ -171,6 +147,86 @@ class _FormularioCursoState extends State<FormularioCurso> {
         ],
       ),
     );
+  }
+
+  Widget _inputComboDeporte() {
+    if (_futureDeportes == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+    return FutureBuilder(
+      future: _futureDeportes,
+      builder: (context, promesa) {
+        if (promesa.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (promesa.hasError) {
+          return Text(
+            'Error: ${promesa.error}',
+            style: Tipografia.cuerpo1(color: ColorTheme.error),
+          );
+        } else if (!promesa.hasData) {
+          return Text(
+            'Sin información',
+            style: Tipografia.cuerpo1(color: ColorTheme.error),
+          );
+        }
+
+        if (promesa.data!.codigoHttp != 200) {
+          return Text(
+            'No se logró obtener información: ${promesa.data!.codigoHttp} - ${promesa.data!.error?.mensaje}',
+            style: Tipografia.cuerpo1(color: ColorTheme.error),
+          );
+        }
+
+        if (promesa.data!.datos is! List) {
+          return Text(
+            'Información en formato erróneo',
+            style: Tipografia.cuerpo1(color: ColorTheme.error),
+          );
+        }
+
+        try {
+          List<dynamic> listaDynamic = promesa.data!.datos;
+          List<String> lista = listaDynamic.cast<String>();
+          if (lista.isEmpty) {
+            return Text(
+              '¡No hay deportes aún!',
+              style: Tipografia.cuerpo1(color: ColorTheme.secondaryDark),
+            );
+          }
+          return _mostrarDropdown(lista);
+        } catch (e) {
+          return Text(
+            'Información no compatible en la vista',
+            style: Tipografia.cuerpo1(color: ColorTheme.error),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _mostrarDropdown(List<String> lista) {
+    List<DropdownMenuEntry> entradas = cargarEntradas(lista);
+    DropdownMenu menu = DropdownMenu(
+      hintText: 'seleccione...',
+      textAlign: TextAlign.center,
+      width: double.infinity,
+      menuHeight: 300,
+      dropdownMenuEntries: entradas,
+      onSelected: (seleccion) {
+        setState(() {
+          _deporte = seleccion;
+        });
+      },
+    );
+    return Padding(padding: EdgeInsets.symmetric(vertical: 15), child: menu);
+  }
+
+  List<DropdownMenuEntry> cargarEntradas(List<String> lista) {
+    List<DropdownMenuEntry> entradas = [];
+    for (String item in lista) {
+      entradas.add(DropdownMenuEntry(value: item, label: item));
+    }
+    return entradas;
   }
 
   Widget _mostrarImagen() {
@@ -243,6 +299,19 @@ class _FormularioCursoState extends State<FormularioCurso> {
   }
 
   Future<void> _submitForm(context) async {
+    if (_deporte == null) {
+      showDialog(
+        context: context,
+        builder: (_) {
+          return DialogError(
+            titulo: "Falta informacion",
+            mensaje: "Selecciona un deporte por favor",
+            codigo: 0,
+          );
+        },
+      );
+      return;
+    }
     if (_imagen == null && _estado.curso?.imagen == null) {
       showDialog(
         context: context,
@@ -259,7 +328,7 @@ class _FormularioCursoState extends State<FormularioCurso> {
     if (_formKey.currentState!.validate()) {
       CursoEntidad entidad = CursoEntidad(
         nombreCurso: _nombreController.text,
-        nombreDeporte: _deporteController.text,
+        nombreDeporte: _deporte!,
         tituloCategoria: _categoriaController.text,
         descripcion: _descripcionController.text,
         imagen: _estado.curso?.imagen,
