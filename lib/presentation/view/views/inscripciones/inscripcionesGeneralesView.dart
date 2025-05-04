@@ -41,7 +41,7 @@ class _InscripcionesGeneralesState extends State<InscripcionesGeneralesView> {
     categoriaViewModel = Provider.of<CategoriaViewModel>(context);
     return Scaffold(
       appBar: Bar(title: 'Inscripciones'),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
       body: contenedorSeguro(context),
     );
   }

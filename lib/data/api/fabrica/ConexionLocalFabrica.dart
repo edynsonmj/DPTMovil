@@ -1,5 +1,6 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAlumnos.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAutenticacion.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
@@ -68,6 +69,12 @@ class ConexionLocalFabrica implements ConexionFabricaAbstracta {
   @override
   Conexiondeporte crearConexionDeporte() {
     // TODO: implement crearConexionDeporte
+    throw UnimplementedError();
+  }
+
+  @override
+  Conexionautenticacion crearConexionAutenticacion() {
+    // TODO: implement crearConexionAutenticacion
     throw UnimplementedError();
   }
 }

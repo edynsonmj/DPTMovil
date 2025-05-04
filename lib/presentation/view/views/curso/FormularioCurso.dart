@@ -72,7 +72,7 @@ class _FormularioCursoState extends State<FormularioCurso> {
                 ? 'Editar curso: ${widget.argumentos.curso!.nombreCurso}'
                 : 'Agregar curso',
       ),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
       body: _contenedorSeguro(context),
     );
   }

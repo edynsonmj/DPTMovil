@@ -3,6 +3,7 @@ import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/clase_grupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
+import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionView.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
@@ -90,6 +91,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (_) => FormularioCurso(argumentos: datos),
       );
+
+    case AppRutas.autenticacionRegistro:
+      return MaterialPageRoute(builder: (_) => Autenticacionview());
 
     default:
       return MaterialPageRoute(builder: (_) => Page1());

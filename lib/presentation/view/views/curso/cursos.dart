@@ -1,6 +1,8 @@
+import 'package:dpt_movil/config/routes/roles.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
 import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
+import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
@@ -46,7 +48,7 @@ class _CursosViewState extends State<CursosView> {
         if (_scrollController.hasClients) {
           _scrollController.animateTo(
             // Ajusta este valor según la altura de tarjeta
-            index * 400,
+            index * 330,
             duration: Duration(seconds: 1),
             curve: Curves.easeInOut,
           );
@@ -77,55 +79,73 @@ class _CursosViewState extends State<CursosView> {
     cursosViewModel = viewModel;
     return Scaffold(
       appBar: Bar(title: 'Cursos de ${widget.categoria.titulo}'),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context) => Menulateral()),
       body: contenedorSeguro(context, viewModel),
     );
   }
 
   ///Contenido de la vista, donde se evita que los elementos se sobrepongan sobre elementos de la interfaz del dispositivo
-  SafeArea contenedorSeguro(BuildContext context, CursosViewModel viewModel) {
-    //orientacion del dispositivo
-    final Orientation orientacion = MediaQuery.of(context).orientation;
-    //primera seccion de la pantalla
-    Container contenidoEstatico = Container(
-      margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          filtro(viewModel),
-          TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, AppRutas.InscripcionesGenerales);
-            },
-            child: Text('INSCRIPCIONES'),
+  Widget contenedorSeguro(BuildContext context, CursosViewModel viewModel) {
+    return Consumer<AutenticacionViewModel>(
+      builder: (context, vm, _) {
+        //orientacion del dispositivo
+        final Orientation orientacion = MediaQuery.of(context).orientation;
+        //primera seccion de la pantalla
+        Container contenidoEstatico = Container(
+          margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              filtro(viewModel),
+              if (vm.perfilSesion?.role == Roles.coordinador)
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      AppRutas.InscripcionesGenerales,
+                    );
+                  },
+                  child: Text('INSCRIPCIONES'),
+                ),
+            ],
           ),
-        ],
-      ),
-    );
-    Widget ajustes = OutlinedButton.icon(
-      onPressed: () {
-        Navigator.pushNamed(
-          context,
-          AppRutas.formularioCurso,
-          arguments: Formcursoargumentos(
-            esEdicion: false,
-            categoria: widget.categoria.titulo,
+        );
+        Widget ajustes = OutlinedButton.icon(
+          onPressed: () {
+            Navigator.pushNamed(
+              context,
+              AppRutas.formularioCurso,
+              arguments: Formcursoargumentos(
+                esEdicion: false,
+                categoria: widget.categoria.titulo,
+              ),
+            );
+          },
+          label: Text('AGREGAR CURSO'),
+          icon: Icon(Icons.add),
+        );
+        //elementos de la vista sobre las cuales se puede hacer scroll
+        Expanded listaItems = componenteLista(orientacion, viewModel, vm);
+        //encapsulo todo en safeArea
+        return SafeArea(
+          child: Column(
+            children: [
+              contenidoEstatico,
+              if (vm.perfilSesion?.role == Roles.coordinador) ajustes,
+              listaItems,
+            ],
           ),
         );
       },
-      label: Text('AGREGAR CURSO'),
-      icon: Icon(Icons.add),
-    );
-    //elementos de la vista sobre las cuales se puede hacer scroll
-    Expanded listaItems = componenteLista(orientacion, viewModel);
-    //encapsulo todo en safeArea
-    return SafeArea(
-      child: Column(children: [contenidoEstatico, ajustes, listaItems]),
     );
   }
 
-  Expanded componenteLista(Orientation orientacion, CursosViewModel viewModel) {
+  Expanded componenteLista(
+    Orientation orientacion,
+    CursosViewModel viewModel,
+    AutenticacionViewModel vm,
+  ) {
     return Expanded(
       child: Center(
         child: ListView.builder(
@@ -133,14 +153,14 @@ class _CursosViewState extends State<CursosView> {
           itemCount: viewModel.getListaCursos?.length ?? 0,
           itemBuilder: (BuildContext context, int index) {
             final CursoEntidad curso = viewModel.getListaCursos![index];
-            return _mostrarTarjeta(curso);
+            return _mostrarTarjeta(curso, vm);
           },
         ),
       ),
     );
   }
 
-  Widget _mostrarTarjeta(CursoEntidad curso) {
+  Widget _mostrarTarjeta(CursoEntidad curso, AutenticacionViewModel vm) {
     return Stack(
       children: [
         Center(
@@ -153,11 +173,13 @@ class _CursosViewState extends State<CursosView> {
               atrDescripcion: curso.descripcion,
             ),
             onTap: () {
-              Navigator.pushNamed(context, AppRutas.curso, arguments: curso);
+              if (vm.perfilSesion?.role == Roles.coordinador) {
+                Navigator.pushNamed(context, AppRutas.curso, arguments: curso);
+              }
             },
           ),
         ),
-        Positioned(
+        /*Positioned(
           right: 30,
           top: 8,
           child: IconButton(
@@ -190,7 +212,7 @@ class _CursosViewState extends State<CursosView> {
               ],
             ),
           ),
-        ),
+        ),*/
       ],
     );
   }

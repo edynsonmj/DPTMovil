@@ -51,7 +51,7 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Bar(title: 'Estadisticas generales'),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
       body: Consumer<EstadisticasViewModel>(
         builder: (context, viewModel, child) {
           return _contenedorSeguro(viewModel);

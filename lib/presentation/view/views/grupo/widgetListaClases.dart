@@ -64,7 +64,6 @@ class _WidgetlistaclasesState extends State<Widgetlistaclases> {
         Text('Clases', style: Tipografia.h6()),
         OutlinedButton.icon(
           onPressed: () async {
-            print("hola");
             Claseentidad entidad = Claseentidad(
               idGrupoCategoria: widget.grupo.categoria,
               idGrupoCurso: widget.grupo.curso,

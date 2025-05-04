@@ -80,7 +80,7 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
         title:
             '${(_categoria == null) ? "Insertar Categoria" : "Editar " + (_categoria!.titulo)}',
       ),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
       body: contenedorSeguro(context),
     );
   }

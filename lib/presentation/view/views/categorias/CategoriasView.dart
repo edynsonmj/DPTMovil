@@ -1,7 +1,8 @@
+import 'package:dpt_movil/config/routes/roles.dart';
+import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
-import 'package:dpt_movil/presentation/view/views/categorias/CategoriaFormulario.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
@@ -37,11 +38,10 @@ class _CategoriasViewState extends State<CategoriasView> {
 
   @override
   Widget build(BuildContext context) {
-    //accedemos al provider para usar los datos
-    //categoriaViewModel = Provider.of<CategoriaViewModel>(context, listen: true);
     return Scaffold(
       appBar: Bar(title: 'Categorias'),
-      drawer: Menulateral(),
+      //Bar(title: 'Categorias'),
+      drawer: Builder(builder: (context) => Menulateral()),
       //body: contenedorSeguro(categoriaViewModel)
       body: Consumer<CategoriaViewModel>(
         builder: (context, viewModel, child) {
@@ -91,55 +91,65 @@ class _CategoriasViewState extends State<CategoriasView> {
   }
 
   Widget mostrarTarjeta(CategoriaEntidad categoria) {
-    return Stack(
-      children: [
-        InkWell(
-          onTap: () {
-            Navigator.pushNamed(context, AppRutas.cursos, arguments: categoria);
-          },
-          child: Tarjeta(
-            atrTitulo: categoria.titulo,
-            atrDescripcion: categoria.descripcion,
-            atrRutaTarjeta: AppRutas.cursos,
-            atrDatosImagen: categoria.imagen?.datos,
-            idImagen: categoria.idImagen,
-          ),
-        ),
-        Positioned(
-          right: 8,
-          top: 8,
-          child: IconButton(
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                AppRutas.editarCategoria,
-                arguments: categoria,
-              );
-            },
-            icon: EditIcon(),
-          ),
-        ),
-        Positioned(
-          right: 8,
-          top: 50,
-          child: IconButton(
-            onPressed: () {
-              _confirmarEliminacion(categoria.titulo);
-            },
-            icon: Icon(
-              Icons.delete,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  color: Colors.black,
-                  offset: Offset(2, 2),
-                  blurRadius: 5,
-                ),
-              ],
+    return Consumer<AutenticacionViewModel>(
+      builder: (context, vm, _) {
+        return Stack(
+          children: [
+            InkWell(
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRutas.cursos,
+                  arguments: categoria,
+                );
+              },
+              child: Tarjeta(
+                atrTitulo: categoria.titulo,
+                atrDescripcion: categoria.descripcion,
+                atrRutaTarjeta: AppRutas.cursos,
+                atrDatosImagen: categoria.imagen?.datos,
+                idImagen: categoria.idImagen,
+              ),
             ),
-          ),
-        ),
-      ],
+            if (vm.perfilSesion?.role == Roles.coordinador)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      AppRutas.editarCategoria,
+                      arguments: categoria,
+                    );
+                  },
+                  icon: EditIcon(),
+                ),
+              ),
+            if (vm.perfilSesion?.role == Roles.coordinador)
+              Positioned(
+                right: 8,
+                top: 50,
+                child: IconButton(
+                  onPressed: () {
+                    _confirmarEliminacion(categoria.titulo);
+                  },
+                  icon: Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black,
+                        offset: Offset(2, 2),
+                        blurRadius: 5,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 

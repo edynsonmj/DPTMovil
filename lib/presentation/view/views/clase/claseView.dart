@@ -50,7 +50,7 @@ class _ClaseviewState extends State<Claseview> {
         title:
             '${widget.grupo.curso} ${widget.grupo.anio}.${widget.grupo.iterable}',
       ),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
       body: contenedorSeguro(context),
     );
   }

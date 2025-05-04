@@ -24,4 +24,20 @@ class Gruporepositorio {
     respuesta.datos = listEntidad;
     return respuesta;
   }
+
+  Future<RespuestaModelo> listarGruposDisponiblesInscripcion() async {
+    final RespuestaModelo respuesta =
+        await conexion.obtenerGruposInscripcionDisponible();
+    if (respuesta.codigoHttp != 200) {
+      return respuesta;
+    }
+    List<GrupoModelo> listaModelo = respuesta.datos as List<GrupoModelo>;
+    List<Grupoentidad> listEntidad = [];
+    for (GrupoModelo item in listaModelo) {
+      Grupoentidad entidad = Grupoentidad.fromModelo(item);
+      listEntidad.add(entidad);
+    }
+    respuesta.datos = listEntidad;
+    return respuesta;
+  }
 }

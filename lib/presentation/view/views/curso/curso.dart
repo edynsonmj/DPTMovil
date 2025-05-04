@@ -21,7 +21,7 @@ class Curso extends StatelessWidget {
     return Scaffold(
       appBar: Bar(title: 'Curso: ${curso.nombreCurso}'),
       body: contenedorSeguro(context),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
     );
   }
 

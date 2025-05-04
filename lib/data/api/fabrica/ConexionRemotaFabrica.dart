@@ -1,5 +1,6 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAlumnos.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAutenticacion.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
@@ -69,5 +70,11 @@ class ConexionRemotaFabrica implements ConexionFabricaAbstracta {
   @override
   Conexiondeporte crearConexionDeporte() {
     return Conexiondeporteremoto();
+  }
+
+  @override
+  Conexionautenticacion crearConexionAutenticacion() {
+    //return ConexionCategoriaRemota();
+    throw UnimplementedError();
   }
 }

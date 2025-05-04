@@ -25,7 +25,7 @@ class _AlumnoState extends State<Alumnoview> {
     // TODO: implement build
     return Scaffold(
       appBar: Bar(title: widget.alumno),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
       body: contenedorSeguro(),
     );
   }

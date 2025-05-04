@@ -39,7 +39,7 @@ class _ClaseFormularioState extends State<Claseformulario> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Bar(title: 'Agregar clase'),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
       body: contenedorSeguro(context),
     );
   }

@@ -6,4 +6,6 @@ abstract class Conexiongrupos {
     String categoriaTitulo,
     String nombreCurso,
   );
+
+  Future<RespuestaModelo> obtenerGruposInscripcionDisponible();
 }

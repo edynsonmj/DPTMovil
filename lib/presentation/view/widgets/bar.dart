@@ -1,6 +1,8 @@
+import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
+import 'package:provider/provider.dart';
 
 class Bar extends StatelessWidget implements PreferredSizeWidget {
   String title;
@@ -10,20 +12,20 @@ class Bar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
+      //manejo manual del leading, condicional para verificar que es posible retornar
       leading:
-          //manejo manual del leading, condicional para verificar que es posible retornar
           ModalRoute.of(context)?.canPop == true
-              //si se puede retornar muestre el boton de retorno
-              ? BackButton()
+              ? const BackButton() //si se puede retornar muestre el boton de retorno
               : null,
       title: Text(title, style: Tipografia.h5(color: ColorTheme.primary)),
       centerTitle: true,
       actions: [
         IconButton(
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-            icon: Icon(Icons.menu))
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+          icon: Icon(Icons.menu),
+        ),
       ],
     );
   }

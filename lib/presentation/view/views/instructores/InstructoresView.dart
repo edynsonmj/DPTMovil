@@ -22,7 +22,7 @@ class _AlumnosState extends State<Instructoresview> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Bar(title: 'Instructores'),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
       body: contenedorSeguro(),
     );
   }

@@ -134,11 +134,11 @@ class RespuestaModelo {
         );
       default:
         return RespuestaModelo(
-          codigoHttp: 0,
+          codigoHttp: excepcion.response?.statusCode ?? 0,
           datos: null,
           error: ErrorModelo(
-            codigoHttp: 0,
-            mensaje: 'Error desconocido: ${excepcion.message}',
+            codigoHttp: excepcion.response?.statusCode ?? 0,
+            mensaje: '${excepcion.message}',
             url: url,
             metodo: metodo,
           ),

@@ -33,50 +33,30 @@ class Gruposviewmodel with ChangeNotifier {
         _listaGrupos = respuesta.datos as List<Grupoentidad>;
         return Future.value(_listaGrupos);
       } else {
-        /*_mostrarError(
-          context,
-          "datos inconsistentes",
-          ErrorModelo(
-            codigoHttp: 406,
-            mensaje:
-                'no se ha obtenido una lista de tipo entidad para cargar los datos',
-            url: "gruposdecurso",
-            metodo: "GET",
-          ),
-        );*/
         return Future.value([]);
       }
     } catch (e) {
-      /*_mostrarError(
-        context,
-        'excepcion no controlada',
-        ErrorModelo(
-          codigoHttp: 0,
-          mensaje: e.toString(),
-          url: 'GruposDecurso',
-          metodo: 'GET',
-        ),
-      );*/
       return Future.value([]);
     }
   }
 
-  void _mostrarError(context, String titulo, ErrorModelo? error) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return (error != null)
-            ? DialogError(
-              titulo: titulo,
-              mensaje: error.mensaje,
-              codigo: error.codigoHttp,
-            )
-            : DialogError(
-              titulo: 'Error sin informacion',
-              mensaje: "Se desconoce el error",
-              codigo: 0,
-            );
-      },
-    );
+  Future<void> listarGruposDisponiblesInscripcion() async {
+    RespuestaModelo? respuesta;
+    _listaGrupos = [];
+    try {
+      respuesta = await serviciogrupo.listarGruposDisponiblesInscripcion();
+      if (respuesta.codigoHttp != 200) {
+        notifyListeners();
+        return;
+      }
+      if (respuesta.datos is List<Grupoentidad>) {
+        _listaGrupos = respuesta.datos as List<Grupoentidad>;
+        notifyListeners();
+        return;
+      }
+      notifyListeners();
+    } catch (e) {
+      notifyListeners();
+    }
   }
 }

@@ -14,4 +14,8 @@ class Serviciogrupo {
   Future<RespuestaModelo> listarGruposDe(String categoria, String curso) {
     return repositorio.listarGruposDe(categoria, curso);
   }
+
+  Future<RespuestaModelo> listarGruposDisponiblesInscripcion() {
+    return repositorio.listarGruposDisponiblesInscripcion();
+  }
 }

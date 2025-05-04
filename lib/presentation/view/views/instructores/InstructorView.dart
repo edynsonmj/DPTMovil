@@ -22,7 +22,7 @@ class _InstructorState extends State<Instructorview> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Bar(title: widget.instructor),
-      drawer: Menulateral(),
+      drawer: Builder(builder: (context)=> Menulateral()),
       body: contenedorSeguro(),
     );
   }
