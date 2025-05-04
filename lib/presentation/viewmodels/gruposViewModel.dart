@@ -8,6 +8,12 @@ import 'package:flutter/material.dart';
 class Gruposviewmodel with ChangeNotifier {
   late final Serviciogrupo serviciogrupo;
 
+  bool _cargando = false;
+  bool get cargando => _cargando;
+
+  String? _error;
+  String? get error => _error;
+
   //objeto que conserva listado de grupos
   List<Grupoentidad>? _listaGrupos;
 
@@ -41,21 +47,35 @@ class Gruposviewmodel with ChangeNotifier {
   }
 
   Future<void> listarGruposDisponiblesInscripcion() async {
+    _cargando = true;
+    _error = null;
+    notifyListeners();
     RespuestaModelo? respuesta;
     _listaGrupos = [];
     try {
       respuesta = await serviciogrupo.listarGruposDisponiblesInscripcion();
       if (respuesta.codigoHttp != 200) {
+        _cargando = false;
+        _error =
+            'Error encontrado: ${respuesta.codigoHttp} - ${respuesta.error?.mensaje}';
         notifyListeners();
         return;
       }
       if (respuesta.datos is List<Grupoentidad>) {
         _listaGrupos = respuesta.datos as List<Grupoentidad>;
+        _cargando = false;
+        _error = null;
         notifyListeners();
         return;
+      } else {
+        _cargando = false;
+        _error =
+            'Error datos incompatibles, lista no es de tipo GrupoEntidad, en viewmodel';
+        notifyListeners();
       }
-      notifyListeners();
     } catch (e) {
+      _cargando = false;
+      _error = 'Error no controlado: ${e.toString()}';
       notifyListeners();
     }
   }

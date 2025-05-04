@@ -7,6 +7,7 @@ import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionVie
 import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
+import 'package:dpt_movil/presentation/view/views/grupos/GruposInscripcion.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
@@ -94,6 +95,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.autenticacionRegistro:
       return MaterialPageRoute(builder: (_) => Autenticacionview());
+
+    case AppRutas.gruposDisponiblesInscripcion:
+      return MaterialPageRoute(builder: (_) => Gruposinscripcion());
 
     default:
       return MaterialPageRoute(builder: (_) => Page1());

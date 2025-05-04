@@ -54,6 +54,18 @@ class Menulateral extends StatelessWidget {
                 Navigator.pushNamed(context, AppRutas.categorias);
               },
             ),
+            if (vm.perfilSesion?.role == Roles.alumno)
+              ListTile(
+                leading: Icon(Icons.check_box_rounded),
+                title: Text('Inscripciones'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    AppRutas.gruposDisponiblesInscripcion,
+                  );
+                },
+              ),
             if (vm.perfilSesion?.role == Roles.coordinador ||
                 vm.perfilSesion?.role == Roles.instructor)
               ListTile(

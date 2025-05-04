@@ -32,7 +32,7 @@ class GrupoModelo {
       cupos: json['cupos'],
       estado: json['estado'],
       fechaCreacion: json['fechaCreacion'],
-      imagen: ((json['imagen'] != null) ? (json['imagen']) : null),
+      imagen: json['imagenGrupo'],
       fechaFinalizacion:
           (json['fechaFinalizacion'] != null)
               ? json['fechaFinalizacion']
