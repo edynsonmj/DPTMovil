@@ -54,17 +54,22 @@ class _CategoriasViewState extends State<CategoriasView> {
   Widget contenedorSeguro(CategoriaViewModel viewModel) {
     return SafeArea(
       child: SingleChildScrollView(
-        child: Column(
-          children: [
-            OutlinedButton.icon(
-              onPressed: () {
-                Navigator.pushNamed(context, AppRutas.editarCategoria);
-              },
-              label: Text('Agregar categoria'),
-              icon: Icon(Icons.add),
-            ),
-            listaCategorias(viewModel),
-          ],
+        child: Consumer<AutenticacionViewModel>(
+          builder: (context, vm, _) {
+            return Column(
+              children: [
+                if (vm.perfilSesion?.role == Roles.coordinador)
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRutas.editarCategoria);
+                    },
+                    label: Text('Agregar categoria'),
+                    icon: Icon(Icons.add),
+                  ),
+                listaCategorias(viewModel),
+              ],
+            );
+          },
         ),
       ),
     );
