@@ -32,11 +32,11 @@ class Widgetlistaalumnos extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                /*Text(
                   'Agregar alumno',
                   style: Tipografia.leyendaNegrita(color: ColorTheme.neutral),
                 ),
-                CampoBusqueda(leyenda: 'buscar alumno...'),
+                CampoBusqueda(leyenda: 'buscar alumno...'),*/
               ],
             ),
           ),

@@ -14,6 +14,7 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionAtencionesRemoto.dart
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionDeporteRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionEstadisticasRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
@@ -33,8 +34,7 @@ class ConexionRemotaFabrica implements ConexionFabricaAbstracta {
 
   @override
   ConexionEstadisticas crearConexionEstadisticas() {
-    // TODO: implement crearConexionEstadisticas
-    throw UnimplementedError();
+    return Conexionestadisticasremoto();
   }
 
   @override

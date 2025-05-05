@@ -8,4 +8,6 @@ abstract class Conexiongrupos {
   );
 
   Future<RespuestaModelo> obtenerGruposInscripcionDisponible();
+
+  Future<RespuestaModelo> obtenerGruposInstructor(String idInstructor);
 }

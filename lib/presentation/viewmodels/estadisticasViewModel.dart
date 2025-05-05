@@ -17,11 +17,44 @@ class EstadisticasViewModel with ChangeNotifier {
   //constructor que instancia el servicio usado por el viewModel
   EstadisticasViewModel() : _servicioEstadisticas = ServicioEstadisticas();
 
+  Future<RespuestaModelo> estadisticasCategorias(
+    String fechaInicio,
+    String fechaFin,
+  ) async {
+    RespuestaModelo respuesta = await _servicioEstadisticas.generalesCategorias(
+      fechaInicio,
+      fechaFin,
+    );
+    return respuesta;
+  }
+
+  Future<RespuestaModelo> estadisticasCursos(
+    String fechaInicio,
+    String fechaFin,
+  ) async {
+    RespuestaModelo respuesta = await _servicioEstadisticas.generalesCursos(
+      fechaInicio,
+      fechaFin,
+    );
+    return respuesta;
+  }
+
+  Future<RespuestaModelo> estadisticasGrupos(
+    String fechaInicio,
+    String fechaFin,
+  ) async {
+    RespuestaModelo respuesta = await _servicioEstadisticas.generalesGrupos(
+      fechaInicio,
+      fechaFin,
+    );
+    return respuesta;
+  }
+
   //CARGAR DATOS
   Future<void> cargarGeneralCategorias(context) async {
     try {
-      RespuestaModelo respuesta =
-          await _servicioEstadisticas.generalesCategorias();
+      RespuestaModelo respuesta = await _servicioEstadisticas
+          .generalesCategorias("", "");
       _listEstadisticasGeneralesCategorias = _manejarRepuestaEstadistica(
         context,
         respuesta,
@@ -38,6 +71,7 @@ class EstadisticasViewModel with ChangeNotifier {
     try {
       RespuestaModelo respuesta = await _servicioEstadisticas.generalesGrupos(
         categoria,
+        "",
       );
       _listEstadisticasGeneralesCursos = _manejarRepuestaEstadistica(
         context,
@@ -93,10 +127,10 @@ class EstadisticasViewModel with ChangeNotifier {
   //CARGAR LISTA DE CATEGORIAS
   void _cargarCategorias() {
     _listEstadisticasGeneralesCategorias.forEach((estadistica) {
-      print("entrada: ${estadistica.etiqueta}");
+      print("entrada: ${estadistica.leyenda1}");
       DropdownMenuEntry entry = DropdownMenuEntry(
-        value: estadistica.etiqueta,
-        label: estadistica.etiqueta,
+        value: estadistica.leyenda1,
+        label: estadistica.leyenda1,
       );
       _listCategorias.add(entry);
     });

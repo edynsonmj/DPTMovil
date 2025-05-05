@@ -79,4 +79,38 @@ class Gruposviewmodel with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> listarGruposInstructor(String idInstructor) async {
+    _cargando = true;
+    _error = null;
+    notifyListeners();
+    RespuestaModelo? respuesta;
+    _listaGrupos = [];
+    try {
+      respuesta = await serviciogrupo.listarGruposInstructores(idInstructor);
+      if (respuesta.codigoHttp != 200) {
+        _cargando = false;
+        _error =
+            'Error encontrado: ${respuesta.codigoHttp} - ${respuesta.error?.mensaje}';
+        notifyListeners();
+        return;
+      }
+      if (respuesta.datos is List<Grupoentidad>) {
+        _listaGrupos = respuesta.datos as List<Grupoentidad>;
+        _cargando = false;
+        _error = null;
+        notifyListeners();
+        return;
+      } else {
+        _cargando = false;
+        _error =
+            'Error datos incompatibles, lista no es de tipo GrupoEntidad, en viewmodel';
+        notifyListeners();
+      }
+    } catch (e) {
+      _cargando = false;
+      _error = 'Error no controlado: ${e.toString()}';
+      notifyListeners();
+    }
+  }
 }

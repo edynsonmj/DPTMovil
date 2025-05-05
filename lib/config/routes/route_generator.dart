@@ -7,6 +7,7 @@ import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionVie
 import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
+import 'package:dpt_movil/presentation/view/views/grupos/GruposAsignados.dart';
 import 'package:dpt_movil/presentation/view/views/grupos/GruposInscripcion.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
@@ -100,6 +101,12 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       String idAlumno = settings.arguments as String;
       return MaterialPageRoute(
         builder: (_) => Gruposinscripcion(alumnoId: idAlumno),
+      );
+
+    case AppRutas.gruposAsignados:
+      String idInstructor = settings.arguments as String;
+      return MaterialPageRoute(
+        builder: (_) => GruposAsignados(instructorId: idInstructor),
       );
 
     default:

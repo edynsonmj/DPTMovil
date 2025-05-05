@@ -8,6 +8,7 @@ class Grupoentidad {
   int anio;
   int iterable;
   int? imagen;
+  String? idInstructor;
   int cupos;
   String? estado;
   String fechaCreacion;
@@ -19,6 +20,7 @@ class Grupoentidad {
     required this.anio,
     required this.iterable,
     this.imagen,
+    this.idInstructor,
     required this.cupos,
     this.estado,
     required this.fechaCreacion,
@@ -36,6 +38,7 @@ class Grupoentidad {
       estado: grupo.estado,
       fechaCreacion: grupo.fechaCreacion,
       fechaFinalizacion: grupo.fechaFinalizacion,
+      idInstructor: grupo.idInstructor,
     );
   }
 }

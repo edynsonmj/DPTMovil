@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:dpt_movil/domain/entities/entidadesRutas/estadistica_graficoArgumentos.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
@@ -11,13 +12,13 @@ import 'package:dpt_movil/domain/entities/estadistica.dart';
  */
 class GraficoBarrasAgrupado extends StatelessWidget {
   ///Informacion para el grafico
-  List<Estadistica> data;
+  List<EstadisticaGraficoargumentos> data;
+  double alto;
 
-  GraficoBarrasAgrupado({super.key, required this.data});
+  GraficoBarrasAgrupado({super.key, required this.data, required this.alto});
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return contenedor();
   }
 
@@ -37,7 +38,7 @@ class GraficoBarrasAgrupado extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: SizedBox(
-        width: (data.length * 50) + 80, // Ajusta el ancho dinámicamente
+        width: (data.length * 70) + 80, // Ajusta el ancho dinámicamente
         child: grafico(),
       ),
     );
@@ -84,13 +85,31 @@ class GraficoBarrasAgrupado extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: _obtenerTitulos,
-              reservedSize: 100,
+              reservedSize: alto / 3,
             ),
           ),
         ),
         gridData: FlGridData(show: true),
         borderData: FlBorderData(show: false),
-        barTouchData: BarTouchData(enabled: true),
+        barTouchData: BarTouchData(
+          enabled: false,
+          touchTooltipData: BarTouchTooltipData(
+            tooltipMargin: 4,
+            tooltipPadding: EdgeInsets.zero,
+            tooltipRoundedRadius: 0,
+            tooltipBorder: BorderSide.none,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              return BarTooltipItem(
+                rod.toY.toStringAsFixed(0),
+                TextStyle(
+                  color: Colors.black,
+                  backgroundColor:
+                      Colors.white, // ← Esto evita fondo detrás del texto
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -99,16 +118,17 @@ class GraficoBarrasAgrupado extends StatelessWidget {
     return List.generate(data.length, (index) {
       final estadistica = data[index];
       return BarChartGroupData(
+        showingTooltipIndicators: [0, 1],
         x: index,
         barRods: [
           BarChartRodData(
-            toY: estadistica.atenciones,
+            toY: estadistica.indice1,
             color: ColorTheme.primary,
             width: 15,
             borderRadius: BorderRadius.circular(4),
           ),
           BarChartRodData(
-            toY: estadistica.horas,
+            toY: estadistica.indice2,
             color: ColorTheme.secondary,
             width: 15,
             borderRadius: BorderRadius.circular(4),
@@ -122,19 +142,29 @@ class GraficoBarrasAgrupado extends StatelessWidget {
   Widget _obtenerTitulos(double valor, TitleMeta meta) {
     final index = valor.toInt();
     if (index >= 0 && index < data.length) {
-      var titulo = data[index].etiqueta;
+      var titulo = data[index].leyenda;
       return Padding(
-        padding: const EdgeInsets.only(top: 8.0),
-        child: Transform.rotate(
-          angle: -pi / 4, // Rotar 45° (-pi/4 en radianes)
-          child: Text(
-            titulo.length > 10 ? '${titulo.substring(0, 10)}...' : titulo,
-            style: Tipografia.cuerpo1(),
-            overflow: TextOverflow.ellipsis,
+        padding: const EdgeInsets.only(
+          top: 8.0,
+        ), // Espacio entre el gráfico y el texto
+        child: Transform.translate(
+          offset: Offset(0, alto / 6),
+          child: Transform.rotate(
+            angle: pi / 2, // Texto de arriba hacia abajo
+            alignment: Alignment.topCenter, // Apuntar hacia abajo desde abajo
+            child: SizedBox(
+              width: alto / 3, // Este ancho ya se reserva bien
+              child: Text(
+                titulo.length > 30 ? '${titulo.substring(0, 30)}...' : titulo,
+                style: Tipografia.cuerpo1(),
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.start,
+              ),
+            ),
           ),
         ),
       );
     }
-    return Container();
+    return const SizedBox.shrink();
   }
 }

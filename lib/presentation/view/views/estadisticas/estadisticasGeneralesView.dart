@@ -1,4 +1,10 @@
+import 'package:dpt_movil/config/formatDate.dart';
+import 'package:dpt_movil/config/theme/color_tema.dart';
+import 'package:dpt_movil/data/models/respuestaModelo.dart';
+import 'package:dpt_movil/domain/entities/entidadesRutas/estadistica_graficoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/estadistica.dart';
+import 'package:dpt_movil/presentation/view/widgets/alertFechas.dart';
+import 'package:dpt_movil/presentation/view/widgets/alertFechasEstadisticas.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
@@ -22,6 +28,8 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
   late List<Estadistica> listaCursos2 = [];
   late List<Estadistica> listaCursos3 = [];
   late List<Estadistica> listaGrupos = [];
+  String? fechaInicio;
+  String? fechaFin;
   String? seleccionCategoria;
   String? seleccionCurso;
   //Definimos el estado al iniciar la vista
@@ -29,29 +37,13 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
   void initState() {
     super.initState();
     //cargamos las estadisticas generales que se muestran al abrir la vista, categorias
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      estadisticasViewModel = Provider.of<EstadisticasViewModel>(
-        context,
-        listen: false,
-      );
-      await estadisticasViewModel.cargarGeneralCategorias(context);
-      await estadisticasViewModel.cargarCursosGenerales(
-        context,
-        estadisticasViewModel.getListCategorias[0].label,
-      );
-      setState(() {
-        listaGeneral =
-            estadisticasViewModel.getListEstadisticasGeneralCategorias;
-        listaCursos1 = estadisticasViewModel.getListEstadisticasGeneralCursos;
-      });
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Bar(title: 'Estadisticas generales'),
-      drawer: Builder(builder: (context)=> Menulateral()),
+      drawer: Builder(builder: (context) => Menulateral()),
       body: Consumer<EstadisticasViewModel>(
         builder: (context, viewModel, child) {
           return _contenedorSeguro(viewModel);
@@ -64,7 +56,7 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Center(child: _contenido(viewModel)),
+        child: _contenido(viewModel),
       ),
     );
   }
@@ -73,82 +65,205 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          Text('Categorias', style: Tipografia.h5()),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              if (fechaInicio != null) Text(fechaInicio.toString()),
+              fechas(),
+              if (fechaFin != null) Text(fechaFin.toString()),
+            ],
+          ),
+          if (fechaInicio == null && fechaFin == null)
+            Text(
+              "Seleccione un rango de tiempo antes de continuar",
+              style: Tipografia.cuerpo1(color: ColorTheme.error),
+            ),
           //Grafico
-          SizedBox(
-            height: 500,
-            //child: GraficoBarrasAgrupado(data: listaGeneral),
-            child: GraficoBarrasAgrupado(
-              data: [
-                Estadistica(
-                  etiqueta: 'Deporte Recreativo',
-                  atenciones: 20,
-                  horas: 50,
-                ),
-                Estadistica(etiqueta: 'semillero', atenciones: 0, horas: 0),
-                Estadistica(etiqueta: 'seleccionado', atenciones: 0, horas: 0),
-              ],
-            ),
-          ),
-          Text('Cursos - Deporte Recreativo', style: Tipografia.h5()),
-          SizedBox(
-            height: 500,
-            child: GraficoBarrasAgrupado(
-              data: [
-                Estadistica(
-                  etiqueta: 'Futbol masculino',
-                  atenciones: 5,
-                  horas: 15,
-                ),
-                Estadistica(
-                  etiqueta: 'Baloncesto femenino',
-                  atenciones: 10,
-                  horas: 20,
-                ),
-                Estadistica(
-                  etiqueta: 'Natacion nivel 1',
-                  atenciones: 5,
-                  horas: 15,
-                ),
-              ],
-            ),
-          ),
-          Text('Cursos - semillero', style: Tipografia.h5()),
-          SizedBox(height: 500, child: GraficoBarrasAgrupado(data: [])),
-          Text('Cursos - seleccionado', style: Tipografia.h5()),
-          SizedBox(height: 500, child: GraficoBarrasAgrupado(data: [])),
-          //selector categoria
-          //TODO: error al usar este desplegable, tambien hay problemas en el uso del previo desplegable
-          /*Container(
-            alignment: Alignment.center,
-            //importante!!! para evitar fallos en la rederizacin, el dropdownmenu debe tener estacio orizontal suficiente, aplicar restricciones a su contenedor es necesario
-            width: double.infinity,
-            child: ListenableBuilder(
-              listenable: viewModel,
-              builder: (context, child) {
-                return DropdownMenu(
-                  hintText: 'Seleccionar categoria',
-                  dropdownMenuEntries: viewModel.getListCategorias,
-                );
-              },
-            ),
-          ),*/
-          /*if (seleccionCategoria != null)
-            SizedBox(
-              height: 500,
-              child: GraficoBarrasAgrupado(
-                data: viewModel.getListEstadisticasGeneralCursos,
-              ),
-            ),*/
-          //grafico
-          /*SizedBox(
-            height: 500,
-            child: GraficoBarrasAgrupado(
-              data: viewModel.getListEstadisticasGeneralCursos,
-            ),
-          ),*/
+          if (fechaInicio != null && fechaFin != null) graficas(viewModel),
         ],
       ),
     );
+  }
+
+  Widget graficas(EstadisticasViewModel viewModel) {
+    return Column(
+      children: [
+        seccionGraficaCategorias(viewModel),
+        seccionGraficaCursos(viewModel),
+        seccionGraficaGrupos(viewModel),
+      ],
+    );
+  }
+
+  Widget seccionGraficaCategorias(EstadisticasViewModel viewModel) {
+    double alto = 700;
+    return Column(
+      children: [
+        Text('Categorias', style: Tipografia.h5()),
+        //Grafico
+        if (fechaInicio != null && fechaFin != null)
+          SizedBox(
+            height: alto,
+            //child: GraficoBarrasAgrupado(data: listaGeneral),
+            child: FutureBuilder(
+              future: viewModel.estadisticasCategorias(fechaInicio!, fechaFin!),
+              builder: (context, promesa) {
+                if (!promesa.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                RespuestaModelo respuesta = promesa.data as RespuestaModelo;
+                List lista = respuesta.datos as List;
+                List<Estadistica> estadisticas = lista as List<Estadistica>;
+                List<EstadisticaGraficoargumentos> datos =
+                    formatoDatosCategorias(estadisticas);
+                return GraficoBarrasAgrupado(data: datos, alto: alto);
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget seccionGraficaCursos(EstadisticasViewModel viewModel) {
+    double alto = 700;
+    return Column(
+      children: [
+        Text('Cursos', style: Tipografia.h5()),
+        //Grafico
+        if (fechaInicio != null && fechaFin != null)
+          SizedBox(
+            height: alto,
+            //child: GraficoBarrasAgrupado(data: listaGeneral),
+            child: FutureBuilder(
+              future: viewModel.estadisticasCursos(fechaInicio!, fechaFin!),
+              builder: (context, promesa) {
+                if (!promesa.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                RespuestaModelo respuesta = promesa.data as RespuestaModelo;
+                List lista = respuesta.datos as List;
+                List<Estadistica> estadisticas = lista as List<Estadistica>;
+                List<EstadisticaGraficoargumentos> datos = formatoDatosCursos(
+                  estadisticas,
+                );
+                return GraficoBarrasAgrupado(data: datos, alto: alto);
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget seccionGraficaGrupos(EstadisticasViewModel viewModel) {
+    double alto = 700;
+    return Column(
+      children: [
+        Text('Cursos', style: Tipografia.h5()),
+        //Grafico
+        if (fechaInicio != null && fechaFin != null)
+          SizedBox(
+            height: alto,
+            //child: GraficoBarrasAgrupado(data: listaGeneral),
+            child: FutureBuilder(
+              future: viewModel.estadisticasGrupos(fechaInicio!, fechaFin!),
+              builder: (context, promesa) {
+                if (!promesa.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                RespuestaModelo respuesta = promesa.data as RespuestaModelo;
+                List lista = respuesta.datos as List;
+                List<Estadistica> estadisticas = lista as List<Estadistica>;
+                List<EstadisticaGraficoargumentos> datos = formatoDatosGrupos(
+                  estadisticas,
+                );
+                return GraficoBarrasAgrupado(data: datos, alto: alto);
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget fechas() {
+    return OutlinedButton(
+      onPressed: () {
+        //_mostrarProgramar(context, _categoriaSeleccionada!);
+        showDialog(
+          context: context,
+          builder: (context) {
+            return Alertfechasestadisticas(
+              titulo: 'Seleccione las fechas',
+              contenido: 'Asigne un rango de fechas para generar estadisticas',
+              seleccionRango: (DateTime? fecha1, DateTime? fecha2) {
+                setState(() {
+                  fechaInicio =
+                      (fecha1 != null)
+                          ? FormatDate.fechaACadena(fecha1, '-')
+                          : null;
+                  fechaFin =
+                      (fecha2 != null)
+                          ? FormatDate.fechaACadena(fecha2, '-')
+                          : null;
+                });
+              },
+            );
+          },
+        );
+      },
+      style: OutlinedButton.styleFrom(
+        foregroundColor: ColorTheme.tertiary,
+        side: BorderSide(color: ColorTheme.tertiary),
+      ),
+      child: Text('Asignar fechas'),
+    );
+  }
+
+  List<EstadisticaGraficoargumentos> formatoDatosCategorias(
+    List<Estadistica> lista,
+  ) {
+    lista.sort((a, b) => b.horas.compareTo(a.horas));
+    List<EstadisticaGraficoargumentos> argumentos = [];
+    lista.forEach((estadistica) {
+      EstadisticaGraficoargumentos argumento = EstadisticaGraficoargumentos(
+        leyenda: estadistica.leyenda1,
+        indice1: estadistica.clases,
+        indice2: estadistica.horas,
+      );
+      argumentos.add(argumento);
+    });
+    return argumentos;
+  }
+
+  List<EstadisticaGraficoargumentos> formatoDatosCursos(
+    List<Estadistica> lista,
+  ) {
+    lista.sort((a, b) => b.horas.compareTo(a.horas));
+    List<EstadisticaGraficoargumentos> argumentos = [];
+    lista.forEach((estadistica) {
+      EstadisticaGraficoargumentos argumento = EstadisticaGraficoargumentos(
+        leyenda: '${estadistica.leyenda2} - ${estadistica.leyenda1}',
+        indice1: estadistica.clases,
+        indice2: estadistica.horas,
+      );
+      argumentos.add(argumento);
+    });
+    return argumentos;
+  }
+
+  List<EstadisticaGraficoargumentos> formatoDatosGrupos(
+    List<Estadistica> lista,
+  ) {
+    lista.sort((a, b) => b.horas.compareTo(a.horas));
+    List<EstadisticaGraficoargumentos> argumentos = [];
+    lista.forEach((estadistica) {
+      EstadisticaGraficoargumentos argumento = EstadisticaGraficoargumentos(
+        leyenda:
+            '${estadistica.leyenda3}.${estadistica.leyenda4}:${estadistica.leyenda2} - ${estadistica.leyenda1}',
+        indice1: estadistica.clases,
+        indice2: estadistica.horas,
+      );
+      argumentos.add(argumento);
+    });
+    return argumentos;
   }
 }

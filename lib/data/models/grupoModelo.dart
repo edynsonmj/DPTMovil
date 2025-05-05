@@ -6,6 +6,7 @@ class GrupoModelo {
   int anio;
   int iterable;
   int? imagen;
+  String? idInstructor;
   int cupos;
   String? estado;
   String fechaCreacion;
@@ -21,6 +22,7 @@ class GrupoModelo {
     this.estado,
     required this.fechaCreacion,
     this.fechaFinalizacion,
+    this.idInstructor,
   });
 
   factory GrupoModelo.fromJson(dynamic json) {
@@ -33,6 +35,7 @@ class GrupoModelo {
       estado: json['estado'],
       fechaCreacion: json['fechaCreacion'],
       imagen: json['imagenGrupo'],
+      idInstructor: json['idInstructor'],
       fechaFinalizacion:
           (json['fechaFinalizacion'] != null)
               ? json['fechaFinalizacion']

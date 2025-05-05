@@ -67,6 +67,19 @@ class Menulateral extends StatelessWidget {
                   );
                 },
               ),
+            if (vm.perfilSesion?.role == Roles.instructor)
+              ListTile(
+                leading: Icon(Icons.check_box_rounded),
+                title: Text('Grupos asignados'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    AppRutas.gruposAsignados,
+                    arguments: vm.perfilSesion!.id,
+                  );
+                },
+              ),
             if (vm.perfilSesion?.role == Roles.coordinador ||
                 vm.perfilSesion?.role == Roles.instructor)
               ListTile(

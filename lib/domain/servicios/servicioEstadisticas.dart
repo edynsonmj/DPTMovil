@@ -11,11 +11,21 @@ class ServicioEstadisticas {
                 .crearConexionEstadisticas(),
       );
 
-  Future<RespuestaModelo> generalesCategorias() async {
-    return await repositorio.generalCategorias();
+  Future<RespuestaModelo> generalesCategorias(
+    String fechaInicio,
+    String fechaFin,
+  ) async {
+    return await repositorio.generalCategorias(fechaInicio, fechaFin);
   }
 
-  Future<RespuestaModelo> generalesGrupos(String categoria) async {
-    return await repositorio.generalCursos(categoria);
+  Future<RespuestaModelo> generalesCursos(fechaInicio, fechaFin) {
+    return repositorio.generalCursos(fechaInicio, fechaFin);
+  }
+
+  Future<RespuestaModelo> generalesGrupos(
+    String fechaInicio,
+    String fechaFin,
+  ) async {
+    return await repositorio.generalGrupos(fechaInicio, fechaFin);
   }
 }

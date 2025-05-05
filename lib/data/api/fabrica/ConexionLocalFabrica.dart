@@ -27,7 +27,7 @@ class ConexionLocalFabrica implements ConexionFabricaAbstracta {
 
   @override
   ConexionEstadisticas crearConexionEstadisticas() {
-    return ConexionEstadisticasLocal();
+    throw UnimplementedError();
   }
 
   @override
