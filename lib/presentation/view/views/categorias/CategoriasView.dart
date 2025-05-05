@@ -40,9 +40,7 @@ class _CategoriasViewState extends State<CategoriasView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Bar(title: 'Categorias'),
-      //Bar(title: 'Categorias'),
       drawer: Builder(builder: (context) => Menulateral()),
-      //body: contenedorSeguro(categoriaViewModel)
       body: Consumer<CategoriaViewModel>(
         builder: (context, viewModel, child) {
           return contenedorSeguro(viewModel);

@@ -63,6 +63,7 @@ class Menulateral extends StatelessWidget {
                   Navigator.pushNamed(
                     context,
                     AppRutas.gruposDisponiblesInscripcion,
+                    arguments: vm.perfilSesion!.id,
                   );
                 },
               ),

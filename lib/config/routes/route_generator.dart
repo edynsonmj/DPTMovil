@@ -97,7 +97,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => Autenticacionview());
 
     case AppRutas.gruposDisponiblesInscripcion:
-      return MaterialPageRoute(builder: (_) => Gruposinscripcion());
+      String idAlumno = settings.arguments as String;
+      return MaterialPageRoute(
+        builder: (_) => Gruposinscripcion(alumnoId: idAlumno),
+      );
 
     default:
       return MaterialPageRoute(builder: (_) => Page1());
