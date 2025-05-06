@@ -96,7 +96,7 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
   }
 
   Widget seccionGraficaCategorias(EstadisticasViewModel viewModel) {
-    double alto = 700;
+    double alto = 600;
     return Column(
       children: [
         Text('Categorias', style: Tipografia.h5()),
@@ -125,7 +125,7 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
   }
 
   Widget seccionGraficaCursos(EstadisticasViewModel viewModel) {
-    double alto = 700;
+    double alto = 600;
     return Column(
       children: [
         Text('Cursos', style: Tipografia.h5()),
@@ -155,7 +155,7 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
   }
 
   Widget seccionGraficaGrupos(EstadisticasViewModel viewModel) {
-    double alto = 700;
+    double alto = 600;
     return Column(
       children: [
         Text('Cursos', style: Tipografia.h5()),
