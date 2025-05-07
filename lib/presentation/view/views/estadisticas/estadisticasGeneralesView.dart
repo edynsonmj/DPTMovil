@@ -78,10 +78,39 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
               "Seleccione un rango de tiempo antes de continuar",
               style: Tipografia.cuerpo1(color: ColorTheme.error),
             ),
+          if (fechaInicio != null && fechaFin != null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [exportar(viewModel)],
+            ),
           //Grafico
           if (fechaInicio != null && fechaFin != null) graficas(viewModel),
         ],
       ),
+    );
+  }
+
+  Widget exportar(EstadisticasViewModel viewModel) {
+    return IconButton(
+      onPressed: () async {
+        bool estado = await viewModel.export();
+        if (estado) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Archivo guardado en tu carpeta descargas"),
+              backgroundColor: ColorTheme.primaryLight,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Ha ocurrido un error en el proceso"),
+              backgroundColor: ColorTheme.error,
+            ),
+          );
+        }
+      },
+      icon: Icon(Icons.download),
     );
   }
 
@@ -158,7 +187,7 @@ class _EstadisticasGeneralesState extends State<EstadisticasGeneralesView> {
     double alto = 600;
     return Column(
       children: [
-        Text('Cursos', style: Tipografia.h5()),
+        Text('Grupos', style: Tipografia.h5()),
         //Grafico
         if (fechaInicio != null && fechaFin != null)
           SizedBox(

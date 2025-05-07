@@ -8,6 +8,7 @@ import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/imagenViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/routes/route_generator.dart';
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AutenticacionViewModel()),
         ChangeNotifierProvider(create: (_) => Facultadesviewmodel()),
         ChangeNotifierProvider(create: (_) => Inscripcionviewmodel()),
+        ChangeNotifierProvider(create: (_) => InstructoresViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

@@ -1,6 +1,7 @@
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
+import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 
 class Serviciogrupo {
   Gruporepositorio repositorio;
@@ -21,5 +22,9 @@ class Serviciogrupo {
 
   Future<RespuestaModelo> listarGruposInstructores(String idInstructor) {
     return repositorio.listarGruposInstructores(idInstructor);
+  }
+
+  Future<RespuestaModelo> insertarGrupo(Grupoentidad grupo) {
+    return repositorio.insertarGrupo(grupo);
   }
 }

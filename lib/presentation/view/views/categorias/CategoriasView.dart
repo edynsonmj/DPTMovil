@@ -1,4 +1,6 @@
 import 'package:dpt_movil/config/routes/roles.dart';
+import 'package:dpt_movil/config/theme/color_tema.dart';
+import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
@@ -76,6 +78,14 @@ class _CategoriasViewState extends State<CategoriasView> {
   Widget listaCategorias(CategoriaViewModel viewModel) {
     if (viewModel.categorias == null) {
       return const Center(child: CircularProgressIndicator());
+    }
+    if (viewModel.categorias!.isEmpty) {
+      return Center(
+        child: Text(
+          'No hay categorias aun en el sistema',
+          style: Tipografia.cuerpo1(color: ColorTheme.error),
+        ),
+      );
     }
     return ListView.builder(
       shrinkWrap: true, // Ajusta el tamaño de la lista al contenido

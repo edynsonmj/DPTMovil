@@ -58,4 +58,10 @@ class Gruporepositorio {
     respuesta.datos = listEntidad;
     return respuesta;
   }
+
+  Future<RespuestaModelo> insertarGrupo(Grupoentidad entidad) async {
+    GrupoModelo modeloPeticion = GrupoModelo.fromEntidad(entidad);
+    RespuestaModelo respuesta = await conexion.insertarGrupo(modeloPeticion);
+    return respuesta;
+  }
 }

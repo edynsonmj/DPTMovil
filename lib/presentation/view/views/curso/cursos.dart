@@ -1,4 +1,6 @@
 import 'package:dpt_movil/config/routes/roles.dart';
+import 'package:dpt_movil/config/theme/color_tema.dart';
+import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
 import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
@@ -133,7 +135,15 @@ class _CursosViewState extends State<CursosView> {
             children: [
               contenidoEstatico,
               if (vm.perfilSesion?.role == Roles.coordinador) ajustes,
-              listaItems,
+              (viewModel.getListaCursos == null ||
+                      viewModel.getListaCursos!.isEmpty)
+                  ? Center(
+                    child: Text(
+                      'No hay cursos aun para esta categoria',
+                      style: Tipografia.cuerpo1(color: ColorTheme.error),
+                    ),
+                  )
+                  : listaItems,
             ],
           ),
         );

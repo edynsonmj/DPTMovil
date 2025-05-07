@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
+import 'package:dpt_movil/domain/entities/entidadesRutas/formGrupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class Curso extends StatelessWidget {
     return Scaffold(
       appBar: Bar(title: 'Curso: ${curso.nombreCurso}'),
       body: contenedorSeguro(context),
-      drawer: Builder(builder: (context)=> Menulateral()),
+      drawer: Builder(builder: (context) => Menulateral()),
     );
   }
 
@@ -38,7 +39,17 @@ class Curso extends StatelessWidget {
                 children: [
                   informacionCurso(),
                   OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      Formgrupoargumentos argumentos = Formgrupoargumentos(
+                        curso: curso,
+                        esEdicion: false,
+                      );
+                      Navigator.pushNamed(
+                        context,
+                        AppRutas.grupoFormulario,
+                        arguments: argumentos,
+                      );
+                    },
                     label: Text('AGREGAR GRUPO'),
                     icon: const Icon(Icons.add),
                   ),

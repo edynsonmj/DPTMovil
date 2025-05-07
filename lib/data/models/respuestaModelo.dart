@@ -58,6 +58,19 @@ class RespuestaModelo {
             metodo: metodo,
           ),
         );
+      case 204:
+        return RespuestaModelo(
+          codigoHttp: 204,
+          datos: null,
+          error: ErrorModelo(
+            codigoHttp: 204,
+            mensaje:
+                response.statusMessage ??
+                'La informacion buscada no fue encontrada o esta vacio el registro',
+            url: url,
+            metodo: metodo,
+          ),
+        );
       default:
         return RespuestaModelo(
           codigoHttp: response.statusCode ?? -1,
@@ -173,6 +186,23 @@ class RespuestaModelo {
       error: ErrorModelo(
         codigoHttp: 0,
         mensaje: 'excepcion $capa: ${exception.toString()}',
+        url: url,
+        metodo: metodo,
+      ),
+    );
+  }
+
+  factory RespuestaModelo.fromObjectError(
+    Object error,
+    String metodo,
+    String url,
+    String capa,
+  ) {
+    return RespuestaModelo(
+      codigoHttp: 0,
+      error: ErrorModelo(
+        codigoHttp: 0,
+        mensaje: 'en $capa error no controlado: ${error.toString()}',
         url: url,
         metodo: metodo,
       ),

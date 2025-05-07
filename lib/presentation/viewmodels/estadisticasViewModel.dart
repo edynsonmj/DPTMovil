@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dpt_movil/domain/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/estadistica.dart';
@@ -16,6 +19,16 @@ class EstadisticasViewModel with ChangeNotifier {
 
   //constructor que instancia el servicio usado por el viewModel
   EstadisticasViewModel() : _servicioEstadisticas = ServicioEstadisticas();
+
+  Future<bool> export() async {
+    if (_listEstadisticasGeneralesCategorias.isNotEmpty) {
+      ExcelExport export = ExcelExport();
+      export.llenarHoja('prueba', _listEstadisticasGeneralesCategorias);
+      File archivo = await export.exportarEstadisticasAExcel();
+      return await export.guardarArchivoExcel(archivo);
+    }
+    return false;
+  }
 
   Future<RespuestaModelo> estadisticasCategorias(
     String fechaInicio,
@@ -47,6 +60,10 @@ class EstadisticasViewModel with ChangeNotifier {
       fechaInicio,
       fechaFin,
     );
+    if (respuesta.codigoHttp == 200) {
+      _listEstadisticasGeneralesCategorias =
+          respuesta.datos as List<Estadistica>;
+    }
     return respuesta;
   }
 

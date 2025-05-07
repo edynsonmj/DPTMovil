@@ -1,7 +1,7 @@
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 
 class ConfigServicio {
-  final String _ipLocal = "192.168.0.14";
+  final String _ipLocal = "192.168.0.17";
   final String fakeServer =
       "https://41a5c51d-8572-4278-a147-e20426a0169e.mock.pstmn.io";
 

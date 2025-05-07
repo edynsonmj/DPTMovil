@@ -22,17 +22,20 @@ class Clasesviewmodel with ChangeNotifier {
   String? _curso;
   int? _anio;
   int? _iterable;
+  String? _idInstructor;
 
   void inicializarGrupo(
     String categoria,
     String curso,
     int anio,
     int iterable,
+    String idInstructor,
   ) {
     _categoria = categoria;
     _curso = curso;
     _anio = anio;
     _iterable = iterable;
+    _idInstructor = idInstructor;
   }
 
   Future<RespuestaModelo> eliminarClase(int id) async {

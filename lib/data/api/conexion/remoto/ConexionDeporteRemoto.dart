@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionDeporte.dart';
+import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexiondeporteremoto implements Conexiondeporte {
@@ -14,6 +15,17 @@ class Conexiondeporteremoto implements Conexiondeporte {
     String capa = "Conexion";
     try {
       final response = await _dio.get(path);
+      if (response.statusCode == 204) {
+        return RespuestaModelo(
+          codigoHttp: 204,
+          error: ErrorModelo(
+            codigoHttp: 204,
+            mensaje: "no hay deportes registrados",
+            url: path,
+            metodo: metodo,
+          ),
+        );
+      }
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
@@ -23,6 +35,8 @@ class Conexiondeporteremoto implements Conexiondeporte {
       return RespuestaModelo(codigoHttp: 200, datos: deportes);
     } on Exception catch (exception) {
       return RespuestaModelo.fromException(exception, metodo, path, capa);
+    } catch (exception) {
+      return RespuestaModelo.fromObjectError(exception, metodo, path, capa);
     }
   }
 }

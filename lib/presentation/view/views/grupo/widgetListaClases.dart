@@ -31,6 +31,7 @@ class _WidgetlistaclasesState extends State<Widgetlistaclases> {
         widget.grupo.curso,
         widget.grupo.anio,
         widget.grupo.iterable,
+        widget.grupo.idInstructor!,
       );
       vmClase.listarYNotificarClases();
     });
@@ -69,7 +70,7 @@ class _WidgetlistaclasesState extends State<Widgetlistaclases> {
               idGrupoCurso: widget.grupo.curso,
               idGrupoAnio: widget.grupo.anio,
               idGrupoIterable: widget.grupo.iterable,
-              idInstructor: "1234567890",
+              idInstructor: widget.grupo.idInstructor!,
               fecha: null,
               horas: null,
               minutos: null,

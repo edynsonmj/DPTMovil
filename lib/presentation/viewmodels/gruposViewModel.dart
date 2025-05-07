@@ -113,4 +113,18 @@ class Gruposviewmodel with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<RespuestaModelo> insertarGrupo(Grupoentidad entidad) async {
+    try {
+      RespuestaModelo respuesta = await serviciogrupo.insertarGrupo(entidad);
+      return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        "POST",
+        "Insertar grupo",
+        "view model",
+      );
+    }
+  }
 }

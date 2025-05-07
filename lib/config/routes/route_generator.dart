@@ -2,11 +2,13 @@ import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/clase_grupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
+import 'package:dpt_movil/domain/entities/entidadesRutas/formGrupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionView.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
+import 'package:dpt_movil/presentation/view/views/grupo/GrupoFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/grupos/GruposAsignados.dart';
 import 'package:dpt_movil/presentation/view/views/grupos/GruposInscripcion.dart';
 import 'package:flutter/material.dart';
@@ -107,6 +109,13 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       String idInstructor = settings.arguments as String;
       return MaterialPageRoute(
         builder: (_) => GruposAsignados(instructorId: idInstructor),
+      );
+
+    case AppRutas.grupoFormulario:
+      Formgrupoargumentos argumentos =
+          settings.arguments as Formgrupoargumentos;
+      return MaterialPageRoute(
+        builder: (_) => Grupoformulario(argumentos: argumentos),
       );
 
     default:

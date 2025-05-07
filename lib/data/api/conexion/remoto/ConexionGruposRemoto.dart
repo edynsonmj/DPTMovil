@@ -134,4 +134,33 @@ class Conexiongruposremoto extends Conexiongrupos {
       );
     }
   }
+
+  @override
+  Future<RespuestaModelo> insertarGrupo(GrupoModelo grupo) async {
+    String metodo = "POST";
+    String path = "/grupo";
+    String capa = "conexion";
+    try {
+      final response = await _dio.post(
+        path,
+        data: grupo,
+        options: Options(contentType: 'application/json'),
+      );
+      if (response.statusCode != 201) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      return RespuestaModelo(codigoHttp: 201);
+    } on DioException catch (dioError) {
+      return RespuestaModelo.fromDioException(dioError, metodo);
+    } on FormatException catch (formatError) {
+      return RespuestaModelo.fromFormatException(
+        formatError,
+        metodo,
+        path,
+        capa,
+      );
+    } on Exception catch (error) {
+      return RespuestaModelo.fromException(error, metodo, path, capa);
+    }
+  }
 }

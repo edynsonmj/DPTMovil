@@ -6,6 +6,7 @@ class AppRutas {
   static const String curso = '/curso';
   static const String formularioCurso = '/curso/formulario';
   static const String grupo = '/grupo';
+  static const String grupoFormulario = '/grupo/formulario';
   static const String categorias = '/categorias';
   static const String editarCategoria = '/categoria/editar';
   static const String InscripcionesGenerales = '/inscripciones/generales';
