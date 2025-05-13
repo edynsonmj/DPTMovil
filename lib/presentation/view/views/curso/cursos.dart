@@ -114,8 +114,8 @@ class _CursosViewState extends State<CursosView> {
           ),
         );
         Widget ajustes = OutlinedButton.icon(
-          onPressed: () {
-            Navigator.pushNamed(
+          onPressed: () async {
+            final respuesta = await Navigator.pushNamed(
               context,
               AppRutas.formularioCurso,
               arguments: Formcursoargumentos(
@@ -123,6 +123,9 @@ class _CursosViewState extends State<CursosView> {
                 categoria: widget.categoria.titulo,
               ),
             );
+            if (respuesta == true) {
+              viewModel.listarCursosDe(context, widget.categoria);
+            }
           },
           label: Text('AGREGAR CURSO'),
           icon: Icon(Icons.add),
