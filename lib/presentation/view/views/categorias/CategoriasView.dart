@@ -33,6 +33,9 @@ class _CategoriasViewState extends State<CategoriasView> {
         context,
         listen: false,
       );
+      AutenticacionViewModel autenticacionViewModel =
+          Provider.of<AutenticacionViewModel>(context, listen: false);
+      autenticacionViewModel.verificarSesion();
       //categoriaViewModel.fetchCategorias();
       categoriaViewModel.cargarCategorias(context);
     });

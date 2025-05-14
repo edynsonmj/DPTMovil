@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formGrupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
+import 'package:dpt_movil/presentation/view/views/curso/widgetListaGrupos.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
@@ -58,7 +59,8 @@ class Curso extends StatelessWidget {
                     child: Text('Grupos del curso', style: Tipografia.h5()),
                   ),
                   // Lista dinámica
-                  listaGrupos(context),
+                  //listaGrupos(context),
+                  Widgetlistagrupos(curso: curso),
                   Container(
                     margin: EdgeInsets.symmetric(vertical: 10),
                     child: OutlinedButton(
@@ -128,7 +130,6 @@ class Curso extends StatelessWidget {
     Gruposviewmodel viewModel = Gruposviewmodel();
     return FutureBuilder(
       future: viewModel.listarGruposDe(
-        context,
         curso.tituloCategoria,
         curso.nombreCurso,
       ),

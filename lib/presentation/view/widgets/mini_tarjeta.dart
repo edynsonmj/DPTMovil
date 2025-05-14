@@ -50,8 +50,12 @@ class MiniTarjeta extends StatelessWidget {
     final dimension = MediaQuery.of(context).size;
     Card tarjeta = Card(
       elevation: 4,
-      margin: EdgeInsets.fromLTRB(atrMargenIzquierdo, atrMargerSuperior,
-          atrMargenDerecho, atrMargerInferior),
+      margin: EdgeInsets.fromLTRB(
+        atrMargenIzquierdo,
+        atrMargerSuperior,
+        atrMargenDerecho,
+        atrMargerInferior,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: SizedBox(
         width: dimension.width * 0.9,
@@ -62,7 +66,7 @@ class MiniTarjeta extends StatelessWidget {
               if (existeCampoImagen)
                 Avatar(atrDimension: 60, atrDatosImagen: atrDatosImagen),
               campoInformacion(context),
-              if (existeBotonCierre) iconoAccion()
+              if (existeBotonCierre) iconoAccion(),
             ],
           ),
         ),
@@ -85,39 +89,54 @@ class MiniTarjeta extends StatelessWidget {
 
   Widget iconoAccion() {
     return IconButton(
-        onPressed: () {
-          print('hola');
-        },
-        icon: Icon(Icons.close));
+      onPressed: () {
+        print('hola');
+      },
+      icon: Icon(Icons.close),
+    );
   }
 
   Widget informacionTextual() {
     return Expanded(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(atrTitulo,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 30, 0),
+            child: Text(
+              atrTitulo,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Tipografia.subtitulo1(color: ColorTheme.primary),
+            ),
+          ),
+          Text(
+            atrSubTitulo,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Tipografia.subtitulo1(color: ColorTheme.primary)),
-        Text(atrSubTitulo,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Tipografia.cuerpo2())
-      ]),
+            style: Tipografia.cuerpo2(),
+          ),
+        ],
+      ),
     );
   }
 
   Widget atrIndicadores() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-      //antes de llamar se debe confirmar que los valores existen
-      if (atrIndicador != null)
-        Text(atrIndicador!,
-            style: Tipografia.cuerpo2(color: ColorTheme.neutral)),
-      if (atrIndicadorEstado != null)
-        Chip(
-            label: Text(
-              atrIndicadorEstado!,
-            ),
-            labelPadding: EdgeInsets.all(0))
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        //antes de llamar se debe confirmar que los valores existen
+        if (atrIndicador != null)
+          Text(
+            atrIndicador!,
+            style: Tipografia.cuerpo2(color: ColorTheme.neutral),
+          ),
+        if (atrIndicadorEstado != null)
+          Chip(
+            label: Text(atrIndicadorEstado!),
+            labelPadding: EdgeInsets.all(0),
+          ),
+      ],
+    );
   }
 }

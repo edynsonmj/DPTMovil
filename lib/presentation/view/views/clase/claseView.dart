@@ -50,7 +50,7 @@ class _ClaseviewState extends State<Claseview> {
         title:
             '${widget.grupo.curso} ${widget.grupo.anio}.${widget.grupo.iterable}',
       ),
-      drawer: Builder(builder: (context)=> Menulateral()),
+      drawer: Builder(builder: (context) => Menulateral()),
       body: contenedorSeguro(context),
     );
   }
@@ -147,6 +147,7 @@ class _ClaseviewState extends State<Claseview> {
                 widget.clase.codigo ?? _atenciones[0].idClase,
               );
               if (respuesta.codigoHttp == 200) {
+                Navigator.of(context).pop();
                 showDialog(
                   context: context,
                   builder: (context) {

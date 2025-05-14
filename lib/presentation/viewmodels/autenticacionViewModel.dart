@@ -12,7 +12,23 @@ class AutenticacionViewModel with ChangeNotifier {
   PerfilEntidad? perfilSesion;
   String? error;
 
-  AutenticacionViewModel() {}
+  AutenticacionViewModel();
+
+  Future<void> verificarSesion() async {
+    if (cuenta != null) {
+      return;
+    }
+    try {
+      final account = await _googleSignIn.signInSilently();
+      if (account != null) {
+        cuenta = account;
+        await login();
+      }
+    } catch (e) {
+      error = 'Error al verificr la sesion: $e';
+    }
+  }
+
   // Para iniciar sesión:
   Future<bool> loginGoogle() async {
     error = null;

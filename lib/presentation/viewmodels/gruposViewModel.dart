@@ -23,25 +23,39 @@ class Gruposviewmodel with ChangeNotifier {
   Gruposviewmodel() : serviciogrupo = Serviciogrupo();
 
   Future<List<Grupoentidad>> listarGruposDe(
-    context,
     String categoria,
     String curso,
   ) async {
     RespuestaModelo? respuesta;
     _listaGrupos = [];
+    _cargando == true;
+    _error = null;
+    notifyListeners();
     try {
       respuesta = await serviciogrupo.listarGruposDe(categoria, curso);
       if (respuesta.codigoHttp != 200) {
-        //_mostrarError(context, "Sin datos", respuesta.error);
+        _cargando = false;
+        _error = respuesta.error?.mensaje ?? "no hay datos del error";
+        notifyListeners();
         return Future.value(_listaGrupos);
       }
       if (respuesta.datos is List<Grupoentidad>) {
         _listaGrupos = respuesta.datos as List<Grupoentidad>;
+        _cargando = false;
+        _error = null;
+        notifyListeners();
         return Future.value(_listaGrupos);
       } else {
+        _cargando = false;
+        _error =
+            "la informacion encontrada no corresponde a una lista de grupos";
+        notifyListeners();
         return Future.value([]);
       }
     } catch (e) {
+      _cargando = false;
+      _error = e.toString();
+      notifyListeners();
       return Future.value([]);
     }
   }
@@ -117,6 +131,7 @@ class Gruposviewmodel with ChangeNotifier {
   Future<RespuestaModelo> insertarGrupo(Grupoentidad entidad) async {
     try {
       RespuestaModelo respuesta = await serviciogrupo.insertarGrupo(entidad);
+      listarGruposDe(entidad.categoria, entidad.curso);
       return respuesta;
     } catch (error) {
       return RespuestaModelo.fromObjectError(
