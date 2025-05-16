@@ -80,7 +80,7 @@ class Menulateral extends StatelessWidget {
                   );
                 },
               ),
-            if (vm.perfilSesion?.role == Roles.coordinador ||
+            /*if (vm.perfilSesion?.role == Roles.coordinador ||
                 vm.perfilSesion?.role == Roles.instructor)
               ListTile(
                 leading: Icon(Icons.people_rounded),
@@ -89,7 +89,7 @@ class Menulateral extends StatelessWidget {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, AppRutas.alumnos);
                 },
-              ),
+              ),*/
             if (vm.perfilSesion?.role == Roles.coordinador)
               ListTile(
                 leading: Icon(Icons.person_rounded),

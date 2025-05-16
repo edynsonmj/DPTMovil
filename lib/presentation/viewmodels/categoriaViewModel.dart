@@ -22,6 +22,13 @@ class CategoriaViewModel with ChangeNotifier {
   List<DropdownMenuEntry> _listaEntradas = [];
   //
   List<DropdownMenuEntry> get getListaEntradas => _listaEntradas;
+
+  bool _cargando = false;
+  bool get cargando => _cargando;
+
+  String? _error;
+  String? get error => _error;
+
   //constructor
   CategoriaViewModel() : servicioCategoria = ServicioCategoria();
 
@@ -90,6 +97,46 @@ class CategoriaViewModel with ChangeNotifier {
     }
   }
 
+  Future<void> listarYNotificarCategorias() async {
+    _cargando = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final respuesta = await servicioCategoria.encontrarCategorias();
+      if (respuesta.codigoHttp == 200 && respuesta.datos is List) {
+        _categorias = respuesta.datos as List<CategoriaEntidad>;
+        _cargarEntradas();
+      } else {
+        _error =
+            'Código: ${respuesta.codigoHttp} - ${respuesta.error?.mensaje ?? "Error desconocido"}';
+        _categorias = [];
+      }
+    } catch (e) {
+      _error = e.toString();
+      _categorias = [];
+    }
+    _cargando = false;
+    notifyListeners();
+  }
+
+  Future<RespuestaModelo> insertarCategoria(CategoriaEntidad entidad) async {
+    try {
+      final respuesta = await servicioCategoria.insertarCategoria(entidad);
+      if (respuesta.codigoHttp == 201) {
+        listarYNotificarCategorias();
+      }
+      return respuesta;
+    } catch (e) {
+      return RespuestaModelo.fromObjectError(
+        e,
+        'POST',
+        'Categoria',
+        'ViewModel',
+      );
+    }
+  }
+
+  /*
   Future<void> guardarCategoria(CategoriaEntidad entidad, context) async {
     //TODO: establecer carga mientra termina la peticion
     RespuestaModelo? respuesta;
@@ -151,8 +198,9 @@ class CategoriaViewModel with ChangeNotifier {
       );
     }
   }
-
+*/
   //TODO: Para que sea funcional, hay que poner la logica de error en el formulario, de momento hay que seguir usando guardarCategoria
+  /*
   Future<RespuestaModelo> registrarCategoria(CategoriaEntidad entidad) async {
     RespuestaModelo? respuesta;
     try {
@@ -177,10 +225,10 @@ class CategoriaViewModel with ChangeNotifier {
         "POST",
         "registro atenciones",
         "viewmodel",
-      );
+      );  
     }
   }
-
+*/
   Future<void> actualizarCategoria(context, CategoriaEntidad entidad) async {
     RespuestaModelo? respuesta;
     try {

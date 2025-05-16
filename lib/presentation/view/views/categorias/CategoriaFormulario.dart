@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:dpt_movil/config/configServicio.dart';
+import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
+import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dpt_movil/config/convertFile.dart';
@@ -80,7 +82,7 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
         title:
             '${(_categoria == null) ? "Insertar Categoria" : "Editar " + (_categoria!.titulo)}',
       ),
-      drawer: Builder(builder: (context)=> Menulateral()),
+      drawer: Builder(builder: (context) => Menulateral()),
       body: contenedorSeguro(context),
     );
   }
@@ -113,7 +115,7 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
       if (_esEdicion) {
         _viewModel.actualizarCategoria(context, entidad);
       } else {
-        _viewModel.guardarCategoria(entidad, context);
+        guardarCategoria(context, entidad);
       }
 
       // Limpiar los campos del formulario
@@ -122,6 +124,37 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
       setState(() {
         _imagen = null;
       });
+    }
+  }
+
+  Future<void> guardarCategoria(context, CategoriaEntidad entidad) async {
+    RespuestaModelo respuesta = await _viewModel.insertarCategoria(entidad);
+    if (respuesta.codigoHttp == 201) {
+      if (context.mounted) {
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogExito(
+                titulo: 'Categoria registrada',
+                mensaje: 'La categoria se ha guardado exitosamente.',
+              ),
+        );
+        Navigator.pop(context, true);
+      }
+    } else {
+      if (context.mounted) {
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogError(
+                titulo: 'Error al guardar categoria',
+                mensaje:
+                    respuesta.error?.mensaje ??
+                    'Error desconocido. Código: ${respuesta.codigoHttp}',
+                codigo: respuesta.codigoHttp,
+              ),
+        );
+      }
     }
   }
 
