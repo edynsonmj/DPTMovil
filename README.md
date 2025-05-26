@@ -23,3 +23,9 @@ El presente proyecto ha sido creado para la gestion del programa de formación d
 
 ---
 
+## Caracteristicas aplicación movil
+
+- **Portabilidad**: El codigo puede ser compilado a las plataformas android o IOS.
+- **Diseño amigable**: La aplicación ha sido con el estandar material design por tanto posee una interfaz agradable y facil de usar.
+- **Lineamientos institucionales**: La aplicación sigue los lineamientos de diseño y desarrollo de la division TIC de la Universidad del Cauca.
+- **Escalabilidad**: La aplicación ha sido construida de forma modular bajo el patron arquitectonico y de diseño Model View View Model MVVM, permitiendo bajo acoplamiento de la interfaz con la logica esto conlleva a la facil expanción de funcionalidades.
