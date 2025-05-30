@@ -25,7 +25,7 @@ class categoriaModelo {
           ((json['imagen'] != null)
               ? ImagenModelo.fromJson(json['imagen'])
               : (null)),
-      imagenId: json['cat_imagen'],
+      imagenId: json['imagenId'],
     );
   }
 
