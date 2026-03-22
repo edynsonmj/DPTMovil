@@ -72,6 +72,7 @@ class Tarjeta extends StatelessWidget {
 
   Widget imagen(BuildContext context, Size dimension) {
     String basepath = ConfigServicio().obtenerBaseApi();
+    String path = '${basepath}/imagenStream?idImagen=$idImagen';
     atrDatosImagen=null;
     return ClipRRect(
       //border redondeador en la parte superior
@@ -81,7 +82,7 @@ class Tarjeta extends StatelessWidget {
                 width: double.infinity,
                 //child: Image.asset('assets/images/1.jpg', fit: BoxFit.cover),
                 child: Image.network(
-                  '${basepath}/imagenStream?idImagen=$idImagen',
+                  path,
                   fit: BoxFit.cover,
                   loadingBuilder:
                       (BuildContext context, Widget child, ImageChunkEvent? progresoCarga){
