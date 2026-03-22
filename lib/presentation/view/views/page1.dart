@@ -11,6 +11,8 @@ class Page1 extends StatefulWidget {
   State<StatefulWidget> createState() => _FormularioState();
 }
 
+//TODO: quitar este page cuando este un servidor en linea estable
+
 class _FormularioState extends State<Page1> {
   static const String _rutasGuardadasKey = 'rutas_remotas_guardadas';
 
@@ -51,10 +53,13 @@ class _FormularioState extends State<Page1> {
       return;
     }
 
-    final nuevasRutas = [
-      rutaNormalizada,
-      ..._rutasGuardadas.where((rutaActual) => rutaActual != rutaNormalizada),
-    ].take(3).toList();
+    final nuevasRutas =
+        [
+          rutaNormalizada,
+          ..._rutasGuardadas.where(
+            (rutaActual) => rutaActual != rutaNormalizada,
+          ),
+        ].take(3).toList();
 
     final preferencias = await SharedPreferences.getInstance();
     await preferencias.setStringList(_rutasGuardadasKey, nuevasRutas);
@@ -73,7 +78,9 @@ class _FormularioState extends State<Page1> {
     final ip = _ipController.text.trim();
     if (ip.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingresa una direccion antes de continuar')),
+        const SnackBar(
+          content: Text('Ingresa una direccion antes de continuar'),
+        ),
       );
       return;
     }
@@ -120,10 +127,7 @@ class _FormularioState extends State<Page1> {
   Widget _localServidor() {
     return Column(
       children: [
-        const Text(
-          'Servidor local',
-          style: TextStyle(fontSize: 25),
-        ),
+        const Text('Servidor local', style: TextStyle(fontSize: 25)),
         ElevatedButton(
           onPressed: () {
             ConfigServicio.servicioFalso = false;
@@ -140,10 +144,7 @@ class _FormularioState extends State<Page1> {
   Widget _fakeServidor() {
     return Column(
       children: [
-        const Text(
-          'Servidor Falso',
-          style: TextStyle(fontSize: 25),
-        ),
+        const Text('Servidor Falso', style: TextStyle(fontSize: 25)),
         ElevatedButton(
           onPressed: () {
             ConfigServicio.servicioFalso = true;
@@ -158,10 +159,7 @@ class _FormularioState extends State<Page1> {
   Widget _modoRemoto() {
     return Column(
       children: [
-        const Text(
-          'Ejecucion Remota',
-          style: TextStyle(fontSize: 25),
-        ),
+        const Text('Ejecucion Remota', style: TextStyle(fontSize: 25)),
         TextField(
           controller: _ipController,
           decoration: const InputDecoration(
@@ -177,14 +175,15 @@ class _FormularioState extends State<Page1> {
               labelText: 'Ultimas rutas usadas',
               border: OutlineInputBorder(),
             ),
-            items: _rutasGuardadas
-                .map(
-                  (ruta) => DropdownMenuItem<String>(
-                    value: ruta,
-                    child: Text(ruta, overflow: TextOverflow.ellipsis),
-                  ),
-                )
-                .toList(),
+            items:
+                _rutasGuardadas
+                    .map(
+                      (ruta) => DropdownMenuItem<String>(
+                        value: ruta,
+                        child: Text(ruta, overflow: TextOverflow.ellipsis),
+                      ),
+                    )
+                    .toList(),
             onChanged: (rutaSeleccionada) {
               if (rutaSeleccionada == null) {
                 return;
