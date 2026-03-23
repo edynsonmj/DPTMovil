@@ -11,8 +11,13 @@ class AutenticacionViewModel with ChangeNotifier {
   GoogleSignInAccount? cuenta;
   PerfilEntidad? perfilSesion;
   String? error;
+  String? _correoAutenticado;
+  String? _nombreAutenticado;
 
   AutenticacionViewModel();
+
+  String? get correoAutenticado => _correoAutenticado ?? cuenta?.email;
+  String? get nombreAutenticado => _nombreAutenticado ?? cuenta?.displayName;
 
   Future<void> verificarSesion() async {
     if (cuenta != null) {
@@ -22,6 +27,8 @@ class AutenticacionViewModel with ChangeNotifier {
       final account = await _googleSignIn.signInSilently();
       if (account != null) {
         cuenta = account;
+        _correoAutenticado = account.email;
+        _nombreAutenticado = account.displayName;
         await login();
       }
     } catch (e) {
@@ -35,9 +42,13 @@ class AutenticacionViewModel with ChangeNotifier {
     try {
       cuenta = await _googleSignIn.signIn();
       if (cuenta != null) {
+        _correoAutenticado = cuenta!.email;
+        _nombreAutenticado = cuenta!.displayName;
         error = null;
         return true;
       } else {
+        _correoAutenticado = null;
+        _nombreAutenticado = null;
         error = null;
         return false;
       }
@@ -48,16 +59,41 @@ class AutenticacionViewModel with ChangeNotifier {
     }
   }
 
+  bool prepararLoginConCorreo(String email) {
+    final correo = email.trim();
+    if (correo.isEmpty) {
+      error = 'Ingresa un correo para continuar';
+      return false;
+    }
+
+    _correoAutenticado = correo;
+    _nombreAutenticado = null;
+    error = null;
+    return true;
+  }
+
   Future<void> logout() async {
     await _googleSignIn.signOut();
     cuenta = null;
     perfilSesion = null;
+    _correoAutenticado = null;
+    _nombreAutenticado = null;
     notifyListeners();
   }
 
   Future<RespuestaModelo> login() async {
     try {
-      RespuestaModelo respuesta = await _servicio.login(cuenta!.email);
+      final correo = correoAutenticado;
+      if (correo == null || correo.isEmpty) {
+        return RespuestaModelo.fromException(
+          Exception('No hay un correo autenticado para iniciar sesion'),
+          "GET",
+          "login",
+          "viewmodel",
+        );
+      }
+
+      RespuestaModelo respuesta = await _servicio.login(correo);
       if (respuesta.codigoHttp == 200 && respuesta.datos != null) {
         perfilSesion = respuesta.datos as PerfilEntidad;
         notifyListeners();

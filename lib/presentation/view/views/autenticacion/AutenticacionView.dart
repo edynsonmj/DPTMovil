@@ -1,9 +1,7 @@
-import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
-import 'package:dpt_movil/domain/entities/alumnoEntidad.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
@@ -13,6 +11,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class Autenticacionview extends StatefulWidget {
+  const Autenticacionview({super.key});
+
   @override
   State<StatefulWidget> createState() {
     return _AutenticacionState();
@@ -28,6 +28,7 @@ class _AutenticacionState extends State<Autenticacionview> {
   String? _facultad;
   final _formKey = GlobalKey<FormState>();
   final _controllerId = TextEditingController();
+  final _controllerNombre = TextEditingController();
   late AutenticacionViewModel _vmAut;
 
   @override
@@ -35,18 +36,30 @@ class _AutenticacionState extends State<Autenticacionview> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _vmAut = Provider.of<AutenticacionViewModel>(context, listen: false);
-      _correo = _vmAut.cuenta!.email;
-      _nombre = _vmAut.cuenta!.displayName!;
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _correo = _vmAut.correoAutenticado;
+        _nombre = _vmAut.nombreAutenticado;
+        _controllerNombre.text = _nombre ?? '';
+      });
     });
-    Future.microtask(() {
-      final vmFacultades = Provider.of<Facultadesviewmodel>(
-        context,
-        listen: false,
-      );
-      vmFacultades.listarYNotificarFacultades();
-    });
+    final vmFacultades = Provider.of<Facultadesviewmodel>(
+      context,
+      listen: false,
+    );
+    Future.microtask(vmFacultades.listarYNotificarFacultades);
   }
 
+  @override
+  void dispose() {
+    _controllerId.dispose();
+    _controllerNombre.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Bar(title: 'Registro'),
@@ -104,13 +117,13 @@ class _AutenticacionState extends State<Autenticacionview> {
 
   _mostrarSeleccionableFacultad(List<String> facultades) {
     List<DropdownMenuEntry> entradas = [];
-    facultades.forEach((facultad) {
+    for (final facultad in facultades) {
       DropdownMenuEntry entrada = DropdownMenuEntry(
         value: facultad,
         label: facultad,
       );
       entradas.add(entrada);
-    });
+    }
     DropdownMenu menu = DropdownMenu(
       hintText: 'Facultad',
       helperText: 'Selecciona tu facultad',
@@ -196,10 +209,26 @@ class _AutenticacionState extends State<Autenticacionview> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        _nombre == null
-            ? Text('Registre la informacion antes de continuar, por favor')
-            : Text('$_nombre'),
-        _correo == null ? Text('') : Text('$_correo'),
+        if (_nombre == null || _nombre!.trim().isEmpty)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 15),
+            child: TextFormField(
+              controller: _controllerNombre,
+              decoration: InputDecoration(label: Text('Nombre completo')),
+              onChanged: (value) {
+                _nombre = value.trim();
+              },
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Ingrese su nombre';
+                }
+                return null;
+              },
+            ),
+          )
+        else
+          Text('$_nombre'),
+        if (_correo != null) Text('$_correo'),
       ],
     );
   }
@@ -236,24 +265,24 @@ class _AutenticacionState extends State<Autenticacionview> {
     );
   }
 
-  Future<void> _submitForm(context) async {
-    if (_correo == null) {
+  Future<void> _submitForm(BuildContext context) async {
+    _correo = _vmAut.correoAutenticado ?? _correo;
+    if (_correo == null || _correo!.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            "falta informacion (correo), inicia sesion con google nuevamente",
-          ),
+          content: Text("Falta informacion del correo para completar el registro"),
           backgroundColor: ColorTheme.error,
         ),
       );
       return;
     }
-    if (_nombre == null) {
+    _nombre = _controllerNombre.text.trim().isEmpty
+        ? _nombre
+        : _controllerNombre.text.trim();
+    if (_nombre == null || _nombre!.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            "falta informacion (nombre), inicia sesion con google nuevamente",
-          ),
+          content: Text("Falta informacion del nombre para completar el registro"),
           backgroundColor: ColorTheme.error,
         ),
       );
@@ -313,8 +342,10 @@ class _AutenticacionState extends State<Autenticacionview> {
           backgroundColor: ColorTheme.primary,
         ),
       );
-      //usar el view model aqui asi genera error
       RespuestaModelo respuesta = await _vmAut.registroAlumno(perfil);
+      if (!context.mounted) {
+        return;
+      }
       if (respuesta.codigoHttp == 201) {
         Navigator.pop(context, true);
       } else {
@@ -324,27 +355,23 @@ class _AutenticacionState extends State<Autenticacionview> {
   }
 
   Widget _botonSubmit() {
-    return Container(
-      child: FilledButton(
-        onPressed: () {
-          _submitForm(context);
-        },
-        child: Text('GUARDAR'),
-      ),
+    return FilledButton(
+      onPressed: () {
+        _submitForm(context);
+      },
+      child: Text('GUARDAR'),
     );
   }
 
   Widget _botonCancelar() {
-    return Container(
-      child: FilledButton(
-        onPressed: () {
-          if (Navigator.of(context).canPop()) {
-            Navigator.pop(context, false);
-          }
-        },
-        child: Text('CANCELAR'),
-        style: FilledButton.styleFrom(backgroundColor: ColorTheme.secondary),
-      ),
+    return FilledButton(
+      onPressed: () {
+        if (Navigator.of(context).canPop()) {
+          Navigator.pop(context, false);
+        }
+      },
+      style: FilledButton.styleFrom(backgroundColor: ColorTheme.secondary),
+      child: Text('CANCELAR'),
     );
   }
 }

@@ -9,7 +9,7 @@ class Conexionfacultadremoto implements Conexionfacultades {
   final _dio = Dio();
   @override
   Future<RespuestaModelo> obtenerFacultades() async {
-    String path = "http://${ConfigServicio.ip}:8082/api/facultades";
+    String path = "http://${ConfigServicio.ip}:8082/api/v2/facultades";
     String metodo = "GET";
     String capa = "conexion";
     try {
