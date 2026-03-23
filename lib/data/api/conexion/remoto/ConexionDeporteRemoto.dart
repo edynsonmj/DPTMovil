@@ -11,7 +11,7 @@ class Conexiondeporteremoto implements Conexiondeporte {
   @override
   Future<RespuestaModelo> obtenerDeportes() async {
     String metodo = "GET";
-    String path = 'http://${ConfigServicio.ip}:8082/api/deportes';
+    String path = 'http://${ConfigServicio.ip}:8082/api/v2/deportes';
     String capa = "Conexion";
     try {
       final response = await _dio.get(path);
