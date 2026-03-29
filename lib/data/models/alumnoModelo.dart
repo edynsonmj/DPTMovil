@@ -24,12 +24,14 @@ class Alumnomodelo {
   factory Alumnomodelo.fromJson(dynamic json) {
     return Alumnomodelo(
       id: json['id'],
+      codigo: json['codigo'],
       tipo: json['tipo'],
       nombre: json['nombre'],
       correo: json['correo'],
       sexo: json['sexo'],
       tipoid: json['tipoid'],
       eliminadoestado: json['eliminadoestado'],
+      imagen: json['imagen'],
     );
   }
   Map<String, dynamic> toJson() {

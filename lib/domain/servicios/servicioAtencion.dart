@@ -13,6 +13,10 @@ class Servicioatencion {
                 .crearConexionAtenciones(),
       );
 
+  Future<RespuestaModelo> obtenerAtencionesClaseById(int id) async {
+    return await repositorio.obtenerAtencionesClaseById(id);
+  }
+
   Future<RespuestaModelo> listarAtencionesClase(
     String categoria,
     String curso,
