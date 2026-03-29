@@ -59,7 +59,7 @@ class Conexionatencionesremoto implements Conexionatenciones {
     int idClase,
   ) async {
     String metodo = "POST";
-    String path = '/atenciones?idclase=$idClase';
+    String path = '/atenciones?idClase=$idClase';
     try {
       final response = await _dio.post(
         path,
@@ -70,6 +70,45 @@ class Conexionatencionesremoto implements Conexionatenciones {
         return RespuestaModelo.fromResponse(response, metodo);
       }
       return RespuestaModelo(codigoHttp: 200);
+    } on DioException catch (dioError) {
+      return RespuestaModelo.fromDioException(dioError, metodo);
+    } on FormatException catch (formatError) {
+      return RespuestaModelo.fromFormatException(
+        formatError,
+        metodo,
+        path,
+        'conexion',
+      );
+    } on Exception catch (error) {
+      return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    }
+  }
+
+  @override
+  Future<RespuestaModelo> obtenerAtencionesClaseById(int id) async {
+    String metodo = "GET";
+    String path = '/atencionesporclase?claseid=$id';
+    try {
+      final response = await _dio.get(path);
+      if (response.statusCode != 200) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      if (response.data is! List) {
+        return RespuestaModelo(
+          codigoHttp: 406,
+          datos: response.data,
+          error: ErrorModelo(
+            codigoHttp: 406,
+            mensaje: "se esperaba una lista",
+            url: path,
+            metodo: metodo,
+          ),
+        );
+      }
+      List<dynamic> data = response.data;
+      List<Atencionmodelo> atenciones =
+          data.map((json) => Atencionmodelo.fromJson(json)).toList();
+      return RespuestaModelo(codigoHttp: 200, datos: atenciones);
     } on DioException catch (dioError) {
       return RespuestaModelo.fromDioException(dioError, metodo);
     } on FormatException catch (formatError) {

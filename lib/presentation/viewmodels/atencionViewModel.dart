@@ -9,6 +9,21 @@ class Atencionviewmodel with ChangeNotifier {
   Servicioatencion _servicioAtencion;
   Atencionviewmodel() : _servicioAtencion = Servicioatencion();
 
+  Future<RespuestaModelo> obtenerAtencionesClaseById(int id) async {
+    RespuestaModelo? respuesta;
+    try {
+      respuesta = await _servicioAtencion.obtenerAtencionesClaseById(id);
+      return respuesta;
+    } on Exception catch (e) {
+      return RespuestaModelo.fromException(
+        e,
+        'GET',
+        'ObtenerAtencionesClaseById',
+        'ViewModel',
+      );
+    }
+  }
+
   Future<RespuestaModelo> listarAtencionesClase(
     String categoria,
     String curso,
