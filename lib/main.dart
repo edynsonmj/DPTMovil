@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
@@ -29,6 +31,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        //cliente http compartido; nadie lo lee aun, las conexiones lo
+        //recibiran al migrar cada modulo (fase 1 en adelante)
+        Provider<Dio>(
+          create: (_) => Dio(BaseOptions(baseUrl: ConfigApi.baseUrl)),
+        ),
         ChangeNotifierProvider(create: (_) => CategoriaViewModel()),
         ChangeNotifierProvider(create: (_) => EstadisticasViewModel()),
         ChangeNotifierProvider(create: (_) => Gruposviewmodel()),
@@ -46,7 +53,11 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Deporte para todos',
         theme: AppTheme().theme(),
-        initialRoute: AppRutas.page1,
+        initialRoute: AppRutas.categorias,
+        //una sola ruta inicial: por defecto flutter trata '/categorias' como
+        //enlace profundo y apila antes '/', que tambien abre categorias
+        onGenerateInitialRoutes:
+            (ruta) => [generateRoute(RouteSettings(name: ruta))],
         onGenerateRoute: generateRoute,
       ),
     );

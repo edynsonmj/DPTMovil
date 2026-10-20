@@ -146,7 +146,12 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         builder: (_) => Grupoformulario(argumentos: argumentos),
       );
 
-    default:
+    case AppRutas.page1:
+      //pantalla de desarrollo: ya no es la inicial, la direccion del
+      //backend sale de ConfigApi (--dart-define=API_HOST)
       return MaterialPageRoute(builder: (_) => Page1());
+
+    default:
+      return MaterialPageRoute(builder: (_) => CategoriasView());
   }
 }
