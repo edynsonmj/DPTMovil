@@ -12,6 +12,10 @@
 .swiftpm/
 migrate_working_dir/
 
+# SonarScanner y cobertura de pruebas (generados)
+.scannerwork/
+coverage/
+
 # IntelliJ related
 *.iml
 *.ipr

@@ -128,7 +128,15 @@ class Menulateral extends StatelessWidget {
 
   Widget _mostrarSesion(AutenticacionViewModel vm) {
     return ListTile(
-      leading: Icon(Icons.account_circle_rounded),
+      leading: CircleAvatar(
+        radius: 25,
+        backgroundImage: vm.fotoPerfil != null
+            ? NetworkImage(vm.fotoPerfil! + "=s200")
+            : null,
+        child: vm.fotoPerfil == null
+            ? Icon(Icons.account_circle_rounded)
+            : null,
+      ),
       title: Text(
         '${vm.perfilSesion!.nombre} - ${vm.perfilSesion!.correo} - ${vm.perfilSesion?.role}',
       ),

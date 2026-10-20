@@ -1,17 +1,12 @@
 import 'dart:io';
 
-import 'package:dpt_movil/config/configServicio.dart';
-import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:dpt_movil/config/convertFile.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
-import 'package:dpt_movil/data/models/categoriaModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
-import 'package:dpt_movil/domain/entities/imagenEntidad.dart';
-import 'package:dpt_movil/presentation/view/views/categorias/CategoriasView.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
@@ -37,6 +32,8 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
   final _tituloController = TextEditingController();
   final _descripcionController = TextEditingController();
   File? _imagen;
+  //peticion en vuelo: bloquea el boton y muestra el indicador de carga
+  bool _guardando = false;
 
   void clear() {
     _tituloController.clear();
@@ -47,9 +44,9 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel = Provider.of<CategoriaViewModel>(context, listen: false);
-    });
+    //se obtiene aqui y no tras el primer frame: _mostrarImagen lo usa ya en
+    //el primer build para pedir la url de la imagen
+    _viewModel = Provider.of<CategoriaViewModel>(context, listen: false);
     _categoria = widget.categoria;
     if (_categoria != null) {
       _esEdicion = true;
@@ -57,22 +54,9 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
         _tituloController.text = _categoria!.titulo;
       if (_categoria!.descripcion != null)
         _descripcionController.text = _categoria!.descripcion;
-      if (_categoria!.imagen != null) {
-        if (_categoria!.imagen!.datos != null) {
-          _convertirImagen();
-        }
-      }
+      //_imagen queda en null: solo guarda una imagen nueva elegida por el
+      //usuario, la existente se muestra por red con idImagen
     }
-  }
-
-  Future<void> _convertirImagen() async {
-    File? imagen = await ConvertFile.uInt8ListToFile(
-      _categoria!.imagen!.datos,
-      _categoria!.imagen!.nombre,
-    );
-    setState(() {
-      _imagen = imagen;
-    });
   }
 
   @override
@@ -87,74 +71,76 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
     );
   }
 
-  void _submitForm() {
-    if (_imagen == null && _categoria?.idImagen == null) {
-      showDialog(
-        context: context,
-        builder: (_) {
-          return DialogError(
-            titulo: "Falta informacion",
-            mensaje: "Carga una imagen por favor",
-            codigo: 0,
-          );
-        },
-      );
-      return;
-    }
-    if (_formKey.currentState!.validate()) {
-      CategoriaEntidad entidad = CategoriaEntidad(
+  Future<void> _submitForm() async {
+    //primero los campos: asi se ven todos los errores en linea a la vez
+    if (!_formKey.currentState!.validate()) return;
+
+    //se espera la peticion para saber cuando termina: mientras tanto el boton
+    //queda bloqueado, los timeouts son largos y sin esto la pantalla parece
+    //no hacer nada
+    setState(() {
+      _guardando = true;
+    });
+    try {
+      //crear o actualizar, la regla de la imagen y el armado de la entidad
+      //los decide el viewModel; la vista solo entrega lo que hay en pantalla
+      final resultado = await _viewModel.guardarCategoria(
         titulo: _tituloController.text,
         descripcion: _descripcionController.text,
-        idImagen: _categoria?.idImagen,
+        imagenNueva: _imagen,
+        original: _categoria,
       );
-
-      if (_imagen != null) {
-        entidad.imagenFile = _imagen;
+      await _mostrarResultado(resultado);
+    } finally {
+      //en exito se hace pop, el widget ya no esta montado y no hay que tocarlo
+      if (mounted) {
+        setState(() {
+          _guardando = false;
+        });
       }
-
-      if (_esEdicion) {
-        _viewModel.actualizarCategoria(context, entidad);
-      } else {
-        guardarCategoria(context, entidad);
-      }
-
-      // Limpiar los campos del formulario
-      _tituloController.clear();
-      _descripcionController.clear();
-      setState(() {
-        _imagen = null;
-      });
     }
   }
 
-  Future<void> guardarCategoria(context, CategoriaEntidad entidad) async {
-    RespuestaModelo respuesta = await _viewModel.insertarCategoria(entidad);
-    if (respuesta.codigoHttp == 201) {
-      if (context.mounted) {
+  //el viewModel ya interpreto la respuesta: la vista solo decide que mostrar.
+  //los campos se limpian solo en exito: si falla el usuario conserva lo que
+  //escribio y puede reintentar
+  Future<void> _mostrarResultado(Resultado<CategoriaEntidad> resultado) async {
+    if (!mounted) return;
+    switch (resultado) {
+      case Exito():
         await showDialog(
           context: context,
+          barrierDismissible: !_esEdicion,
           builder:
-              (_) => DialogExito(
-                titulo: 'Categoria registrada',
-                mensaje: 'La categoria se ha guardado exitosamente.',
-              ),
+              (_) =>
+                  _esEdicion
+                      ? DialogExito(
+                        titulo: 'Accion exitosa',
+                        mensaje:
+                            'La categoria ${_categoria!.titulo}, ha sido modificada con exito',
+                      )
+                      : DialogExito(
+                        titulo: 'Categoria registrada',
+                        mensaje: 'La categoria se ha guardado exitosamente.',
+                      ),
         );
-        Navigator.pop(context, true);
-      }
-    } else {
-      if (context.mounted) {
+        clear();
+        //se regresa a la lista, el viewModel ya la refresco tras el exito
+        if (mounted) Navigator.pop(context, true);
+      case Fallo(:final codigo, :final mensaje):
         await showDialog(
           context: context,
+          barrierDismissible: !_esEdicion,
           builder:
               (_) => DialogError(
-                titulo: 'Error al guardar categoria',
-                mensaje:
-                    respuesta.error?.mensaje ??
-                    'Error desconocido. Código: ${respuesta.codigoHttp}',
-                codigo: respuesta.codigoHttp,
+                titulo:
+                    _esEdicion
+                        ? 'Error al modificar la categoria'
+                        : 'Error al guardar categoria',
+                codigo: codigo,
+                mensaje: mensaje,
               ),
         );
-      }
     }
   }
 
@@ -187,7 +173,7 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
       enabled: _esEdicion ? false : true,
       decoration: InputDecoration(labelText: 'Titulo'),
       validator: (value) {
-        if (value == null || value.isEmpty) {
+        if (value == null || value.trim().isEmpty) {
           return 'Ingresa titulo de la categoria, por favor';
         }
         return null;
@@ -202,7 +188,7 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
       minLines: 1,
       decoration: InputDecoration(label: Text('Descripcion')),
       validator: (value) {
-        if (value == null || value.isEmpty) {
+        if (value == null || value.trim().isEmpty) {
           return 'Ingresa la descripción de la categoria, por favor';
         }
         return null;
@@ -240,10 +226,21 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
   Widget _botonSubmit() {
     return Container(
       child: FilledButton(
-        onPressed: () {
-          _submitForm();
-        },
-        child: Text('GUARDAR'),
+        //null deshabilita el boton: evita encolar varias peticiones a la vez
+        onPressed:
+            _guardando
+                ? null
+                : () {
+                  _submitForm();
+                },
+        child:
+            _guardando
+                ? SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                : Text('GUARDAR'),
       ),
     );
   }
@@ -251,12 +248,16 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
   Widget _botonCancelar() {
     return Container(
       child: FilledButton(
-        onPressed: () {
-          if (Navigator.of(context).canPop()) {
-            Navigator.pop(context);
-          }
-          clear();
-        },
+        //no se permite salir a medias mientras se guarda
+        onPressed:
+            _guardando
+                ? null
+                : () {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.pop(context);
+                  }
+                  clear();
+                },
         child: Text('CANCELAR'),
         style: FilledButton.styleFrom(backgroundColor: ColorTheme.secondary),
       ),
@@ -285,9 +286,8 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
     Image img;
     //Si hay imagen en a cargar
     if (_categoria?.idImagen != null && _imagen == null) {
-      String basepath = ConfigServicio().obtenerBaseApi();
       img = Image.network(
-        '$basepath/imagenStream?idImagen=${_categoria?.idImagen}',
+        _viewModel.urlImagen(_categoria!.idImagen!),
         fit: BoxFit.cover,
       );
     } else {

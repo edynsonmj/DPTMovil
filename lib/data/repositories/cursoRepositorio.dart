@@ -63,6 +63,7 @@ class CursoRepositorio {
       List<CursoModelo> listaModelo = respuesta.datos as List<CursoModelo>;
       List<CursoEntidad> listaEntidad = [];
       for (var item in listaModelo) {
+        print('>>> cargarImagen llamada con id: ${item.imagen}');
         CursoEntidad entidad = CursoEntidad.fromModelo(item);
         listaEntidad.add(entidad);
       }

@@ -1,20 +1,19 @@
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:dpt_movil/data/models/respuestaModelo.dart';
-import 'package:dpt_movil/domain/entities/alumnoEntidad.dart';
 import 'package:dpt_movil/domain/entities/atencionEntidad.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
-import 'package:dpt_movil/presentation/view/views/grupo/widgetListaAlumnos.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
-import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+//el Atencionviewmodel lo provee la ruta AppRutas.clase, uno por pantalla
 class Claseview extends StatefulWidget {
   final Grupoentidad grupo;
   final Claseentidad clase;
@@ -26,21 +25,16 @@ class Claseview extends StatefulWidget {
 }
 
 class _ClaseviewState extends State<Claseview> {
-  final Map<String, bool> asistenciaSeleccionada = {};
-  Future<RespuestaModelo>? _futureAtenciones;
-  List<Atencionentidad> _atenciones = [];
-
   @override
   void initState() {
     super.initState();
-    Atencionviewmodel vmAtenciones = Atencionviewmodel();
-    _futureAtenciones = vmAtenciones.listarAtencionesClase(
-      widget.grupo.categoria,
-      widget.grupo.curso,
-      widget.grupo.anio,
-      widget.grupo.iterable,
-      widget.clase.codigo!,
-    );
+    Future.microtask(() {
+      if (!mounted) return;
+      context.read<Atencionviewmodel>().cargarAtenciones(
+        widget.grupo,
+        widget.clase,
+      );
+    });
   }
 
   @override
@@ -78,57 +72,25 @@ class _ClaseviewState extends State<Claseview> {
   }
 
   Widget listadoAlumnos() {
-    if (_futureAtenciones == null) {
-      return Center(child: CircularProgressIndicator());
-    }
-    return FutureBuilder(
-      future: _futureAtenciones,
-      builder: (context, promesa) {
-        if (promesa.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (promesa.hasError) {
+    return Consumer<Atencionviewmodel>(
+      builder: (context, vm, _) {
+        //antes de la primera carga la lista aun no existe: tambien es espera
+        if (vm.cargando || vm.atenciones == null && vm.error == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (vm.error != null) {
           return Text(
-            'Error: ${promesa.error}',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        } else if (!promesa.hasData) {
-          return Text(
-            'Sin información',
+            vm.error!,
             style: Tipografia.cuerpo1(color: ColorTheme.error),
           );
         }
-
-        if (promesa.data!.codigoHttp != 200) {
+        if (vm.atenciones!.isEmpty) {
           return Text(
-            'No se logró obtener información: ${promesa.data!.codigoHttp} - ${promesa.data!.error?.mensaje}',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
+            '¡No hay alumnos aún!',
+            style: Tipografia.cuerpo1(color: ColorTheme.secondaryDark),
           );
         }
-
-        if (promesa.data!.datos is! List) {
-          return Text(
-            'Información sobre el curso en formato erróneo',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-
-        try {
-          List<dynamic> listaDynamic = promesa.data!.datos;
-          List<Atencionentidad> lista = listaDynamic.cast<Atencionentidad>();
-          _atenciones = lista;
-          if (lista.isEmpty) {
-            return Text(
-              '¡No hay alumnos aún!',
-              style: Tipografia.cuerpo1(color: ColorTheme.secondaryDark),
-            );
-          }
-          return mostrarListadoAlumnos(_atenciones);
-        } catch (e) {
-          return Text(
-            'Información no compatible en la vista',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
+        return mostrarListadoAlumnos(vm.atenciones!);
       },
     );
   }
@@ -138,40 +100,7 @@ class _ClaseviewState extends State<Claseview> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          FilledButton(
-            onPressed: () async {
-              Atencionviewmodel vm = Atencionviewmodel();
-              RespuestaModelo respuesta = await vm.registrarAtenciones(
-                context,
-                _atenciones,
-                widget.clase.codigo ?? _atenciones[0].idClase,
-              );
-              if (respuesta.codigoHttp == 200) {
-                Navigator.of(context).pop();
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return DialogExito(
-                      titulo: "Exito",
-                      mensaje: "Se ha registrado la info",
-                    );
-                  },
-                );
-              } else {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return DialogError(
-                      titulo: "fallo",
-                      mensaje: "no fue posible hacer registror",
-                      codigo: 0,
-                    );
-                  },
-                );
-              }
-            },
-            child: Text('Guardar'),
-          ),
+          FilledButton(onPressed: _guardar, child: Text('Guardar')),
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
@@ -186,6 +115,41 @@ class _ClaseviewState extends State<Claseview> {
     );
   }
 
+  Future<void> _guardar() async {
+    final resultado =
+        await context.read<Atencionviewmodel>().registrarAtenciones();
+    await _mostrarResultado(resultado);
+  }
+
+  //el vm ya interpreto la respuesta: la vista solo decide que mostrar. El
+  //dialogo va antes del pop: despues de cerrar la pantalla su context ya no
+  //sirve para mostrar nada
+  Future<void> _mostrarResultado(Resultado<void> resultado) async {
+    if (!mounted) return;
+    switch (resultado) {
+      case Exito():
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogExito(
+                titulo: 'Atenciones registradas',
+                mensaje: 'Se ha registrado la asistencia de la clase.',
+              ),
+        );
+        if (mounted) Navigator.pop(context);
+      case Fallo(:final codigo, :final mensaje):
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogError(
+                titulo: 'Error al registrar atenciones',
+                codigo: codigo,
+                mensaje: mensaje,
+              ),
+        );
+    }
+  }
+
   Widget mostrarListadoAlumnos(List<Atencionentidad> listado) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 15),
@@ -194,8 +158,7 @@ class _ClaseviewState extends State<Claseview> {
         physics: const NeverScrollableScrollPhysics(),
         itemCount: listado.length,
         itemBuilder: (context, index) {
-          Atencionentidad atencionentidad = listado[index];
-          return atencion(atencionentidad, index);
+          return atencion(listado[index], index);
         },
       ),
     );
@@ -216,12 +179,13 @@ class _ClaseviewState extends State<Claseview> {
               top: 8,
               right: 8,
               child: Checkbox(
-                value: _atenciones[index].estaAtendido,
+                value: atencion.estaAtendido,
                 onChanged: (value) {
-                  setState(() {
-                    _atenciones[index].estaAtendido =
-                        value ?? _atenciones[index].estaAtendido;
-                  });
+                  if (value == null) return;
+                  context.read<Atencionviewmodel>().marcarAsistencia(
+                    index,
+                    value,
+                  );
                 },
               ),
             ),

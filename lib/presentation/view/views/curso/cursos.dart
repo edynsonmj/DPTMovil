@@ -3,7 +3,6 @@ import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
-import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
@@ -25,10 +24,7 @@ class CursosView extends StatefulWidget {
 }
 
 class _CursosViewState extends State<CursosView> {
-  CursosViewModel cursosViewModel = CursosViewModel();
   final ScrollController _scrollController = ScrollController();
-  String? _cursoSeleccionado;
-  final double _alturaTarjeta = 0.0;
 
   //libera recursos cuando se deshaga el widget
   @override
@@ -40,7 +36,7 @@ class _CursosViewState extends State<CursosView> {
   //dirige el scroll de la lista cursos a un curso seleccionado
   void _moverScrollACurso(String cursoNombre) {
     //obtenemos el indice segun el nombre del curso suministrado
-    final index = cursosViewModel.getListaCursos!.indexWhere(
+    final index = context.read<CursosViewModel>().getListaCursos!.indexWhere(
       (curso) => curso.nombreCurso == cursoNombre,
     );
     if (index != -1) {
@@ -64,101 +60,94 @@ class _CursosViewState extends State<CursosView> {
     super.initState();
     //nos aseguramos que se cargue el contexto para eviar errores
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      //definimos el provider a usar en el estado inicial
-      final cursosViewModel = Provider.of<CursosViewModel>(
+      //el vm lo crea la ruta (route_generator); aqui solo se carga
+      context.read<CursosViewModel>().listarCursosDe(
         context,
-        listen: false,
+        widget.categoria,
       );
-      //cargamos los cursos
-      //cursosViewModel.cargarListaCursos();
-      cursosViewModel.listarCursosDe(context, widget.categoria);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<CursosViewModel>(context);
-    cursosViewModel = viewModel;
+    final viewModel = context.watch<CursosViewModel>();
+    //solo se reconstruye si cambia el rol, no con cualquier cambio de sesion
+    final esCoordinador = context.select<AutenticacionViewModel, bool>(
+      (vm) => vm.perfilSesion?.role == Roles.coordinador,
+    );
     return Scaffold(
       appBar: Bar(title: 'Cursos de ${widget.categoria.titulo}'),
       drawer: Builder(builder: (context) => Menulateral()),
-      body: contenedorSeguro(context, viewModel),
+      body: contenedorSeguro(context, viewModel, esCoordinador),
     );
   }
 
   ///Contenido de la vista, donde se evita que los elementos se sobrepongan sobre elementos de la interfaz del dispositivo
-  Widget contenedorSeguro(BuildContext context, CursosViewModel viewModel) {
-    return Consumer<AutenticacionViewModel>(
-      builder: (context, vm, _) {
-        //orientacion del dispositivo
-        final Orientation orientacion = MediaQuery.of(context).orientation;
-        //primera seccion de la pantalla
-        Container contenidoEstatico = Container(
-          margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              filtro(viewModel),
-              if (vm.perfilSesion?.role == Roles.coordinador)
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRutas.InscripcionesGenerales,
-                    );
-                  },
-                  child: Text('INSCRIPCIONES'),
-                ),
-            ],
+  Widget contenedorSeguro(
+    BuildContext context,
+    CursosViewModel viewModel,
+    bool esCoordinador,
+  ) {
+    //primera seccion de la pantalla
+    Container contenidoEstatico = Container(
+      margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          filtro(viewModel),
+          if (esCoordinador)
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, AppRutas.InscripcionesGenerales);
+              },
+              child: Text('INSCRIPCIONES'),
+            ),
+        ],
+      ),
+    );
+    Widget ajustes = OutlinedButton.icon(
+      onPressed: () async {
+        final respuesta = await Navigator.pushNamed(
+          context,
+          AppRutas.formularioCurso,
+          arguments: Formcursoargumentos(
+            esEdicion: false,
+            categoria: widget.categoria.titulo,
           ),
         );
-        Widget ajustes = OutlinedButton.icon(
-          onPressed: () async {
-            final respuesta = await Navigator.pushNamed(
-              context,
-              AppRutas.formularioCurso,
-              arguments: Formcursoargumentos(
-                esEdicion: false,
-                categoria: widget.categoria.titulo,
-              ),
-            );
-            if (respuesta == true) {
-              viewModel.listarCursosDe(context, widget.categoria);
-            }
-          },
-          label: Text('AGREGAR CURSO'),
-          icon: Icon(Icons.add),
-        );
-        //elementos de la vista sobre las cuales se puede hacer scroll
-        Expanded listaItems = componenteLista(orientacion, viewModel, vm);
-        //encapsulo todo en safeArea
-        return SafeArea(
-          child: Column(
-            children: [
-              contenidoEstatico,
-              if (vm.perfilSesion?.role == Roles.coordinador) ajustes,
-              (viewModel.getListaCursos == null ||
-                      viewModel.getListaCursos!.isEmpty)
-                  ? Center(
-                    child: Text(
-                      'No hay cursos aun para esta categoria',
-                      style: Tipografia.cuerpo1(color: ColorTheme.error),
-                    ),
-                  )
-                  : listaItems,
-            ],
-          ),
-        );
+        if (respuesta == true && context.mounted) {
+          context.read<CursosViewModel>().listarCursosDe(
+            context,
+            widget.categoria,
+          );
+        }
       },
+      label: Text('AGREGAR CURSO'),
+      icon: Icon(Icons.add),
+    );
+    //encapsulo todo en safeArea
+    return SafeArea(
+      child: Column(
+        children: [
+          contenidoEstatico,
+          if (esCoordinador) ajustes,
+          (viewModel.getListaCursos == null ||
+                  viewModel.getListaCursos!.isEmpty)
+              ? Center(
+                child: Text(
+                  'No hay cursos aun para esta categoria',
+                  style: Tipografia.cuerpo1(color: ColorTheme.error),
+                ),
+              )
+              //elementos de la vista sobre las cuales se puede hacer scroll
+              : componenteLista(viewModel, esCoordinador),
+        ],
+      ),
     );
   }
 
-  Expanded componenteLista(
-    Orientation orientacion,
-    CursosViewModel viewModel,
-    AutenticacionViewModel vm,
-  ) {
+  Expanded componenteLista(CursosViewModel viewModel, bool esCoordinador) {
     return Expanded(
       child: Center(
         child: ListView.builder(
@@ -166,14 +155,14 @@ class _CursosViewState extends State<CursosView> {
           itemCount: viewModel.getListaCursos?.length ?? 0,
           itemBuilder: (BuildContext context, int index) {
             final CursoEntidad curso = viewModel.getListaCursos![index];
-            return _mostrarTarjeta(curso, vm);
+            return _mostrarTarjeta(curso, esCoordinador);
           },
         ),
       ),
     );
   }
 
-  Widget _mostrarTarjeta(CursoEntidad curso, AutenticacionViewModel vm) {
+  Widget _mostrarTarjeta(CursoEntidad curso, bool esCoordinador) {
     return Stack(
       children: [
         Center(
@@ -186,46 +175,12 @@ class _CursosViewState extends State<CursosView> {
               atrDescripcion: curso.descripcion,
             ),
             onTap: () {
-              if (vm.perfilSesion?.role == Roles.coordinador) {
+              if (esCoordinador) {
                 Navigator.pushNamed(context, AppRutas.curso, arguments: curso);
               }
             },
           ),
         ),
-        /*Positioned(
-          right: 30,
-          top: 8,
-          child: IconButton(
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                AppRutas.formularioCurso,
-                arguments: curso,
-              );
-            },
-            icon: EditIcon(),
-          ),
-        ),
-        Positioned(
-          right: 30,
-          top: 50,
-          child: IconButton(
-            onPressed: () {
-              //_confirmarEliminacion(categoria.titulo);
-            },
-            icon: Icon(
-              Icons.delete,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  color: Colors.black,
-                  offset: Offset(2, 2),
-                  blurRadius: 5,
-                ),
-              ],
-            ),
-          ),
-        ),*/
       ],
     );
   }
@@ -237,10 +192,7 @@ class _CursosViewState extends State<CursosView> {
       width: 155,
       dropdownMenuEntries: viewModel.getListaEntradas,
       onSelected: (seleccion) {
-        setState(() {
-          _cursoSeleccionado = seleccion;
-        });
-        _moverScrollACurso(seleccion);
+        if (seleccion != null) _moverScrollACurso(seleccion);
       },
     );
     return menu;

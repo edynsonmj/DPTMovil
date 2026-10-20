@@ -2,21 +2,28 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../../config/configServicio.dart';
+
 class EncabezadoImagen extends StatelessWidget {
   Uint8List? atrDatosImagen;
-  EncabezadoImagen({super.key, this.atrDatosImagen});
+  int? idImagen; // agrega esto
+
+  EncabezadoImagen({super.key, this.atrDatosImagen, this.idImagen});
 
   @override
   Widget build(BuildContext context) {
-    return (atrDatosImagen != null
-        ? Image.memory(
-            atrDatosImagen!,
-            height: 200,
-            width: MediaQuery.of(context).size.width,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) =>
-                Image.asset('assets/images/1.jpg'),
-          )
-        : Image.asset('assets/images/1.jpg', fit: BoxFit.cover));
+    String path = '${ConfigServicio().obtenerBaseApi()}/imagenStream?idImagen=$idImagen';
+
+    if (idImagen != null) {
+      return Image.network(
+        path,
+        height: 200,
+        width: MediaQuery.of(context).size.width,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Image.asset('assets/images/1.jpg', fit: BoxFit.cover),
+      );
+    }
+    return Image.asset('assets/images/1.jpg', fit: BoxFit.cover);
   }
 }

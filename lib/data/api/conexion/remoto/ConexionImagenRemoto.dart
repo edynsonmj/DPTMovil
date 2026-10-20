@@ -11,9 +11,9 @@ class Conexionimagenremoto implements Conexionimagen {
   final _dio = Dio(
     BaseOptions(
       baseUrl: ConfigServicio().obtenerBaseApi(),
-      connectTimeout: Duration(minutes: 10),
-      receiveTimeout: Duration(minutes: 10),
-      sendTimeout: Duration(minutes: 10),
+      connectTimeout: Duration(seconds: 30),
+      receiveTimeout: Duration(seconds: 30),
+      sendTimeout: Duration(seconds: 30),
     ),
   );
 

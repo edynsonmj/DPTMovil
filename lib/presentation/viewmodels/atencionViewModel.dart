@@ -1,80 +1,102 @@
-import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/atencionEntidad.dart';
+import 'package:dpt_movil/domain/entities/claseEntidad.dart';
+import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioAtencion.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
+//estado de la pantalla de una clase: se crea con la ruta AppRutas.clase y se
+//descarta al salir, asi que no arrastra las atenciones de otra clase
 class Atencionviewmodel with ChangeNotifier {
-  Servicioatencion _servicioAtencion;
+  final Servicioatencion _servicioAtencion;
   Atencionviewmodel() : _servicioAtencion = Servicioatencion();
 
-  Future<RespuestaModelo> listarAtencionesClase(
-    String categoria,
-    String curso,
-    int anio,
-    int iterable,
-    int idClase,
-  ) async {
-    RespuestaModelo? respuesta;
+  //null = aun no se ha cargado
+  List<Atencionentidad>? _atenciones;
+  List<Atencionentidad>? get atenciones => _atenciones;
+
+  bool _cargando = false;
+  bool get cargando => _cargando;
+
+  String? _error;
+  String? get error => _error;
+
+  //clase a la que pertenecen las atenciones, se fija al cargar y se reutiliza
+  //al registrar
+  int? _idClase;
+
+  Future<void> cargarAtenciones(Grupoentidad grupo, Claseentidad clase) async {
+    if (clase.codigo == null) {
+      _error = 'La clase no tiene codigo, no se pueden cargar sus atenciones';
+      notifyListeners();
+      return;
+    }
+    _idClase = clase.codigo;
+    _cargando = true;
+    _error = null;
+    notifyListeners();
     try {
-      respuesta = await _servicioAtencion.listarAtencionesClase(
-        categoria,
-        curso,
-        anio,
-        iterable,
-        idClase,
+      final respuesta = await _servicioAtencion.listarAtencionesClase(
+        grupo.categoria,
+        grupo.curso,
+        grupo.anio,
+        grupo.iterable,
+        clase.codigo!,
       );
-      return respuesta;
-    } on Exception catch (e) {
-      return RespuestaModelo.fromException(
-        e,
-        'GET',
-        'ListarClasesGrupo',
-        'ViewModel',
+      //la conexion responde 200 tambien con la lista vacia, no hay 204
+      if (respuesta.codigoHttp == 200 && respuesta.datos is List) {
+        _atenciones = (respuesta.datos as List).cast<Atencionentidad>();
+      } else {
+        _error =
+            'Código: ${respuesta.codigoHttp} - ${respuesta.error?.mensaje ?? "Error desconocido"}';
+        _atenciones = [];
+      }
+    } catch (e) {
+      _error = e.toString();
+      _atenciones = [];
+    }
+    _cargando = false;
+    notifyListeners();
+  }
+
+  //la vista solo informa el cambio del checkbox; la entidad la modifica el vm
+  void marcarAsistencia(int indice, bool valor) {
+    final lista = _atenciones;
+    if (lista == null || indice < 0 || indice >= lista.length) return;
+    lista[indice].estaAtendido = valor;
+    notifyListeners();
+  }
+
+  //registra las atenciones cargadas con su estado actual
+  Future<Resultado<void>> registrarAtenciones() async {
+    final lista = _atenciones;
+    if (lista == null || _idClase == null) {
+      return Fallo(0, 'No hay atenciones cargadas', origen: 'ViewModel');
+    }
+    if (lista.isEmpty) {
+      return Fallo(0, 'No hay alumnos para registrar', origen: 'ViewModel');
+    }
+    try {
+      final respuesta = await _servicioAtencion.registrarAtenciones(
+        lista,
+        _idClase!,
       );
+      if (respuesta.codigoHttp == 200) return Exito();
+      return _fallo(respuesta);
+    } catch (e) {
+      return Fallo(-1, e.toString(), origen: 'ViewModel');
     }
   }
 
-  Future<RespuestaModelo> registrarAtenciones(
-    context,
-    List<Atencionentidad> atenciones,
-    int idClase,
-  ) async {
-    RespuestaModelo? respuesta;
-    try {
-      respuesta = await _servicioAtencion.registrarAtenciones(
-        atenciones,
-        idClase,
-      );
-      return respuesta;
-    } on Exception catch (e) {
-      //_mostrarError(context, "fallo al registrar", null);
-      return RespuestaModelo.fromException(
-        e,
-        "POST",
-        "registro atenciones",
-        "viewmodel",
-      );
-    }
-  }
-
-  void _mostrarError(context, String titulo, ErrorModelo? error) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return (error != null)
-            ? DialogError(
-              titulo: titulo,
-              mensaje: error.mensaje,
-              codigo: error.codigoHttp,
-            )
-            : DialogError(
-              titulo: 'Error sin informacion',
-              mensaje: "Se desconoce el error",
-              codigo: 0,
-            );
-      },
+  //unico punto donde se lee el ErrorModelo: la vista recibe codigo y mensaje
+  //ya resueltos y no necesita conocer la capa de datos
+  Fallo<T> _fallo<T>(RespuestaModelo respuesta) {
+    final error = respuesta.error;
+    return Fallo(
+      respuesta.codigoHttp,
+      error?.mensaje ?? 'Error desconocido. Código: ${respuesta.codigoHttp}',
+      origen: error == null ? null : '${error.metodo} ${error.url}',
     );
   }
 }

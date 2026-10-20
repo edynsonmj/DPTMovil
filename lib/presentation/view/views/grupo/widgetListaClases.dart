@@ -64,31 +64,10 @@ class _WidgetlistaclasesState extends State<Widgetlistaclases> {
       children: [
         Text('Clases', style: Tipografia.h6()),
         OutlinedButton.icon(
-          onPressed: () async {
-            Claseentidad entidad = Claseentidad(
-              idGrupoCategoria: widget.grupo.categoria,
-              idGrupoCurso: widget.grupo.curso,
-              idGrupoAnio: widget.grupo.anio,
-              idGrupoIterable: widget.grupo.iterable,
-              idInstructor: widget.grupo.idInstructor!,
-              fecha: null,
-              horas: null,
-              minutos: null,
-              eliminado: 0,
-            );
-            final resultado = await Navigator.pushNamed(
-              context,
-              AppRutas.formularioClase,
-              arguments: entidad,
-            );
-
-            if (resultado == true) {
-              final vmClase = Provider.of<Clasesviewmodel>(
-                context,
-                listen: false,
-              );
-              vmClase.listarYNotificarClases();
-            }
+          //el formulario usa este mismo vm, que ya conoce el grupo y refresca
+          //la lista tras registrar: no hace falta recargar al volver
+          onPressed: () {
+            Navigator.pushNamed(context, AppRutas.formularioClase);
           },
           label: Text('AGREGAR CLASE'),
           icon: Icon(Icons.add),

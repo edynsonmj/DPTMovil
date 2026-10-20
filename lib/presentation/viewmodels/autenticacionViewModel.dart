@@ -18,6 +18,7 @@ class AutenticacionViewModel with ChangeNotifier {
 
   String? get correoAutenticado => _correoAutenticado ?? cuenta?.email;
   String? get nombreAutenticado => _nombreAutenticado ?? cuenta?.displayName;
+  String? get fotoPerfil => cuenta?.photoUrl;
 
   Future<void> verificarSesion() async {
     if (cuenta != null) {
@@ -40,8 +41,12 @@ class AutenticacionViewModel with ChangeNotifier {
   Future<bool> loginGoogle() async {
     error = null;
     try {
+
       cuenta = await _googleSignIn.signIn();
       if (cuenta != null) {
+        print("PHOTO URL: ${cuenta!.photoUrl}");
+        print(" Login exitoso");
+        print("Email: ${cuenta!.email}");
         _correoAutenticado = cuenta!.email;
         _nombreAutenticado = cuenta!.displayName;
         error = null;
@@ -74,6 +79,7 @@ class AutenticacionViewModel with ChangeNotifier {
 
   Future<void> logout() async {
     await _googleSignIn.signOut();
+    //await _googleSignIn.disconnect();
     cuenta = null;
     perfilSesion = null;
     _correoAutenticado = null;

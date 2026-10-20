@@ -22,6 +22,11 @@ class ConexionCategoriaRemota implements ConexionCategoria {
     ),
   );
 
+  //misma baseUrl que las peticiones de esta conexion
+  @override
+  String urlImagen(int idImagen) =>
+      '${_dio.options.baseUrl}/imagenStream?idImagen=$idImagen';
+
   @override
   Future<RespuestaModelo> encontrarCategorias() async {
     final String metodo = 'GET';
@@ -158,7 +163,7 @@ class ConexionCategoriaRemota implements ConexionCategoria {
       );
       //Si hay error se retorna una respuesta segun el codigo
       if (response.statusCode != 201) {
-        RespuestaModelo.fromResponse(response, metodo);
+        return RespuestaModelo.fromResponse(response, metodo);
       }
       //exito en la peticion
       return RespuestaModelo(

@@ -1,4 +1,3 @@
-import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/clase_grupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
@@ -7,6 +6,10 @@ import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionView.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
+import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
+import 'package:provider/provider.dart';
 import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/GrupoFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/grupos/GruposAsignados.dart';
@@ -37,11 +40,29 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.cursos:
       CategoriaEntidad datos = settings.arguments as CategoriaEntidad;
-      return MaterialPageRoute(builder: (_) => CursosView(categoria: datos));
+      //vm por pantalla: solo esta vista lee la lista de cursos, y con uno
+      //global dos pantallas de cursos apiladas (menu lateral) compartian la
+      //misma lista; al volver se veian los cursos de la otra categoria
+      return MaterialPageRoute(
+        builder:
+            (_) => ChangeNotifierProvider(
+              create: (_) => CursosViewModel(),
+              child: CursosView(categoria: datos),
+            ),
+      );
 
     case AppRutas.curso:
       CursoEntidad datos = settings.arguments as CursoEntidad;
-      return MaterialPageRoute(builder: (_) => Curso(curso: datos));
+      //vm por pantalla: el Gruposviewmodel global lo comparten tambien
+      //GruposAsignados y GruposInscripcion con otra lista; aqui cada curso
+      //tiene la suya y se descarta al salir
+      return MaterialPageRoute(
+        builder:
+            (_) => ChangeNotifierProvider(
+              create: (_) => Gruposviewmodel(),
+              child: Curso(curso: datos),
+            ),
+      );
 
     case AppRutas.grupo:
       Grupoentidad datos = settings.arguments as Grupoentidad;
@@ -82,13 +103,20 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.clase:
       ClaseGrupoargumentos? datos = settings.arguments as ClaseGrupoargumentos;
+      //vm por pantalla: las atenciones solo las usa esta clase, se crea al
+      //entrar y provider llama a dispose al salir
       return MaterialPageRoute(
-        builder: (_) => Claseview(grupo: datos.grupo, clase: datos.clase),
+        builder:
+            (_) => ChangeNotifierProvider(
+              create: (_) => Atencionviewmodel(),
+              child: Claseview(grupo: datos.grupo, clase: datos.clase),
+            ),
       );
 
     case AppRutas.formularioClase:
-      Claseentidad datos = settings.arguments as Claseentidad;
-      return MaterialPageRoute(builder: (_) => Claseformulario(entidad: datos));
+      //sin argumentos: el grupo lo conoce el vm global, que fijo
+      //widgetListaClases con inicializarGrupo
+      return MaterialPageRoute(builder: (_) => const Claseformulario());
 
     case AppRutas.formularioCurso:
       Formcursoargumentos datos = settings.arguments as Formcursoargumentos;

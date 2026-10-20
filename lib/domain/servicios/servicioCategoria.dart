@@ -30,4 +30,6 @@ class ServicioCategoria {
   Future<RespuestaModelo> actualizarCategoria(CategoriaEntidad entidad) async {
     return await repositorio.actualizarCategoria(entidad);
   }
+
+  String urlImagen(int idImagen) => repositorio.urlImagen(idImagen);
 }

@@ -59,11 +59,11 @@ class GrupoModelo {
 
   Map<String, dynamic> toJson() {
     return {
-      'cat_titulo': cat_titulo,
-      'cur_nombre': cur_nombre,
+      'categoria': cat_titulo,
+      'curso': cur_nombre,
       'anio': anio,
       'iterable': iterable,
-      'imagen': imagen,
+      'imagenGrupo': imagen,
       'idInstructor': idInstructor,
       'cupos': cupos,
       'fechaCreacion': fechaCreacion,

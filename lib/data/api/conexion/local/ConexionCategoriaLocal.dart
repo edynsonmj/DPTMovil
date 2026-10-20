@@ -28,6 +28,12 @@ class ConexionCategoriaLocal implements ConexionCategoria {
           'Es un espacio para el entrenamiento y participación en eventos deportivos competitivos de carácter universitario, realizados a nivel local, nacional e internacional, bien sea en la red ASCUN o invitaciones de otras universidades.',
     ),
   ];
+
+  //el fake no tiene servidor de imagenes y sus categorias nunca llevan
+  //imagenId, asi que el formulario no llega a pedir esta url en modo local
+  @override
+  String urlImagen(int idImagen) => '';
+
   @override
   Future<RespuestaModelo> guardarCategoria(categoriaModelo categoria) async {
     late ImagenModelo imagen;

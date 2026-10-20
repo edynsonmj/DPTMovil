@@ -44,6 +44,10 @@ class _GrupoFormularioState extends State<Grupoformulario> {
     _esEdicion = widget.argumentos.esEdicion;
     _curso = widget.argumentos.curso;
     _grupo = widget.argumentos.grupo;
+    print('nombreCurso: ${_curso.nombreCurso}');
+    print('tituloCategoria: ${_curso.tituloCategoria}');
+    print('imagen: ${_curso.imagen}');
+
     Future.microtask(() {
       final vmInstructor = Provider.of<InstructoresViewModel>(
         context,
@@ -241,6 +245,14 @@ class _GrupoFormularioState extends State<Grupoformulario> {
         idInstructor: _idInstructor,
         fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
       );
+
+      print('Grupo a guardar:');
+      print('categoria: ${g.categoria}');
+      print('curso: ${g.curso}');
+      print('imagen: ${g.imagen}');
+      print('anio: ${g.anio}');
+      print('idInstructor: ${g.idInstructor}');
+      print('cupos: ${g.cupos}');
 
       Gruposviewmodel vm = Provider.of<Gruposviewmodel>(context, listen: false);
 

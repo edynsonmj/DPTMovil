@@ -19,7 +19,7 @@ class InscripcionesParticularesView extends StatefulWidget {
 
 class _InscripcionesParticularesState
     extends State<InscripcionesParticularesView> {
-  CategoriaViewModel _categoriaViewModel = CategoriaViewModel();
+  late CategoriaViewModel _categoriaViewModel;
   String? _categoriaSeleccionada;
 
   @override

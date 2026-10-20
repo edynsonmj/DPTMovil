@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:dpt_movil/config/configServicio.dart';
-import 'package:dpt_movil/presentation/view/widgets/imagenTarjeta.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
@@ -60,7 +59,6 @@ class Tarjeta extends StatelessWidget {
       children: [
         //if (atrUrlImagen != null) imagen(context, dimension),
         imagen(context, dimension),
-        //Imagentarjeta(idImagen: idImagen),
         titulo(),
         //notese que se hacen las validaciones previo a pasar los datos, para no tener errores de null
         if (atrInfo2 != null && atrInfo1 != null) info(atrInfo1!, atrInfo2!),

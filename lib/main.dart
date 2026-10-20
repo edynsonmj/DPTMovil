@@ -1,5 +1,4 @@
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
@@ -15,7 +14,6 @@ import 'package:dpt_movil/config/routes/route_generator.dart';
 import 'package:dpt_movil/config/theme/app_tema.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:provider/provider.dart';
 
@@ -32,12 +30,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CategoriaViewModel()),
-        ChangeNotifierProvider(create: (_) => CursosViewModel()),
         ChangeNotifierProvider(create: (_) => EstadisticasViewModel()),
         ChangeNotifierProvider(create: (_) => Gruposviewmodel()),
         ChangeNotifierProvider(create: (_) => Horariosviewmodel()),
         ChangeNotifierProvider(create: (_) => Alumnosviewmodel()),
-        ChangeNotifierProvider(create: (_) => Atencionviewmodel()),
         ChangeNotifierProvider(create: (_) => Clasesviewmodel()),
         ChangeNotifierProvider(create: (_) => Imagenviewmodel()),
         ChangeNotifierProvider(create: (_) => Deporteviewmodel()),

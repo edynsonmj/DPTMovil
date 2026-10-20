@@ -1,8 +1,6 @@
-import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:flutter/material.dart';
 
 class Gruposviewmodel with ChangeNotifier {
@@ -27,8 +25,10 @@ class Gruposviewmodel with ChangeNotifier {
     String curso,
   ) async {
     RespuestaModelo? respuesta;
-    _listaGrupos = [];
-    _cargando == true;
+    //null mientras carga: con [] la vista pintaba un instante "aun no hay
+    //grupos" antes de que llegaran los datos
+    _listaGrupos = null;
+    _cargando = true;
     _error = null;
     notifyListeners();
     try {
@@ -37,7 +37,7 @@ class Gruposviewmodel with ChangeNotifier {
         _cargando = false;
         _error = respuesta.error?.mensaje ?? "no hay datos del error";
         notifyListeners();
-        return Future.value(_listaGrupos);
+        return Future.value([]);
       }
       if (respuesta.datos is List<Grupoentidad>) {
         _listaGrupos = respuesta.datos as List<Grupoentidad>;
@@ -130,6 +130,15 @@ class Gruposviewmodel with ChangeNotifier {
 
   Future<RespuestaModelo> insertarGrupo(Grupoentidad entidad) async {
     try {
+
+      print('Grupo a enviar:');
+      print('categoria: ${entidad.categoria}');
+      print('curso: ${entidad.curso}');
+      print('imagen: ${entidad.imagen}');
+      print('anio: ${entidad.anio}');
+      print('idInstructor: ${entidad.idInstructor}');
+      print('cupos: ${entidad.cupos}');
+
       RespuestaModelo respuesta = await serviciogrupo.insertarGrupo(entidad);
       listarGruposDe(entidad.categoria, entidad.curso);
       return respuesta;

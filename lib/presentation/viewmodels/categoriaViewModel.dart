@@ -1,13 +1,14 @@
+import 'dart:io';
+
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
 import 'package:flutter/material.dart';
-import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogCargando.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
 
 class CategoriaViewModel with ChangeNotifier {
   //servicio en uso
@@ -38,25 +39,24 @@ class CategoriaViewModel with ChangeNotifier {
       respuesta = await servicioCategoria.encontrarCategorias();
       if (respuesta.codigoHttp == 200) {
         if (respuesta.datos is List<CategoriaEntidad>) {
-          _categorias = respuesta.datos as List<CategoriaEntidad>;
-          _cargarEntradas();
+          _establecerCategorias(respuesta.datos as List<CategoriaEntidad>);
           notifyListeners();
         } else {
-          _categorias = null;
+          _establecerCategorias(null);
           showDialog(
             context: context,
             builder: (context) {
               return DialogError(
                 titulo: 'datos inconsistentes',
                 mensaje:
-                    'no se ha obtenido una lista de tipo entidad para cargar los datos',
+                    'No se ha obtenido una lista de tipo entidad para cargar los datos',
                 codigo: -1,
               );
             },
           );
         }
       } else if (respuesta.codigoHttp == 204) {
-        _categorias = [];
+        _establecerCategorias([]);
         showDialog(
           context: context,
           builder: (context) {
@@ -69,7 +69,7 @@ class CategoriaViewModel with ChangeNotifier {
           },
         );
       } else {
-        _categorias = [];
+        _establecerCategorias([]);
         showDialog(
           context: context,
           builder: (context) {
@@ -104,35 +104,68 @@ class CategoriaViewModel with ChangeNotifier {
     try {
       final respuesta = await servicioCategoria.encontrarCategorias();
       if (respuesta.codigoHttp == 200 && respuesta.datos is List) {
-        _categorias = respuesta.datos as List<CategoriaEntidad>;
-        _cargarEntradas();
+        _establecerCategorias(respuesta.datos as List<CategoriaEntidad>);
+      } else if (respuesta.codigoHttp == 204) {
+        //coleccion vacia, no es un error. Se ignoran los datos: el remoto
+        //manda null y el local su lista de modelos vacia, y el repositorio
+        //solo convierte a entidad en el 200
+        _establecerCategorias([]);
       } else {
         _error =
             'Código: ${respuesta.codigoHttp} - ${respuesta.error?.mensaje ?? "Error desconocido"}';
-        _categorias = [];
+        _establecerCategorias([]);
       }
     } catch (e) {
       _error = e.toString();
-      _categorias = [];
+      _establecerCategorias([]);
     }
     _cargando = false;
     notifyListeners();
   }
 
-  Future<RespuestaModelo> insertarCategoria(CategoriaEntidad entidad) async {
+  //url de la imagen ya resuelta: la vista la pinta sin saber de servidores
+  //ni endpoints
+  String urlImagen(int idImagen) => servicioCategoria.urlImagen(idImagen);
+
+  //punto de entrada del formulario: decide entre crear y actualizar y aplica
+  //las reglas que antes vivian en la vista, asi se pueden probar sin UI
+  Future<Resultado<CategoriaEntidad>> guardarCategoria({
+    required String titulo,
+    required String descripcion,
+    File? imagenNueva,
+    CategoriaEntidad? original, //null = crear
+  }) async {
+    //la categoria necesita imagen: una nueva o la que ya tenia
+    if (imagenNueva == null && original?.idImagen == null) {
+      return Fallo(0, 'Carga una imagen por favor', origen: 'ViewModel');
+    }
+    final entidad = CategoriaEntidad(
+      //en edicion el titulo es la clave del PUT ?titulo=, se usa el original
+      //tal cual para no dejar de encontrar la categoria por un trim
+      titulo: original?.titulo ?? titulo.trim(),
+      descripcion: descripcion.trim(),
+      //se conserva la imagen actual; imagenFile solo si el usuario eligio
+      //una nueva, y solo entonces la conexion sube otra
+      idImagen: original?.idImagen,
+      imagenFile: imagenNueva,
+    );
+    return original == null
+        ? await insertarCategoria(entidad)
+        : await actualizarCategoria(entidad);
+  }
+
+  Future<Resultado<CategoriaEntidad>> insertarCategoria(
+    CategoriaEntidad entidad,
+  ) async {
     try {
       final respuesta = await servicioCategoria.insertarCategoria(entidad);
       if (respuesta.codigoHttp == 201) {
-        listarYNotificarCategorias();
+        await listarYNotificarCategorias();
+        return Exito(respuesta.datos as CategoriaEntidad?);
       }
-      return respuesta;
+      return _fallo(respuesta);
     } catch (e) {
-      return RespuestaModelo.fromObjectError(
-        e,
-        'POST',
-        'Categoria',
-        'ViewModel',
-      );
+      return Fallo(-1, e.toString(), origen: 'ViewModel');
     }
   }
 
@@ -229,80 +262,57 @@ class CategoriaViewModel with ChangeNotifier {
     }
   }
 */
-  Future<void> actualizarCategoria(context, CategoriaEntidad entidad) async {
-    RespuestaModelo? respuesta;
+  //los dialogos y la navegacion quedan en CategoriaFormulario, igual que en
+  //insertarCategoria: sin context el metodo se puede llamar desde una prueba
+  Future<Resultado<CategoriaEntidad>> actualizarCategoria(
+    CategoriaEntidad entidad,
+  ) async {
     try {
-      respuesta = await servicioCategoria.actualizarCategoria(entidad);
-      Navigator.pushNamed(context, AppRutas.categorias);
-      if (respuesta != null) {
-        if (respuesta.codigoHttp == 200) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) {
-              return DialogExito(
-                titulo: 'Accion exitosa',
-                mensaje:
-                    'La categoria ${entidad.titulo}, ha sido modificada con exito',
-              );
-            },
-          );
-        } else {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) {
-              return DialogError(
-                titulo: 'Error al modificar la categoria',
-                codigo: respuesta?.codigoHttp ?? -1,
-                mensaje:
-                    respuesta?.error?.mensaje ??
-                    'No se ha encontrado informacion del error',
-              );
-            },
-          );
-        }
-      } else {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return DialogError(
-              titulo: 'Sin informacion',
-              mensaje:
-                  'El servidor no ha informado sobre el estado de la peticion',
-              codigo: -1,
-            );
-          },
-        );
+      final respuesta = await servicioCategoria.actualizarCategoria(entidad);
+      //tras el exito se refresca la lista, la vista consume vm.categorias
+      if (respuesta.codigoHttp == 200) {
+        await listarYNotificarCategorias();
+        return Exito(respuesta.datos as CategoriaEntidad?);
       }
+      return _fallo(respuesta);
     } catch (e) {
-      Navigator.pushNamed(context, AppRutas.categorias);
-      showDialog(
-        context: context,
-        builder: (context) {
-          return DialogError(
-            titulo:
-                'Error inesperado al usar el servicio, excepcion no controlada',
-            mensaje: e.toString(),
-            codigo: -1,
-          );
-        },
-      );
+      return Fallo(-1, e.toString(), origen: 'ViewModel');
     }
   }
 
-  Future<RespuestaModelo> eliminarCategoria(String titulo) async {
-    String metodo = "DELETE";
-    String url = "eliminar categoria";
-    String capa = "ViewModel";
+  //unico punto donde se lee el ErrorModelo: la vista recibe codigo y mensaje
+  //ya resueltos y no necesita conocer la capa de datos
+  Fallo<T> _fallo<T>(RespuestaModelo respuesta) {
+    final error = respuesta.error;
+    return Fallo(
+      respuesta.codigoHttp,
+      error?.mensaje ?? 'Error desconocido. Código: ${respuesta.codigoHttp}',
+      origen: error == null ? null : '${error.metodo} ${error.url}',
+    );
+  }
+
+  //la vista recibe exito o fallo ya resueltos, sin codigos http que interpretar
+  Future<Resultado<void>> eliminarCategoria(String titulo) async {
     try {
-      RespuestaModelo respuesta = await servicioCategoria.eliminarCategoria(
-        titulo,
-      );
-      return respuesta;
-    } on Exception catch (e) {
-      return RespuestaModelo.fromException(e, metodo, url, capa);
+      final respuesta = await servicioCategoria.eliminarCategoria(titulo);
+      //tras el exito se refresca la lista, la vista consume vm.categorias
+      if (respuesta.codigoHttp == 200) {
+        await listarYNotificarCategorias();
+        return Exito();
+      }
+      return _fallo(respuesta);
+    } catch (e) {
+      return Fallo(-1, e.toString(), origen: 'ViewModel');
     }
+  }
+
+  //unico punto donde se escribe la lista: las entradas del desplegable se
+  //recalculan siempre, tambien al fallar. Antes solo se hacia en el caso de
+  //exito y el filtro de inscripciones quedaba con las categorias de la carga
+  //anterior, que ya no estaban en la lista
+  void _establecerCategorias(List<CategoriaEntidad>? lista) {
+    _categorias = lista;
+    _cargarEntradas();
   }
 
   void _cargarEntradas() {

@@ -103,8 +103,8 @@ class _AlumnosState extends State<Instructoresview> {
             'Listado instructores',
             style: Tipografia.h5(),
           ),
-          //listadoInstructores(),
-          listadoInstructores2()
+          listadoInstructores(),
+          //listadoInstructores2()
         ],
       ),
     );

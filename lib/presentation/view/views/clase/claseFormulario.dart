@@ -1,20 +1,17 @@
 import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
-import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:dpt_movil/data/models/respuestaModelo.dart';
-import 'package:dpt_movil/domain/entities/claseEntidad.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class Claseformulario extends StatefulWidget {
-  final Claseentidad entidad;
-  Claseformulario({super.key, required this.entidad});
+  const Claseformulario({super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -23,23 +20,23 @@ class Claseformulario extends StatefulWidget {
 }
 
 class _ClaseFormularioState extends State<Claseformulario> {
-  final Clasesviewmodel vmClase = Clasesviewmodel();
-  late Claseentidad claseEstado;
   final _horasController = TextEditingController();
+  //valor que el usuario esta eligiendo, como el texto de un controller: se
+  //entrega al vm al guardar
   DateTime? fecha = DateTime.now();
   final _formKey = GlobalKey<FormState>();
 
   @override
-  void initState() {
-    super.initState();
-    claseEstado = widget.entidad;
+  void dispose() {
+    _horasController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Bar(title: 'Agregar clase'),
-      drawer: Builder(builder: (context)=> Menulateral()),
+      drawer: Builder(builder: (context) => Menulateral()),
       body: contenedorSeguro(context),
     );
   }
@@ -63,8 +60,6 @@ class _ClaseFormularioState extends State<Claseformulario> {
   Future<void> _seleccionFecha({
     required BuildContext context,
     DateTime? fechaInicial,
-    DateTime? ultimaFecha,
-    DateTime? primeraFecha,
   }) async {
     final DateTime? selectorFecha = await showDatePicker(
       context: context,
@@ -73,9 +68,10 @@ class _ClaseFormularioState extends State<Claseformulario> {
       lastDate: DateTime.now(),
       helpText: 'seleccione una fecha',
     );
+    //cancelar el selector devuelve null: se conserva la fecha que habia
+    if (selectorFecha == null || !mounted) return;
     setState(() {
       fecha = selectorFecha;
-      claseEstado.fecha = fecha;
     });
   }
 
@@ -86,11 +82,9 @@ class _ClaseFormularioState extends State<Claseformulario> {
         Text('Fecha inicial'),
         OutlinedButton(
           onPressed: () async {
-            //fija variable de fecha
             await _seleccionFecha(
               context: context,
-              fechaInicial: DateTime.now(),
-              primeraFecha: null,
+              fechaInicial: fecha ?? DateTime.now(),
             );
           },
           child: Text(
@@ -111,6 +105,7 @@ class _ClaseFormularioState extends State<Claseformulario> {
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       decoration: InputDecoration(label: Text('Horas clase')),
+      //solo para marcar el campo en linea; la regla la aplica el vm
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Ingrese la duracion de la clase en horas';
@@ -130,40 +125,41 @@ class _ClaseFormularioState extends State<Claseformulario> {
     );
   }
 
-  Future<void> _submitForm(context) async {
-    if (_formKey.currentState!.validate()) {
-      claseEstado.fecha = fecha;
-      claseEstado.horas = int.parse(_horasController.text);
-      claseEstado.minutos = 0;
-      final respuesta = await vmClase.guardarClase(claseEstado);
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+    //armar la clase, validar las horas y refrescar la lista lo hace el vm
+    final resultado = await context.read<Clasesviewmodel>().registrarClase(
+      fecha: fecha,
+      horasTexto: _horasController.text,
+    );
+    await _mostrarResultado(resultado);
+  }
 
-      if (respuesta.codigoHttp == 201) {
-        if (context.mounted) {
-          await showDialog(
-            context: context,
-            builder:
-                (_) => DialogExito(
-                  titulo: 'Clase registrada',
-                  mensaje: 'La clase se ha guardado exitosamente.',
-                ),
-          );
-          Navigator.pop(context, true); // Volver y avisar éxito
-        }
-      } else {
-        if (context.mounted) {
-          await showDialog(
-            context: context,
-            builder:
-                (_) => DialogError(
-                  titulo: 'Error al guardar clase',
-                  mensaje:
-                      respuesta.error?.mensaje ??
-                      'Error desconocido. Código: ${respuesta.codigoHttp}',
-                  codigo: respuesta.codigoHttp,
-                ),
-          );
-        }
-      }
+  //el vm ya interpreto la respuesta: la vista solo decide que mostrar
+  Future<void> _mostrarResultado(Resultado<void> resultado) async {
+    if (!mounted) return;
+    switch (resultado) {
+      case Exito():
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogExito(
+                titulo: 'Clase registrada',
+                mensaje: 'La clase se ha guardado exitosamente.',
+              ),
+        );
+        //el vm ya refresco la lista del grupo tras el exito
+        if (mounted) Navigator.pop(context, true);
+      case Fallo(:final codigo, :final mensaje):
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogError(
+                titulo: 'Error al guardar clase',
+                codigo: codigo,
+                mensaje: mensaje,
+              ),
+        );
     }
   }
 
@@ -171,7 +167,7 @@ class _ClaseFormularioState extends State<Claseformulario> {
     return Container(
       child: FilledButton(
         onPressed: () {
-          _submitForm(context);
+          _submitForm();
         },
         child: Text('GUARDAR'),
       ),
