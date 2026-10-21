@@ -21,6 +21,8 @@ import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -34,6 +36,8 @@ import 'remoto/imagenes/obtenerImagenTest.dart';
 import 'remoto/viewModel/categoria/vmActualizarCategoriaTest.dart';
 import 'remoto/viewModel/clase/vmRegistrarClaseTest.dart';
 import 'remoto/viewModel/atencion/vmAtencionTest.dart';
+import 'remoto/viewModel/autenticacion/vmLoginTest.dart';
+import 'remoto/viewModel/facultades/vmListarFacultadesTest.dart';
 import 'remoto/viewModel/grupo/vmListarGruposTest.dart';
 import 'remoto/viewModel/categoria/vmEliminarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmListarCategoriaTest.dart';
@@ -59,6 +63,26 @@ void main() {
   probarViewModelClase();
   probarViewModelAtencion();
   probarViewModelGrupo();
+  probarViewModelFacultades();
+  probarViewModelAutenticacion();
+}
+probarViewModelFacultades(){
+  //aun sin migrar (fase 2): la conexion arma la url con ConfigServicio
+  ConfigServicio.ip = "localhost";
+  group('Listar facultades:', () {
+    VmListarFacultadesTest test = VmListarFacultadesTest();
+    test.prueba1codigo200(Facultadesviewmodel.new);
+  });
+}
+probarViewModelAutenticacion(){
+  //aun sin migrar (fase 2): el vm crea su servicio y su GoogleSignIn, que
+  //no se usa en estos casos (login por correo)
+  ConfigServicio.ip = "localhost";
+  group('Login por correo:', () {
+    VmLoginTest test = VmLoginTest();
+    test.prueba1NoRegistrado404(AutenticacionViewModel.new);
+    test.prueba2SinCorreo(AutenticacionViewModel.new);
+  });
 }
 probarViewModelGrupo(){
   //no hay fake local de grupos. El caso hace una peticion real, pero solo
