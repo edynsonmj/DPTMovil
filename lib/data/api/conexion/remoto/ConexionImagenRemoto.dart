@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/models/imagenModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
@@ -17,19 +16,8 @@ class Conexionimagenremoto implements Conexionimagen {
     receiveTimeout: const Duration(seconds: 30),
   );
 
-  //TODO fase 3: quitar el respaldo cuando ConexionCursoRemoto y la fabrica
-  //(Servicioimagen) reciban la conexion inyectada
-  Conexionimagenremoto([Dio? dio])
-    : _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              baseUrl: ConfigServicio().obtenerBaseApi(),
-              connectTimeout: Duration(seconds: 30),
-              receiveTimeout: Duration(seconds: 30),
-              sendTimeout: Duration(seconds: 30),
-            ),
-          );
+  //el Dio compartido llega desde la raiz de composicion
+  Conexionimagenremoto(this._dio);
 
   @override
   Future<RespuestaModelo> insertarImagenFile(File file) async {

@@ -8,4 +8,6 @@ abstract class ConexionCurso {
   Future<RespuestaModelo> eliminarCurso(CursoModelo curso);
   Future<RespuestaModelo> agregarCurso(CursoModelo curso);
   Future<RespuestaModelo> obtenerCurso(String categoria, String curso);
+  //la direccion del servidor la conoce la conexion, no la vista
+  String urlImagen(int idImagen);
 }

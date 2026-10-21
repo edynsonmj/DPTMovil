@@ -5,11 +5,13 @@ import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
+import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
+import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
@@ -46,6 +48,9 @@ void main() {
     expect(contexto.read<Dio>().options.baseUrl, ConfigApi.baseUrl);
     expect(contexto.read<Conexionimagen>(), isA<Conexionimagenremoto>());
     expect(contexto.read<ServicioCategoria>(), isNotNull);
+    expect(contexto.read<ServicioCurso>(), isNotNull);
+    expect(contexto.read<Serviciodeporte>(), isNotNull);
+    expect(contexto.read<Servicioimagen>(), isNotNull);
     expect(contexto.read<Servicioautenticacion>(), isNotNull);
     expect(contexto.read<Serviciofacultades>(), isNotNull);
 
@@ -55,7 +60,6 @@ void main() {
     expect(contexto.read<Horariosviewmodel>(), isNotNull);
     expect(contexto.read<Alumnosviewmodel>(), isNotNull);
     expect(contexto.read<Clasesviewmodel>(), isNotNull);
-    expect(contexto.read<Deporteviewmodel>(), isNotNull);
     expect(contexto.read<AutenticacionViewModel>(), isNotNull);
     expect(contexto.read<Inscripcionviewmodel>(), isNotNull);
     expect(contexto.read<InstructoresViewModel>(), isNotNull);

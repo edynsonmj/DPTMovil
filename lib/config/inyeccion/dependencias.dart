@@ -3,18 +3,25 @@ import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionDeporteRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
+import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
+import 'package:dpt_movil/data/repositories/deporteRepositorio.dart';
 import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
+import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
+import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
+import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
@@ -33,7 +40,7 @@ import 'package:provider/single_child_widget.dart';
 //conexiones y repositorios 1:1 se construyen dentro del create del servicio
 List<SingleChildWidget> proveedoresDatos() => [
   Provider<Dio>(create: (_) => crearClienteHttp()),
-  //unica conexion compartida: la usan categoria y, desde la fase 3, curso
+  //unica conexion compartida: la usan categoria, curso y Servicioimagen
   Provider<Conexionimagen>(
     create: (c) => Conexionimagenremoto(c.read<Dio>()),
   ),
@@ -46,6 +53,31 @@ List<SingleChildWidget> proveedoresDatos() => [
               c.read<Conexionimagen>(),
             ),
           ),
+        ),
+  ),
+  Provider<ServicioCurso>(
+    create:
+        (c) => ServicioCurso(
+          CursoRepositorio(
+            cliente: ConexionCursoRemoto(
+              c.read<Dio>(),
+              c.read<Conexionimagen>(),
+            ),
+          ),
+        ),
+  ),
+  Provider<Serviciodeporte>(
+    create:
+        (c) => Serviciodeporte(
+          Deporterepositorio(cliente: Conexiondeporteremoto(c.read<Dio>())),
+        ),
+  ),
+  //sin consumidores por ahora: provider es perezoso y no lo crea hasta que
+  //alguien lo lea
+  Provider<Servicioimagen>(
+    create:
+        (c) => Servicioimagen(
+          Imagenrepositorio(conexion: c.read<Conexionimagen>()),
         ),
   ),
   Provider<Servicioautenticacion>(
@@ -73,8 +105,6 @@ List<SingleChildWidget> vmsGlobales() => [
   //nadie lo lee del arbol: widgetListaAlumnos crea su propia instancia
   ChangeNotifierProvider(create: (_) => Alumnosviewmodel()), //fase 4
   ChangeNotifierProvider(create: (_) => Clasesviewmodel()), //fase 4
-  //nadie lo lee del arbol: FormularioCurso crea su propia instancia
-  ChangeNotifierProvider(create: (_) => Deporteviewmodel()), //fase 3
   //se queda: la sesion la leen el menu lateral y casi todas las pantallas
   ChangeNotifierProvider(
     create:

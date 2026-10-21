@@ -69,8 +69,14 @@ class Tarjeta extends StatelessWidget {
   }
 
   Widget imagen(BuildContext context, Size dimension) {
-    String basepath = ConfigServicio().obtenerBaseApi();
-    String path = '${basepath}/imagenStream?idImagen=$idImagen';
+    //la url llega armada desde el vm (categorias y cursos). Sin url se cae
+    //en armarla aqui con idImagen
+    //TODO fase 6: quitar el respaldo cuando GruposAsignados y
+    //GruposInscripcion pasen la url
+    String path =
+        (atrUrlImagen != null && atrUrlImagen!.isNotEmpty)
+            ? atrUrlImagen!
+            : '${ConfigServicio().obtenerBaseApi()}/imagenStream?idImagen=$idImagen';
     atrDatosImagen=null;
     return ClipRRect(
       //border redondeador en la parte superior

@@ -9,6 +9,7 @@ import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:provider/provider.dart';
@@ -58,7 +59,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder:
             (_) => ChangeNotifierProvider(
-              create: (_) => CursosViewModel(),
+              create: (c) => CursosViewModel(c.read()),
               child: CursosView(categoria: datos),
             ),
       );
@@ -78,7 +79,15 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.grupo:
       Grupoentidad datos = settings.arguments as Grupoentidad;
-      return MaterialPageRoute(builder: (_) => Grupo(grupo: datos));
+      //vm de cursos por pantalla solo para mostrar el curso del grupo; la
+      //pantalla pasa a un unico vm en la fase 4
+      return MaterialPageRoute(
+        builder:
+            (_) => ChangeNotifierProvider(
+              create: (c) => CursosViewModel(c.read()),
+              child: Grupo(grupo: datos),
+            ),
+      );
 
     case AppRutas.categorias:
       return MaterialPageRoute(builder: (_) => _conCategorias(CategoriasView()));
@@ -137,8 +146,21 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.formularioCurso:
       Formcursoargumentos datos = settings.arguments as Formcursoargumentos;
+      //vms propios del formulario: al guardar hace pop(true) y la lista de
+      //cursos recarga el suyo
       return MaterialPageRoute(
-        builder: (_) => FormularioCurso(argumentos: datos),
+        builder:
+            (_) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (c) => CursosViewModel(c.read()),
+                ),
+                ChangeNotifierProvider(
+                  create: (c) => Deporteviewmodel(c.read()),
+                ),
+              ],
+              child: FormularioCurso(argumentos: datos),
+            ),
       );
 
     case AppRutas.autenticacionRegistro:

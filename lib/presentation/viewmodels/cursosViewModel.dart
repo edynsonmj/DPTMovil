@@ -18,8 +18,11 @@ class CursosViewModel with ChangeNotifier {
   //get para acceder a la lista de entradas para el desplegable
   List<DropdownMenuEntry> get getListaEntradas => _listaEntradas;
 
-  //constructor
-  CursosViewModel() : servicioCurso = ServicioCurso();
+  //el servicio sale de la raiz; el vm lo crea cada ruta (route_generator)
+  CursosViewModel(this.servicioCurso);
+
+  //url de la imagen de un curso: la vista no conoce la direccion del servidor
+  String urlImagen(int idImagen) => servicioCurso.urlImagen(idImagen);
 
   Future<void> cargarListaCursos() async {
     try {

@@ -1,17 +1,25 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
-import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/models/cursoModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/imagenModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
-import 'package:flutter/material.dart';
 
 class ConexionCursoRemoto implements ConexionCurso {
-  final _dio = Dio(BaseOptions(baseUrl: ConfigServicio().obtenerBaseApi()));
+  //ambas llegan desde la raiz de composicion: el Dio compartido (con la
+  //baseUrl y los timeouts) y la conexion de imagenes, compartida con categoria
+  final Dio _dio;
+  final Conexionimagen _conexionImagen;
+
+  ConexionCursoRemoto(this._dio, this._conexionImagen);
+
+  //misma baseUrl que las peticiones de esta conexion
+  @override
+  String urlImagen(int idImagen) =>
+      '${_dio.options.baseUrl}/imagenStream?idImagen=$idImagen';
 
   @override
   Future<List<CursoModelo>> obtenerCursos() async {
@@ -65,9 +73,8 @@ class ConexionCursoRemoto implements ConexionCurso {
     String metodo = "POST";
     String capa = "Conexion";
     try {
-      Conexionimagenremoto conexionImagen = Conexionimagenremoto();
       //se inserta la imagen
-      RespuestaModelo responseImagen = await conexionImagen.insertarImagenFile(
+      RespuestaModelo responseImagen = await _conexionImagen.insertarImagenFile(
         curso.imagenFile!,
       );
       if (responseImagen.codigoHttp != 201) {
@@ -80,8 +87,9 @@ class ConexionCursoRemoto implements ConexionCurso {
         data: curso,
         options: Options(contentType: ContentType.json.toString()),
       );
+      //Dio ya lanza con 4xx/5xx; esto cubre un 2xx distinto de 201
       if (response.statusCode != 201) {
-        RespuestaModelo.fromResponse(response, metodo);
+        return RespuestaModelo.fromResponse(response, metodo);
       }
       CursoModelo respuesta = CursoModelo.fromJson(response.data);
       return RespuestaModelo(

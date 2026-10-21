@@ -1,18 +1,14 @@
-import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
-import 'package:dpt_movil/presentation/view/views/grupo/grupo.dart';
 
 class ServicioCurso {
   CursoRepositorio repositorio;
-  ServicioCurso()
-    : repositorio = CursoRepositorio(
-        cliente:
-            ConexionFabricaAbstracta.obtenerConexionFabrica()
-                .crearConexionCurso(),
-      );
+
+  //el repositorio llega armado desde la raiz de composicion
+  //(lib/config/inyeccion/dependencias.dart)
+  ServicioCurso(this.repositorio);
 
   Future<List<CursoEntidad>> call() async {
     return await repositorio.obtenerCursos();
@@ -33,4 +29,6 @@ class ServicioCurso {
   Future<RespuestaModelo> insertarCurso(CursoEntidad entidad) async {
     return await repositorio.guardaCurso(entidad);
   }
+
+  String urlImagen(int idImagen) => repositorio.urlImagen(idImagen);
 }

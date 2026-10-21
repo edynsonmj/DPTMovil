@@ -137,7 +137,13 @@ class _CategoriasViewState extends State<CategoriasView> {
                 atrDescripcion: categoria.descripcion,
                 atrRutaTarjeta: AppRutas.cursos,
                 atrDatosImagen: categoria.imagen?.datos,
-                idImagen: categoria.idImagen,
+                //la url la da el vm; la tarjeta ya no arma la del servidor
+                atrUrlImagen:
+                    categoria.idImagen == null
+                        ? ''
+                        : context.read<CategoriaViewModel>().urlImagen(
+                          categoria.idImagen!,
+                        ),
               ),
             ),
             if (vm.perfilSesion?.role == Roles.coordinador)

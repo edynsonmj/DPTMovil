@@ -21,6 +21,7 @@ import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
 import 'package:dpt_movil/presentation/view/widgets/encabezadoImagen.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
+import 'package:provider/provider.dart';
 
 class Grupo extends StatelessWidget {
   Grupoentidad grupo;
@@ -122,8 +123,9 @@ class Grupo extends StatelessWidget {
     );
   }
 
-  Widget informacionCurso(context) {
-    CursosViewModel vmCurso = CursosViewModel();
+  Widget informacionCurso(BuildContext context) {
+    //el vm lo crea la ruta grupo; esta pantalla pasa a un unico vm en la fase 4
+    CursosViewModel vmCurso = context.read<CursosViewModel>();
     return FutureBuilder(
       future: vmCurso.obtenerCurso(grupo.categoria, grupo.curso),
       builder: (context, promesa) {

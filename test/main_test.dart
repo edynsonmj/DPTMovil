@@ -13,16 +13,22 @@ import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionDeporteRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
+import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
+import 'package:dpt_movil/data/repositories/deporteRepositorio.dart';
 import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
+import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
@@ -79,30 +85,39 @@ void main() {
   probarViewModelDeporte();
   probarViewModelCurso();
 }
+//misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como
+//la ruta formularioCurso
+Deporteviewmodel crearDeporteViewModel() => Deporteviewmodel(
+  Serviciodeporte(
+    Deporterepositorio(
+      cliente: Conexiondeporteremoto(crearClienteHttp(baseUrlPruebas)),
+    ),
+  ),
+);
 probarViewModelDeporte(){
-  //sin migrar: la conexion toma la url de ConfigServicio al construirse
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
-  ConfigServicio.ip = "localhost";
   group('Listar deportes:', () {
     VmListarDeportesTest test = VmListarDeportesTest();
-    test.prueba1codigo200(Deporteviewmodel.new);
+    test.prueba1codigo200(crearDeporteViewModel);
   });
 }
 probarViewModelCurso(){
-  //cursos y deportes sin migrar: siguen la fabrica y ConfigServicio. La
-  //categoria de apoyo usa la cadena ya migrada
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
-  ConfigServicio.ip = "localhost";
+  //el mismo cliente para cursos, categorias e imagenes, como en la raiz
   Dio dio = crearClienteHttp(baseUrlPruebas);
+  Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
   CategoriaViewModel vmCategoria = crearCategoriaViewModel(
-    ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
+    ConexionCategoriaRemota(dio, conexionImagen),
+  );
+  CursosViewModel crearVm() => CursosViewModel(
+    ServicioCurso(
+      CursoRepositorio(cliente: ConexionCursoRemoto(dio, conexionImagen)),
+    ),
   );
   group('Cursos remotos:', () {
     VmCursoTest test = VmCursoTest();
-    test.preparar(vmCategoria, Deporteviewmodel.new);
-    test.prueba1Agregar201(CursosViewModel.new);
-    test.prueba2ListarCursosDe(CursosViewModel.new);
-    test.prueba3ObtenerCurso(CursosViewModel.new);
+    test.preparar(vmCategoria, crearDeporteViewModel);
+    test.prueba1Agregar201(crearVm);
+    test.prueba2ListarCursosDe(crearVm);
+    test.prueba3ObtenerCurso(crearVm);
   });
 }
 probarViewModelFacultades(){
@@ -313,7 +328,9 @@ Imagenrepositorio configuracionImagenRepositorio(String? ip) {
 
   ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
   ConfigServicio.ip = ip;
-  repositorio = Imagenrepositorio(conexion: Conexionimagenremoto());
+  repositorio = Imagenrepositorio(
+    conexion: Conexionimagenremoto(crearClienteHttp('http://$ip:8082/api/v2')),
+  );
 
   return repositorio;
 }

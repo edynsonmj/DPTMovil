@@ -10,6 +10,8 @@ class CursoRepositorio {
   ConexionCurso cliente;
   CursoRepositorio({required this.cliente});
 
+  String urlImagen(int idImagen) => cliente.urlImagen(idImagen);
+
   Future<List<CursoEntidad>> obtenerCursos() async {
     final listGruposModelo = await cliente.obtenerCursos();
     return listGruposModelo

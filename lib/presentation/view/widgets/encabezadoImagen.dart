@@ -12,6 +12,8 @@ class EncabezadoImagen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //TODO fase 4: recibir la url desde el vm, como Tarjeta; la pantalla de
+    //curso no tiene vm de cursos y se rediseña en esa fase
     String path = '${ConfigServicio().obtenerBaseApi()}/imagenStream?idImagen=$idImagen';
 
     if (idImagen != null) {

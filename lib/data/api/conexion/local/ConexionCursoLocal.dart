@@ -94,4 +94,8 @@ class ConexionCursoLocal implements ConexionCurso {
     // TODO: implement obtenerCurso
     throw UnimplementedError();
   }
+
+  //sin servidor no hay imagenes: la tarjeta cae en su imagen por defecto
+  @override
+  String urlImagen(int idImagen) => '';
 }

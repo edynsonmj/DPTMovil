@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
@@ -14,6 +13,7 @@ import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class FormularioCurso extends StatefulWidget {
   Formcursoargumentos argumentos;
@@ -30,7 +30,8 @@ class _FormularioCursoState extends State<FormularioCurso> {
   String? _deporte;
   Future<RespuestaModelo>? _futureDeportes;
 
-  final CursosViewModel _vmCurso = CursosViewModel();
+  //los vms los crea la ruta formularioCurso (route_generator)
+  late final CursosViewModel _vmCurso;
   late Formcursoargumentos _estado;
   late bool _esEdicion;
   File? _imagen;
@@ -44,8 +45,8 @@ class _FormularioCursoState extends State<FormularioCurso> {
   @override
   void initState() {
     super.initState();
-    Deporteviewmodel vmDeporte = Deporteviewmodel();
-    _futureDeportes = vmDeporte.obtenerDeportes();
+    _vmCurso = context.read<CursosViewModel>();
+    _futureDeportes = context.read<Deporteviewmodel>().obtenerDeportes();
     _estado = widget.argumentos;
     _esEdicion = widget.argumentos.esEdicion;
     _nombreController.value =
@@ -238,9 +239,8 @@ class _FormularioCursoState extends State<FormularioCurso> {
     Image img;
     //Si hay imagen en a cargar
     if (_estado.curso?.imagen != null && _imagen == null) {
-      String basepath = ConfigServicio().obtenerBaseApi();
       img = Image.network(
-        '$basepath/imagenStream?idImagen=${_estado.curso?.imagen}',
+        _vmCurso.urlImagen(_estado.curso!.imagen!),
         fit: BoxFit.cover,
       );
     } else {

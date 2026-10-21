@@ -1,22 +1,13 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAlumnos.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
-import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
-import 'package:dpt_movil/data/api/conexion/interfaces/ConexionDeporte.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionHorarios.dart';
-import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
-import 'package:dpt_movil/data/api/conexion/local/ConexionCursoLocal.dart';
-import 'package:dpt_movil/data/api/conexion/local/ConexionEstadisticasLocal.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 
+//ConexionCursoLocal ya no se crea aqui (fase 3); se borra en la fase 8
 class ConexionLocalFabrica implements ConexionFabricaAbstracta {
-  @override
-  ConexionCurso crearConexionCurso() {
-    return ConexionCursoLocal();
-  }
-
   @override
   ConexionEstadisticas crearConexionEstadisticas() {
     throw UnimplementedError();
@@ -49,18 +40,6 @@ class ConexionLocalFabrica implements ConexionFabricaAbstracta {
   @override
   Conexionatenciones crearConexionAtenciones() {
     // TODO: implement crearConexionAtenciones
-    throw UnimplementedError();
-  }
-
-  @override
-  Conexionimagen crearConexionImagenes() {
-    // TODO: implement crearConexionImagenes
-    throw UnimplementedError();
-  }
-
-  @override
-  Conexiondeporte crearConexionDeporte() {
-    // TODO: implement crearConexionDeporte
     throw UnimplementedError();
   }
 }

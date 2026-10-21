@@ -43,6 +43,10 @@ class ConexionCursoFalsa implements ConexionCurso {
     return respuestaObtener;
   }
 
+  @override
+  String urlImagen(int idImagen) =>
+      'http://falso/imagenStream?idImagen=$idImagen';
+
   //sin uso en la app (la conexion remota no implementa los dos ultimos)
   @override
   Future<List<CursoModelo>> obtenerCursos() async => [];

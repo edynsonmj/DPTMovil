@@ -1,17 +1,18 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionDeporte.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexiondeporteremoto implements Conexiondeporte {
-  final _dio = Dio();
+  //el Dio compartido llega desde la raiz de composicion, con la baseUrl
+  final Dio _dio;
+
+  Conexiondeporteremoto(this._dio);
+
   @override
   Future<RespuestaModelo> obtenerDeportes() async {
     String metodo = "GET";
-    String path = '${ConfigServicio().obtenerBaseApi()}/deportes';
+    String path = '/deportes';
     String capa = "Conexion";
     try {
       final response = await _dio.get(path);

@@ -168,7 +168,13 @@ class _CursosViewState extends State<CursosView> {
         Center(
           child: InkWell(
             child: Tarjeta(
-              idImagen: curso.imagen,
+              //la url la da el vm; la tarjeta ya no arma la del servidor
+              atrUrlImagen:
+                  curso.imagen == null
+                      ? ''
+                      : context.read<CursosViewModel>().urlImagen(
+                        curso.imagen!,
+                      ),
               atrTitulo: curso.nombreCurso,
               atrInfo1: curso.nombreDeporte,
               atrInfo2: curso.tituloCategoria,
