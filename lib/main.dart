@@ -1,22 +1,8 @@
-import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configApi.dart';
-import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/imagenViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
+import 'package:dpt_movil/config/inyeccion/dependencias.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/routes/route_generator.dart';
 import 'package:dpt_movil/config/theme/app_tema.dart';
-import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
-import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -30,25 +16,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
-        //cliente http compartido; nadie lo lee aun, las conexiones lo
-        //recibiran al migrar cada modulo (fase 1 en adelante)
-        Provider<Dio>(
-          create: (_) => Dio(BaseOptions(baseUrl: ConfigApi.baseUrl)),
-        ),
-        ChangeNotifierProvider(create: (_) => CategoriaViewModel()),
-        ChangeNotifierProvider(create: (_) => EstadisticasViewModel()),
-        ChangeNotifierProvider(create: (_) => Gruposviewmodel()),
-        ChangeNotifierProvider(create: (_) => Horariosviewmodel()),
-        ChangeNotifierProvider(create: (_) => Alumnosviewmodel()),
-        ChangeNotifierProvider(create: (_) => Clasesviewmodel()),
-        ChangeNotifierProvider(create: (_) => Imagenviewmodel()),
-        ChangeNotifierProvider(create: (_) => Deporteviewmodel()),
-        ChangeNotifierProvider(create: (_) => AutenticacionViewModel()),
-        ChangeNotifierProvider(create: (_) => Facultadesviewmodel()),
-        ChangeNotifierProvider(create: (_) => Inscripcionviewmodel()),
-        ChangeNotifierProvider(create: (_) => InstructoresViewModel()),
-      ],
+      //datos antes que vms: ver lib/config/inyeccion/dependencias.dart
+      providers: [...proveedoresDatos(), ...vmsGlobales()],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Deporte para todos',

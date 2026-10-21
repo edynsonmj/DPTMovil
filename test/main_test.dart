@@ -19,7 +19,6 @@ import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/imagenViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'local/categorias/insertarCategoriaLocal.dart';
@@ -36,11 +35,9 @@ import 'remoto/viewModel/categoria/vmEliminarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmListarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarFormularioCategoriaTest.dart';
-import 'remoto/viewModel/imagen/vmObtenerImagenTest.dart';
 
 void main() {
   //probarRepositorioCategoriaRemota();
-  //probarViewModelImagen();
   //el local va primero: cada vm resuelve su conexion al construirse, asi que
   //se construye con la config en SERVICIO_LOCAL antes de pasarla a remoto
   probarViewModelCategoriaLocal();
@@ -142,21 +139,6 @@ grupoVMCategoriaRegistrar(CategoriaViewModel vm){
     test.prueba1codigo200(vm);
     test.prueba2Inexistente(vm);
     test.prueba3TituloVacio(vm);
-  });
-}
-
-probarViewModelImagen()async{
-  String ip = "localhost";
-  Imagenrepositorio repo = configuracionImagenRepositorio(ip);
-  configuracionImagenRepositorio(ip);
-  Imagenviewmodel vm = Imagenviewmodel();
-  grupoVMImagenObtener(vm);
-}
-
-grupoVMImagenObtener(Imagenviewmodel vm){
-  group('Obtener imagen remota:', () {
-    Vmobtenerimagentest test = Vmobtenerimagentest();
-    test.prueba1codigo200(vm);
   });
 }
 
