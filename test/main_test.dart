@@ -26,6 +26,8 @@ import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
@@ -42,6 +44,8 @@ import 'remoto/categorias/listarCategoriaTest.dart';
 import 'remoto/imagenes/obtenerImagenTest.dart';
 import 'remoto/viewModel/categoria/vmActualizarCategoriaTest.dart';
 import 'remoto/viewModel/clase/vmRegistrarClaseTest.dart';
+import 'remoto/viewModel/curso/vmCursoTest.dart';
+import 'remoto/viewModel/deporte/vmListarDeportesTest.dart';
 import 'remoto/viewModel/atencion/vmAtencionTest.dart';
 import 'remoto/viewModel/autenticacion/vmLoginTest.dart';
 import 'remoto/viewModel/facultades/vmListarFacultadesTest.dart';
@@ -72,6 +76,34 @@ void main() {
   probarViewModelGrupo();
   probarViewModelFacultades();
   probarViewModelAutenticacion();
+  probarViewModelDeporte();
+  probarViewModelCurso();
+}
+probarViewModelDeporte(){
+  //sin migrar: la conexion toma la url de ConfigServicio al construirse
+  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
+  ConfigServicio.ip = "localhost";
+  group('Listar deportes:', () {
+    VmListarDeportesTest test = VmListarDeportesTest();
+    test.prueba1codigo200(Deporteviewmodel.new);
+  });
+}
+probarViewModelCurso(){
+  //cursos y deportes sin migrar: siguen la fabrica y ConfigServicio. La
+  //categoria de apoyo usa la cadena ya migrada
+  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
+  ConfigServicio.ip = "localhost";
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  CategoriaViewModel vmCategoria = crearCategoriaViewModel(
+    ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
+  );
+  group('Cursos remotos:', () {
+    VmCursoTest test = VmCursoTest();
+    test.preparar(vmCategoria, Deporteviewmodel.new);
+    test.prueba1Agregar201(CursosViewModel.new);
+    test.prueba2ListarCursosDe(CursosViewModel.new);
+    test.prueba3ObtenerCurso(CursosViewModel.new);
+  });
 }
 probarViewModelFacultades(){
   //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como
