@@ -3,7 +3,9 @@ import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:flutter/material.dart';
 
 class Facultadesviewmodel with ChangeNotifier {
-  final Serviciofacultades _servicio = Serviciofacultades();
+  //el servicio llega desde la raiz; el vm se crea por ruta
+  //(autenticacionRegistro), solo lo usa la pantalla de registro
+  final Serviciofacultades _servicio;
 
   List<String> _facultades = [];
   List<String> get facultades => _facultades;
@@ -14,7 +16,7 @@ class Facultadesviewmodel with ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  Facultadesviewmodel();
+  Facultadesviewmodel(this._servicio);
 
   Future<void> listarYNotificarFacultades() async {
     _cargando = true;

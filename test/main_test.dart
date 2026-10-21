@@ -11,13 +11,19 @@ import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
+import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
+import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
+import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
@@ -27,6 +33,7 @@ import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'dobles/conexionCategoriaLocal.dart';
+import 'dobles/googleSignInFalso.dart';
 import 'local/categorias/insertarCategoriaLocal.dart';
 import 'local/categorias/obtenerCategoriasLocal.dart';
 import 'local/viewModel/categoria/vmListarCategoriaLocalTest.dart';
@@ -67,21 +74,34 @@ void main() {
   probarViewModelAutenticacion();
 }
 probarViewModelFacultades(){
-  //aun sin migrar (fase 2): la conexion arma la url con ConfigServicio
-  ConfigServicio.ip = "localhost";
+  //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como
+  //la ruta autenticacionRegistro
+  Facultadesviewmodel crearVm() => Facultadesviewmodel(
+    Serviciofacultades(
+      Facultadesrepositorio(
+        conexion: Conexionfacultadremoto(crearClienteHttp(baseUrlPruebas)),
+      ),
+    ),
+  );
   group('Listar facultades:', () {
     VmListarFacultadesTest test = VmListarFacultadesTest();
-    test.prueba1codigo200(Facultadesviewmodel.new);
+    test.prueba1codigo200(crearVm);
   });
 }
 probarViewModelAutenticacion(){
-  //aun sin migrar (fase 2): el vm crea su servicio y su GoogleSignIn, que
-  //no se usa en estos casos (login por correo)
-  ConfigServicio.ip = "localhost";
+  //el login por correo no usa Google: basta el doble, sin plugin nativo
+  AutenticacionViewModel crearVm() => AutenticacionViewModel(
+    Servicioautenticacion(
+      Autenticacionrepositorio(
+        conexion: Conexionautenticacionremoto(crearClienteHttp(baseUrlPruebas)),
+      ),
+    ),
+    GoogleSignInFalso(),
+  );
   group('Login por correo:', () {
     VmLoginTest test = VmLoginTest();
-    test.prueba1NoRegistrado404(AutenticacionViewModel.new);
-    test.prueba2SinCorreo(AutenticacionViewModel.new);
+    test.prueba1NoRegistrado404(crearVm);
+    test.prueba2SinCorreo(crearVm);
   });
 }
 probarViewModelGrupo(){

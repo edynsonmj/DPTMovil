@@ -9,6 +9,7 @@ import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:provider/provider.dart';
 import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
@@ -141,7 +142,14 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
 
     case AppRutas.autenticacionRegistro:
-      return MaterialPageRoute(builder: (_) => Autenticacionview());
+      //vm por pantalla: las facultades solo las usa el registro
+      return MaterialPageRoute(
+        builder:
+            (_) => ChangeNotifierProvider(
+              create: (c) => Facultadesviewmodel(c.read()),
+              child: Autenticacionview(),
+            ),
+      );
 
     case AppRutas.gruposDisponiblesInscripcion:
       String idAlumno = settings.arguments as String;

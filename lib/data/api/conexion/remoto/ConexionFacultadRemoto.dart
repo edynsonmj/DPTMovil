@@ -1,15 +1,18 @@
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionFacultades.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/facultadModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexionfacultadremoto implements Conexionfacultades {
-  final _dio = Dio();
+  //el Dio compartido llega desde la raiz con la baseUrl: el path es relativo
+  final Dio _dio;
+
+  Conexionfacultadremoto(this._dio);
+
   @override
   Future<RespuestaModelo> obtenerFacultades() async {
-    String path = "${ConfigServicio().obtenerBaseApi()}/facultades";
+    String path = "/facultades";
     String metodo = "GET";
     String capa = "conexion";
     try {

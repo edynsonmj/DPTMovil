@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AutenticacionViewModel with ChangeNotifier {
-  final Servicioautenticacion _servicio = Servicioautenticacion();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+  //unico vm global (la sesion la leen el menu lateral y casi todas las
+  //pantallas). Ambas dependencias llegan desde la raiz: el servicio y el
+  //cliente de Google, que en los tests se reemplaza por un doble
+  final Servicioautenticacion _servicio;
+  final GoogleSignIn _googleSignIn;
 
   GoogleSignInAccount? cuenta;
   PerfilEntidad? perfilSesion;
@@ -14,7 +17,7 @@ class AutenticacionViewModel with ChangeNotifier {
   String? _correoAutenticado;
   String? _nombreAutenticado;
 
-  AutenticacionViewModel();
+  AutenticacionViewModel(this._servicio, this._googleSignIn);
 
   String? get correoAutenticado => _correoAutenticado ?? cuenta?.email;
   String? get nombreAutenticado => _nombreAutenticado ?? cuenta?.displayName;

@@ -1,20 +1,26 @@
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
+import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
+import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
@@ -42,6 +48,20 @@ List<SingleChildWidget> proveedoresDatos() => [
           ),
         ),
   ),
+  Provider<Servicioautenticacion>(
+    create:
+        (c) => Servicioautenticacion(
+          Autenticacionrepositorio(
+            conexion: Conexionautenticacionremoto(c.read<Dio>()),
+          ),
+        ),
+  ),
+  Provider<Serviciofacultades>(
+    create:
+        (c) => Serviciofacultades(
+          Facultadesrepositorio(conexion: Conexionfacultadremoto(c.read<Dio>())),
+        ),
+  ),
 ];
 
 //vms con estado que debe sobrevivir entre pantallas. Al final solo queda
@@ -56,8 +76,13 @@ List<SingleChildWidget> vmsGlobales() => [
   //nadie lo lee del arbol: FormularioCurso crea su propia instancia
   ChangeNotifierProvider(create: (_) => Deporteviewmodel()), //fase 3
   //se queda: la sesion la leen el menu lateral y casi todas las pantallas
-  ChangeNotifierProvider(create: (_) => AutenticacionViewModel()),
-  ChangeNotifierProvider(create: (_) => Facultadesviewmodel()), //fase 2
+  ChangeNotifierProvider(
+    create:
+        (c) => AutenticacionViewModel(
+          c.read<Servicioautenticacion>(),
+          GoogleSignIn(scopes: ['email', 'profile']),
+        ),
+  ),
   ChangeNotifierProvider(create: (_) => Inscripcionviewmodel()), //fase 6
   ChangeNotifierProvider(create: (_) => InstructoresViewModel()), //fase 4
 ];

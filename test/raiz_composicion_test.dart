@@ -3,13 +3,14 @@ import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/config/inyeccion/dependencias.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
@@ -45,6 +46,8 @@ void main() {
     expect(contexto.read<Dio>().options.baseUrl, ConfigApi.baseUrl);
     expect(contexto.read<Conexionimagen>(), isA<Conexionimagenremoto>());
     expect(contexto.read<ServicioCategoria>(), isNotNull);
+    expect(contexto.read<Servicioautenticacion>(), isNotNull);
+    expect(contexto.read<Serviciofacultades>(), isNotNull);
 
     //vms globales (los que pasan a su ruta salen de esta lista)
     expect(contexto.read<EstadisticasViewModel>(), isNotNull);
@@ -54,7 +57,6 @@ void main() {
     expect(contexto.read<Clasesviewmodel>(), isNotNull);
     expect(contexto.read<Deporteviewmodel>(), isNotNull);
     expect(contexto.read<AutenticacionViewModel>(), isNotNull);
-    expect(contexto.read<Facultadesviewmodel>(), isNotNull);
     expect(contexto.read<Inscripcionviewmodel>(), isNotNull);
     expect(contexto.read<InstructoresViewModel>(), isNotNull);
   });

@@ -1,26 +1,29 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAutenticacion.dart';
 import 'package:dpt_movil/data/models/perfilModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexionautenticacionremoto implements Conexionautenticacion {
-  final _dio = Dio(
-    BaseOptions(
-      baseUrl: ConfigServicio().obtenerBaseApi(),
-      connectTimeout: Duration(minutes: 1),
-      receiveTimeout: Duration(minutes: 1),
-      sendTimeout: Duration(minutes: 1),
-    ),
+  //el Dio compartido llega desde la raiz de composicion
+  final Dio _dio;
+
+  //esta conexion esperaba hasta 1 minuto antes de usar el Dio compartido
+  //(20 s): se conserva pidiendolo en cada peticion
+  static final Options _opcionesAutenticacion = Options(
+    sendTimeout: const Duration(minutes: 1),
+    receiveTimeout: const Duration(minutes: 1),
   );
+
+  Conexionautenticacionremoto(this._dio);
+
   @override
   Future<RespuestaModelo> login(String email) async {
     String metodo = "GET";
     String path = "/login?email=$email";
     try {
-      final response = await _dio.get(path);
+      final response = await _dio.get(path, options: _opcionesAutenticacion);
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
@@ -49,7 +52,9 @@ class Conexionautenticacionremoto implements Conexionautenticacion {
       final response = await _dio.post(
         path,
         data: modelo,
-        options: Options(contentType: ContentType.json.toString()),
+        options: _opcionesAutenticacion.copyWith(
+          contentType: ContentType.json.toString(),
+        ),
       );
       if (response.statusCode != 201) {
         RespuestaModelo.fromResponse(response, metodo);
