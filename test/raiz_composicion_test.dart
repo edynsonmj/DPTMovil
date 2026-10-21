@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/config/inyeccion/dependencias.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
@@ -41,9 +43,10 @@ void main() {
 
     //datos
     expect(contexto.read<Dio>().options.baseUrl, ConfigApi.baseUrl);
+    expect(contexto.read<Conexionimagen>(), isA<Conexionimagenremoto>());
+    expect(contexto.read<ServicioCategoria>(), isNotNull);
 
-    //vms globales
-    expect(contexto.read<CategoriaViewModel>(), isNotNull);
+    //vms globales (los que pasan a su ruta salen de esta lista)
     expect(contexto.read<EstadisticasViewModel>(), isNotNull);
     expect(contexto.read<Gruposviewmodel>(), isNotNull);
     expect(contexto.read<Horariosviewmodel>(), isNotNull);

@@ -66,9 +66,7 @@ class _CategoriasViewState extends State<CategoriasView> {
               children: [
                 if (vm.perfilSesion?.role == Roles.coordinador)
                   OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pushNamed(context, AppRutas.editarCategoria);
-                    },
+                    onPressed: () => _abrirFormulario(),
                     label: Text('Agregar categoria'),
                     icon: Icon(Icons.add),
                   ),
@@ -147,13 +145,7 @@ class _CategoriasViewState extends State<CategoriasView> {
                 right: 8,
                 top: 8,
                 child: IconButton(
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRutas.editarCategoria,
-                      arguments: categoria,
-                    );
-                  },
+                  onPressed: () => _abrirFormulario(categoria),
                   icon: EditIcon(),
                 ),
               ),
@@ -182,6 +174,19 @@ class _CategoriasViewState extends State<CategoriasView> {
         );
       },
     );
+  }
+
+  //el formulario tiene su propio vm (ruta editarCategoria), asi que no
+  //refresca esta lista: devuelve true al guardar y aqui se recarga
+  Future<void> _abrirFormulario([CategoriaEntidad? categoria]) async {
+    final guardado = await Navigator.pushNamed(
+      context,
+      AppRutas.editarCategoria,
+      arguments: categoria,
+    );
+    if (guardado == true && mounted) {
+      context.read<CategoriaViewModel>().listarYNotificarCategorias();
+    }
   }
 
   Future<void> _confirmarEliminacion(String titulo) async {

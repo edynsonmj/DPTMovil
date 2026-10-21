@@ -1,7 +1,6 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAlumnos.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAutenticacion.dart';
-import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionDeporte.dart';
@@ -12,14 +11,8 @@ import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/api/conexion/local/ConexionCursoLocal.dart';
 import 'package:dpt_movil/data/api/conexion/local/ConexionEstadisticasLocal.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
-import 'package:dpt_movil/data/api/conexion/local/ConexionCategoriaLocal.dart';
 
 class ConexionLocalFabrica implements ConexionFabricaAbstracta {
-  @override
-  ConexionCategoria crearConexionCategoria() {
-    return ConexionCategoriaLocal();
-  }
-
   @override
   ConexionCurso crearConexionCurso() {
     return ConexionCursoLocal();

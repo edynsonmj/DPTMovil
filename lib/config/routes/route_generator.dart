@@ -7,6 +7,7 @@ import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionVie
 import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:provider/provider.dart';
@@ -31,6 +32,16 @@ import 'package:dpt_movil/presentation/view/views/instructores/InstructorView.da
 import 'package:dpt_movil/presentation/view/views/instructores/InstructoresView.dart';
 import 'package:dpt_movil/presentation/view/views/page1.dart';
 import 'package:dpt_movil/presentation/view/views/page2.dart';
+
+//vm de categorias por pantalla: lo usan la lista, el formulario y los dos
+//filtros de inscripciones, y con uno global se pisaban la lista. Cada ruta
+//tiene el suyo; el servicio sale de la raiz (dependencias.dart)
+Widget _conCategorias(Widget pantalla) {
+  return ChangeNotifierProvider(
+    create: (c) => CategoriaViewModel(c.read()),
+    child: pantalla,
+  );
+}
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -69,13 +80,17 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => Grupo(grupo: datos));
 
     case AppRutas.categorias:
-      return MaterialPageRoute(builder: (_) => CategoriasView());
+      return MaterialPageRoute(builder: (_) => _conCategorias(CategoriasView()));
 
     case AppRutas.InscripcionesGenerales:
-      return MaterialPageRoute(builder: (_) => InscripcionesGeneralesView());
+      return MaterialPageRoute(
+        builder: (_) => _conCategorias(InscripcionesGeneralesView()),
+      );
 
     case AppRutas.InscripcionesParticulares:
-      return MaterialPageRoute(builder: (_) => InscripcionesParticularesView());
+      return MaterialPageRoute(
+        builder: (_) => _conCategorias(InscripcionesParticularesView()),
+      );
 
     case AppRutas.alumnos:
       return MaterialPageRoute(builder: (_) => Alumnosview());
@@ -95,8 +110,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.editarCategoria:
       CategoriaEntidad? datos = settings.arguments as CategoriaEntidad?;
+      //su propio vm: al guardar hace pop(true) y la lista recarga el suyo
       return MaterialPageRoute(
-        builder: (_) => CategoriaFormulario(categoria: datos),
+        builder: (_) => _conCategorias(CategoriaFormulario(categoria: datos)),
       );
     case AppRutas.estadisticasGenerales:
       return MaterialPageRoute(builder: (_) => EstadisticasGeneralesView());
@@ -152,6 +168,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => Page1());
 
     default:
-      return MaterialPageRoute(builder: (_) => CategoriasView());
+      return MaterialPageRoute(builder: (_) => _conCategorias(CategoriasView()));
   }
 }

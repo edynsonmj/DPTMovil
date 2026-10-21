@@ -7,20 +7,24 @@
 
 import 'dart:math';
 
+import 'package:dio/dio.dart';
+import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/config/configServicio.dart';
-import 'package:dpt_movil/data/api/conexion/local/ConexionCategoriaLocal.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
 import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
+import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'dobles/conexionCategoriaLocal.dart';
 import 'local/categorias/insertarCategoriaLocal.dart';
 import 'local/categorias/obtenerCategoriasLocal.dart';
 import 'local/viewModel/categoria/vmListarCategoriaLocalTest.dart';
@@ -36,10 +40,20 @@ import 'remoto/viewModel/categoria/vmListarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarFormularioCategoriaTest.dart';
 
+//direccion del backend de pruebas para los modulos ya migrados: su vm recibe
+//un Dio armado aqui, sin pasar por ConfigServicio. Los no migrados siguen
+//fijando ConfigServicio.ip
+const String baseUrlPruebas = 'http://localhost:8082/api/v2';
+
+//misma cadena que arma la raiz de composicion, con la conexion indicada
+CategoriaViewModel crearCategoriaViewModel(ConexionCategoria conexion) {
+  return CategoriaViewModel(
+    ServicioCategoria(CategoriaRepositorio(cliente: conexion)),
+  );
+}
+
 void main() {
   //probarRepositorioCategoriaRemota();
-  //el local va primero: cada vm resuelve su conexion al construirse, asi que
-  //se construye con la config en SERVICIO_LOCAL antes de pasarla a remoto
   probarViewModelCategoriaLocal();
   probarViewModelCategoria();
   probarViewModelClase();
@@ -84,8 +98,8 @@ probarViewModelClase(){
   });
 }
 probarViewModelCategoriaLocal(){
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_LOCAL;
-  CategoriaViewModel vm = CategoriaViewModel();
+  //el doble se inyecta directo: ya no depende de la fabrica ni del orden
+  CategoriaViewModel vm = crearCategoriaViewModel(ConexionCategoriaLocal());
   group('Listar categorias locales:', () {
     VmListarCategoriaLocalTest test = VmListarCategoriaLocalTest();
     test.prueba1ListaVacia204(vm);
@@ -93,11 +107,11 @@ probarViewModelCategoriaLocal(){
   });
 }
 probarViewModelCategoria(){
-  //la configuracion debe ir antes de construir el vm: el vm crea su propio
-  //servicio, y la conexion captura la baseUrl al momento de construirse
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
-  ConfigServicio.ip = "localhost";
-  CategoriaViewModel vm = CategoriaViewModel();
+  //el mismo cliente para categorias e imagenes, como en la raiz
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  CategoriaViewModel vm = crearCategoriaViewModel(
+    ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
+  );
   grupoVMCategoriaRegistrar(vm);
 }
 grupoVMCategoriaRegistrar(CategoriaViewModel vm){
@@ -208,14 +222,12 @@ grupoObtenerImagenRemota(Imagenrepositorio repositorio) {
 CategoriaRepositorio configuracionCategoriaRepositorio(bool local, String? ip) {
   CategoriaRepositorio repositorio;
   if (local) {
-    ConfigServicio.tipoFabricaServicio =
-        ConexionFabricaAbstracta.SERVICIO_LOCAL;
     repositorio = CategoriaRepositorio(cliente: ConexionCategoriaLocal());
   } else {
-    ConfigServicio.tipoFabricaServicio =
-        ConexionFabricaAbstracta.SERVICIO_REMOTO;
-    ConfigServicio.ip = ip;
-    repositorio = CategoriaRepositorio(cliente: ConexionCategoriaRemota());
+    Dio dio = crearClienteHttp('http://$ip:8082/api/v2');
+    repositorio = CategoriaRepositorio(
+      cliente: ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
+    );
   }
   return repositorio;
 }

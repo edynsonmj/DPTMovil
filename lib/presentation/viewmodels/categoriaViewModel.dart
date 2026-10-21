@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dpt_movil/data/models/errorModelo.dart';
-import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
@@ -30,8 +29,8 @@ class CategoriaViewModel with ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  //constructor
-  CategoriaViewModel() : servicioCategoria = ServicioCategoria();
+  //el servicio llega desde la raiz; el vm se crea por ruta en route_generator
+  CategoriaViewModel(this.servicioCategoria);
 
   Future<void> cargarCategorias(context) async {
     RespuestaModelo? respuesta;

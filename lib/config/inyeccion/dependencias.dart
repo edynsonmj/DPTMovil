@@ -1,8 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configApi.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
+import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
@@ -22,14 +26,27 @@ import 'package:provider/single_child_widget.dart';
 //(la unica compartida) y los servicios de cada modulo migrado. Las
 //conexiones y repositorios 1:1 se construyen dentro del create del servicio
 List<SingleChildWidget> proveedoresDatos() => [
-  //nadie lo lee aun, las conexiones lo recibiran al migrar cada modulo
-  Provider<Dio>(create: (_) => Dio(BaseOptions(baseUrl: ConfigApi.baseUrl))),
+  Provider<Dio>(create: (_) => crearClienteHttp()),
+  //unica conexion compartida: la usan categoria y, desde la fase 3, curso
+  Provider<Conexionimagen>(
+    create: (c) => Conexionimagenremoto(c.read<Dio>()),
+  ),
+  Provider<ServicioCategoria>(
+    create:
+        (c) => ServicioCategoria(
+          CategoriaRepositorio(
+            cliente: ConexionCategoriaRemota(
+              c.read<Dio>(),
+              c.read<Conexionimagen>(),
+            ),
+          ),
+        ),
+  ),
 ];
 
 //vms con estado que debe sobrevivir entre pantallas. Al final solo queda
 //la sesion; los demas pasan a su ruta en route_generator al migrar su modulo
 List<SingleChildWidget> vmsGlobales() => [
-  ChangeNotifierProvider(create: (_) => CategoriaViewModel()), //fase 1
   ChangeNotifierProvider(create: (_) => EstadisticasViewModel()), //fase 7
   ChangeNotifierProvider(create: (_) => Gruposviewmodel()), //fases 4 y 6
   ChangeNotifierProvider(create: (_) => Horariosviewmodel()), //fases 4 y 6

@@ -10,6 +10,10 @@ import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/imagenModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
+//antes era el modo local de la fabrica (lib/data/api/conexion/local); desde
+//la fase 1 la app no la usa y queda como doble con datos sembrados para los
+//tests que necesitan una coleccion que cambia (p. ej. vaciarla hasta el 204).
+//Para respuestas fijas usar ConexionCategoriaFalsa
 class ConexionCategoriaLocal implements ConexionCategoria {
   final List<categoriaModelo> _base = [
     categoriaModelo(

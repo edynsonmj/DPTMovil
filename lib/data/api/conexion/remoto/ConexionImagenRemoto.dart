@@ -8,14 +8,28 @@ import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:mime/mime.dart';
 
 class Conexionimagenremoto implements Conexionimagen {
-  final _dio = Dio(
-    BaseOptions(
-      baseUrl: ConfigServicio().obtenerBaseApi(),
-      connectTimeout: Duration(seconds: 30),
-      receiveTimeout: Duration(seconds: 30),
-      sendTimeout: Duration(seconds: 30),
-    ),
+  final Dio _dio;
+
+  //las imagenes tardan mas que el resto: se piden 30 s en cada peticion,
+  //tambien cuando el Dio es el compartido de la raiz (20 s)
+  static final Options _opcionesImagen = Options(
+    sendTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
   );
+
+  //TODO fase 3: quitar el respaldo cuando ConexionCursoRemoto y la fabrica
+  //(Servicioimagen) reciban la conexion inyectada
+  Conexionimagenremoto([Dio? dio])
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              baseUrl: ConfigServicio().obtenerBaseApi(),
+              connectTimeout: Duration(seconds: 30),
+              receiveTimeout: Duration(seconds: 30),
+              sendTimeout: Duration(seconds: 30),
+            ),
+          );
 
   @override
   Future<RespuestaModelo> insertarImagenFile(File file) async {
@@ -36,7 +50,11 @@ class Conexionimagenremoto implements Conexionimagen {
         ),
       });
 
-      final response = await _dio.post(path, data: fromData);
+      final response = await _dio.post(
+        path,
+        data: fromData,
+        options: _opcionesImagen,
+      );
       if (response.statusCode != 201) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
@@ -62,7 +80,7 @@ class Conexionimagenremoto implements Conexionimagen {
     //String path = "/imagen?idImagen=$idImagen";
     String path = "/imagen?idImagen=$idImagen";
     try {
-      final response = await _dio.get(path);
+      final response = await _dio.get(path, options: _opcionesImagen);
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }

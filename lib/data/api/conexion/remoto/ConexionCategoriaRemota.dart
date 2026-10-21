@@ -1,26 +1,23 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/models/imagenModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:flutter/material.dart';
 import 'package:mime/mime.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/models/categoriaModelo.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class ConexionCategoriaRemota implements ConexionCategoria {
-  final _dio = Dio(
-    BaseOptions(
-      baseUrl: ConfigServicio().obtenerBaseApi(),
-      connectTimeout: Duration(seconds: 20),
-      receiveTimeout: Duration(seconds: 20),
-      sendTimeout: Duration(seconds: 20),
-    ),
-  );
+  //ambas llegan desde la raiz de composicion: el Dio compartido (con la
+  //baseUrl y los timeouts) y la conexion de imagenes, que tambien usa curso
+  final Dio _dio;
+  final Conexionimagen _conexionImagen;
+
+  ConexionCategoriaRemota(this._dio, this._conexionImagen);
 
   //misma baseUrl que las peticiones de esta conexion
   @override
@@ -91,13 +88,11 @@ class ConexionCategoriaRemota implements ConexionCategoria {
     String path = "/categoria?titulo=${categoria.titulo}";
     String metodo = "PUT";
     String capa = "conexion";
-    Conexionimagenremoto conexionImagen = Conexionimagenremoto();
     try {
       //hay cambio en la imagen, insertar imagen antes de continuar
       if (categoria.imagenFile != null) {
-        Conexionimagenremoto conexionImagen = Conexionimagenremoto();
         //se inserta la imagen
-        RespuestaModelo responseImagen = await conexionImagen
+        RespuestaModelo responseImagen = await _conexionImagen
             .insertarImagenFile(categoria.imagenFile!);
         //si falla retone inmediatamente el error antes de continuar
         if (responseImagen.codigoHttp != 201) {
@@ -141,9 +136,8 @@ class ConexionCategoriaRemota implements ConexionCategoria {
     final String metodo = 'POST';
     late String tipoMime;
     try {
-      Conexionimagenremoto conexionImagen = Conexionimagenremoto();
       //se inserta la imagen
-      RespuestaModelo responseImagen = await conexionImagen.insertarImagenFile(
+      RespuestaModelo responseImagen = await _conexionImagen.insertarImagenFile(
         datos.imagenFile!,
       );
       if (responseImagen.codigoHttp != 201) {
