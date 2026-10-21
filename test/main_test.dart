@@ -38,6 +38,9 @@ import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'dobles/conexionCategoriaLocal.dart';
@@ -56,6 +59,7 @@ import 'remoto/viewModel/atencion/vmAtencionTest.dart';
 import 'remoto/viewModel/autenticacion/vmLoginTest.dart';
 import 'remoto/viewModel/facultades/vmListarFacultadesTest.dart';
 import 'remoto/viewModel/grupo/vmListarGruposTest.dart';
+import 'remoto/viewModel/grupo/vmModuloGrupoTest.dart';
 import 'remoto/viewModel/categoria/vmEliminarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmListarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarCategoriaTest.dart';
@@ -84,6 +88,39 @@ void main() {
   probarViewModelAutenticacion();
   probarViewModelDeporte();
   probarViewModelCurso();
+  probarViewModelModuloGrupo();
+}
+probarViewModelModuloGrupo(){
+  //grupos, horarios, alumnos, clases e instructores sin migrar: siguen la
+  //fabrica (o Conexion*Remoto directo) y ConfigServicio. Categoria, curso y
+  //deporte, ya migrados, solo arman los datos de apoyo
+  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
+  ConfigServicio.ip = "localhost";
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
+  CategoriaViewModel vmCategoria = crearCategoriaViewModel(
+    ConexionCategoriaRemota(dio, conexionImagen),
+  );
+  CursosViewModel crearVmCurso() => CursosViewModel(
+    ServicioCurso(
+      CursoRepositorio(cliente: ConexionCursoRemoto(dio, conexionImagen)),
+    ),
+  );
+  group('Modulo grupo remoto:', () {
+    VmModuloGrupoTest test = VmModuloGrupoTest();
+    test.preparar(
+      vmCategoria,
+      crearDeporteViewModel,
+      crearVmCurso,
+      InstructoresViewModel.new,
+    );
+    test.prueba1ListarInstructores(InstructoresViewModel.new);
+    test.prueba2InsertarGrupo201(Gruposviewmodel.new);
+    test.prueba3HorariosGrupoNuevo(Horariosviewmodel.new);
+    test.prueba4AlumnosGrupoNuevo(Alumnosviewmodel.new);
+    test.prueba5RegistrarClase201(Clasesviewmodel.new);
+    test.prueba6EliminarClase200(Clasesviewmodel.new);
+  });
 }
 //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como
 //la ruta formularioCurso
