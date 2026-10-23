@@ -11,6 +11,7 @@ import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
@@ -164,11 +165,42 @@ class VmModuloGrupoTest {
     });
   }
 
-  void prueba5RegistrarClase201(Clasesviewmodel Function() crearVm) {
+  //la pantalla de un grupo recien creado: con F5 (fase 4c) alumnos y clases
+  //vacios (406 de la conexion) se muestran como listas vacias, no como error
+  void prueba4bPantallaGrupoNuevo(
+    DetalleGrupoViewModel Function(Grupoentidad) crearVm,
+  ) {
+    String metodo = "Cargar pantalla de grupo";
+    String caso = "grupo nuevo carga sin errores";
+    test('$capa - $tipo - $metodo - $caso', () async {
+      final vm = crearVm(_grupoCreado());
+
+      await vm.cargar();
+
+      expect(vm.curso.cargando, isFalse);
+      expect(vm.curso.error, isNull);
+      expect(vm.curso.datos?.nombreCurso, _curso.nombreCurso);
+      for (final seccion in [vm.horarios, vm.alumnos, vm.clases]) {
+        expect(seccion.cargando, isFalse);
+        expect(seccion.error, isNull);
+        expect(seccion.datos, isEmpty);
+      }
+    });
+  }
+
+  //desde la fase 4c el formulario registra y la pantalla del grupo, con su
+  //propio vm, es la que vuelve a pedir la lista
+  void prueba5RegistrarClase201(
+    Clasesviewmodel Function() crearVmFormulario,
+    DetalleGrupoViewModel Function(Grupoentidad) crearVmGrupo,
+  ) {
     String metodo = "Registrar clase";
     String caso = "exito 201 y la clase queda en la lista";
     test('$capa - $tipo - $metodo - $caso', () async {
-      final vm = _vmDelGrupo(crearVm);
+      final g = _grupoCreado();
+      //como la ruta formularioClase: el vm se inicializa con el grupo
+      final vm = crearVmFormulario();
+      vm.inicializarGrupo(g.categoria, g.curso, g.anio, g.iterable, g.idInstructor!);
 
       //ayer: con el reloj del dispositivo, "hoy" puede quedar en el futuro
       //para el backend segun la zona horaria
@@ -177,13 +209,15 @@ class VmModuloGrupoTest {
         horasTexto: '2',
       );
       if (resultado is Fallo) print('fallo: ${resultado.mensaje}');
-
       expect(resultado, isA<Exito>());
-      //el vm refresca su lista tras el 201
-      expect(vm.cargando, isFalse);
-      expect(vm.clases, hasLength(1));
-      expect(vm.clases.single.horas, 2);
-      expect(vm.clases.single.codigo, isNotNull);
+
+      //la pantalla del grupo recarga al volver con true
+      final vmGrupo = crearVmGrupo(g);
+      await vmGrupo.cargarClases();
+      expect(vmGrupo.clases.cargando, isFalse);
+      expect(vmGrupo.clases.datos, hasLength(1));
+      expect(vmGrupo.clases.datos.single.horas, 2);
+      expect(vmGrupo.clases.datos.single.codigo, isNotNull);
     });
   }
 
@@ -191,36 +225,30 @@ class VmModuloGrupoTest {
   //clase existente responde 200 sin cuerpo, pero /clasesGrupo la sigue
   //devolviendo con eliminado 0 (el parametro es id: sin el, 400). Es del
   //backend; cuando se corrija, agregar aqui que la lista quede vacia
-  void prueba6EliminarClase200(Clasesviewmodel Function() crearVm) {
+  void prueba6EliminarClase200(
+    DetalleGrupoViewModel Function(Grupoentidad) crearVm,
+  ) {
     String metodo = "Eliminar clase";
     String caso = "clase existente responde 200";
     test('$capa - $tipo - $metodo - $caso', () async {
       //vm nuevo, como la pantalla del grupo al entrar
-      final vm = _vmDelGrupo(crearVm);
-      await vm.listarYNotificarClases();
-      expect(vm.clases, hasLength(1), reason: 'falta la clase del caso 5');
+      final vm = crearVm(_grupoCreado());
+      await vm.cargarClases();
+      expect(vm.clases.datos, hasLength(1), reason: 'falta la clase del caso 5');
 
-      RespuestaModelo respuesta = await vm.eliminarClase(
-        vm.clases.single.codigo!,
+      Resultado<void> resultado = await vm.eliminarClase(
+        vm.clases.datos.single.codigo!,
       );
-      _imprimirError(respuesta);
+      if (resultado is Fallo) print('fallo: ${resultado.mensaje}');
 
-      expect(respuesta.codigoHttp, 200);
-      expect(respuesta.error, isNull);
+      //el 200 es lo que devuelve Exito
+      expect(resultado, isA<Exito>());
     });
   }
 
   Grupoentidad _grupoCreado() {
     expect(_grupo, isNotNull, reason: 'el caso 2 no creo el grupo');
     return _grupo!;
-  }
-
-  //como widgetListaClases: el vm se inicializa con el grupo de la pantalla
-  Clasesviewmodel _vmDelGrupo(Clasesviewmodel Function() crearVm) {
-    final g = _grupoCreado();
-    final vm = crearVm();
-    vm.inicializarGrupo(g.categoria, g.curso, g.anio, g.iterable, g.idInstructor!);
-    return vm;
   }
 
   void _imprimirError(RespuestaModelo respuesta) {

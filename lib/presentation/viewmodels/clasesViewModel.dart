@@ -4,20 +4,14 @@ import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:flutter/material.dart';
 
+//vm del formulario de clase. Desde la fase 4c listar y eliminar viven en
+//DetalleGrupoViewModel (la pantalla del grupo); aqui solo se registra
 class Clasesviewmodel with ChangeNotifier {
   final Servicioclase _servicioClase;
-  //el servicio sale de la raiz. Una instancia por ruta: la de grupo lista y
-  //elimina, la de formularioClase registra (y la pantalla recarga al volver)
+
+  //el servicio sale de la raiz; la ruta formularioClase lo crea y lo
+  //inicializa con el grupo que recibe como argumento
   Clasesviewmodel(this._servicioClase);
-
-  List<Claseentidad> _clases = [];
-  List<Claseentidad> get clases => _clases;
-
-  bool _cargando = false;
-  bool get cargando => _cargando;
-
-  String? _error;
-  String? get error => _error;
 
   String? _categoria;
   String? _curso;
@@ -37,17 +31,6 @@ class Clasesviewmodel with ChangeNotifier {
     _anio = anio;
     _iterable = iterable;
     _idInstructor = idInstructor;
-  }
-
-  Future<RespuestaModelo> eliminarClase(int id) async {
-    RespuestaModelo? respuesta;
-    try {
-      respuesta = await _servicioClase.eliminarClase(id);
-      return respuesta;
-    } on Exception catch (e) {
-      //_mostrarError(context, "fallo al registrar", null);
-      return RespuestaModelo.fromException(e, "Delete", "/clase", "viewmodel");
-    }
   }
 
   //punto de entrada del formulario: valida, arma la clase con el grupo que se
@@ -88,9 +71,8 @@ class Clasesviewmodel with ChangeNotifier {
     );
     try {
       final respuesta = await _servicioClase.guardarClaseGrupo(entidad);
-      //tras el exito se refresca la lista, la vista del grupo consume vm.clases
+      //no refresca: la pantalla del grupo recarga sus clases al volver
       if (respuesta.codigoHttp == 201) {
-        await listarYNotificarClases();
         return Exito();
       }
       return _fallo(respuesta);
@@ -108,41 +90,5 @@ class Clasesviewmodel with ChangeNotifier {
       error?.mensaje ?? 'Error desconocido. Código: ${respuesta.codigoHttp}',
       origen: error == null ? null : '${error.metodo} ${error.url}',
     );
-  }
-
-  Future<void> listarYNotificarClases() async {
-    if (_categoria == null ||
-        _curso == null ||
-        _anio == null ||
-        _iterable == null) {
-      _error = 'Parámetros no inicializados';
-      notifyListeners();
-      return;
-    }
-    _cargando = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final respuesta = await _servicioClase.listarClasesGrupo(
-        _categoria!,
-        _curso!,
-        _anio!,
-        _iterable!,
-      );
-      if (respuesta.codigoHttp == 200 && respuesta.datos is List) {
-        _clases = (respuesta.datos as List).cast<Claseentidad>();
-      } else {
-        _error =
-            'Código: ${respuesta.codigoHttp} - ${respuesta.error?.mensaje ?? "Error desconocido"}';
-        _clases = [];
-      }
-    } catch (e) {
-      _error = e.toString();
-      _clases = [];
-    }
-
-    _cargando = false;
-    notifyListeners();
   }
 }

@@ -8,8 +8,7 @@ class VmRegistrarClaseTest {
   final String metodo = "Registrar clase";
 
   //todos los casos fallan en la validacion del vm, antes de llamar al
-  //servicio: no necesitan backend aunque el vm use la conexion remota (no hay
-  //fake local de clases, crearConexionClases lanza UnimplementedError)
+  //servicio: no necesitan backend aunque el vm use la conexion remota
   void prueba1SinFecha(Clasesviewmodel vm) {
     String caso = "error sin fecha";
     test('$capa - $tipo - $metodo - $caso', () async {
@@ -77,9 +76,9 @@ class VmRegistrarClaseTest {
       _imprimirRespuesta(resultado);
       expect(resultado, isA<Fallo>());
       expect((resultado as Fallo).mensaje, contains('Grupo'));
-      //un fallo de validacion no toca el estado de la lista
-      expect(vm.cargando, isFalse);
-      expect(vm.clases, isEmpty);
+      //fase 4c: aqui se comprobaba que la lista del vm no cambiara
+      //(vm.cargando, vm.clases). La lista paso a DetalleGrupoViewModel y
+      //este vm solo registra, asi que esos dos asserts se quitaron
     });
   }
 

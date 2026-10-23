@@ -6,15 +6,14 @@ import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionView.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
-import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
@@ -83,26 +82,19 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.grupo:
       Grupoentidad datos = settings.arguments as Grupoentidad;
-      //vms propios de la pantalla del grupo, uno por seccion. Horarios
-      //sombrea al global; clases recarga cuando formularioClase vuelve con
-      //true. Se fusionan en un unico vm en el siguiente paso (fase 4c)
+      //un vm para toda la pantalla: curso, horarios, alumnos y clases del
+      //grupo, cargados una vez al entrar y descartados al salir
       return MaterialPageRoute(
         builder:
-            (_) => MultiProvider(
-              providers: [
-                ChangeNotifierProvider(
-                  create: (c) => CursosViewModel(c.read()),
-                ),
-                ChangeNotifierProvider(
-                  create: (c) => Horariosviewmodel(c.read()),
-                ),
-                ChangeNotifierProvider(
-                  create: (c) => Alumnosviewmodel(c.read()),
-                ),
-                ChangeNotifierProvider(
-                  create: (c) => Clasesviewmodel(c.read()),
-                ),
-              ],
+            (_) => ChangeNotifierProvider(
+              create:
+                  (c) => DetalleGrupoViewModel(
+                    datos,
+                    c.read(),
+                    c.read(),
+                    c.read(),
+                    c.read(),
+                  )..cargar(),
               child: Grupo(grupo: datos),
             ),
       );

@@ -1,70 +1,31 @@
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
-import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class Widgetlistahorarios extends StatelessWidget {
-  Grupoentidad grupo;
-
-  Widgetlistahorarios({super.key, required this.grupo});
+  const Widgetlistahorarios({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return horarios(context);
-  }
-
-  Widget horarios(BuildContext context) {
-    //el vm lo crea la ruta grupo (route_generator)
-    Horariosviewmodel vmHorario = context.read<Horariosviewmodel>();
-    return FutureBuilder(
-      future: vmHorario.listarHorariosGrupo(
-        grupo.categoria,
-        grupo.curso,
-        grupo.anio,
-        grupo.iterable,
-      ),
-      builder: (context, promesa) {
-        if (promesa.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (promesa.hasError) {
-          return Text(
-            'Error: ${promesa.error}',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        } else if (!promesa.hasData) {
-          return Text(
-            'Sin informacion',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-        if (promesa.data!.codigoHttp != 200) {
-          return Text(
-            'no se logro obtener informacion: ${promesa.data!.codigoHttp} - ${promesa.data!.error?.mensaje}',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-        if (promesa.data!.datos is! List) {
-          return Text(
-            'informacion sobre el curso en formato erroneo',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-        try {
-          List<dynamic> listaDynamic = promesa.data!.datos;
-          List<Horarioentidad> lista = listaDynamic as List<Horarioentidad>;
-          return mostrarHorarios(lista);
-        } catch (e) {
-          return Text(
-            'Informacion no compatible en view',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-      },
-    );
+    //solo se reconstruye cuando cambia la seccion de horarios del vm
+    final seccion = context
+        .select<DetalleGrupoViewModel, EstadoSeccion<List<Horarioentidad>>>(
+          (vm) => vm.horarios,
+        );
+    if (seccion.cargando) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (seccion.error != null) {
+      return Text(
+        'no se logro obtener informacion: ${seccion.error}',
+        style: Tipografia.cuerpo1(color: ColorTheme.error),
+      );
+    }
+    return mostrarHorarios(seccion.datos);
   }
 
   Widget mostrarHorarios(List<Horarioentidad> lista) {

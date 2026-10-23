@@ -1,4 +1,3 @@
-import 'package:dpt_movil/data/models/claseModelo.dart';
 import 'package:dpt_movil/data/models/instructorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
@@ -78,26 +77,9 @@ void main() {
       expect(vm.urlImagen(5), 'http://falso/imagenStream?idImagen=5');
     });
 
-    test('$capa - $tipo - Registrar clase - 201 refresca la lista del vm', () async {
+    test('$capa - $tipo - Registrar clase - 201 con el grupo inicializado', () async {
       final conexion = ConexionclasesFalsa();
       conexion.respuestaAgregar = RespuestaModelo(codigoHttp: 201);
-      conexion.respuestaClases = RespuestaModelo(
-        codigoHttp: 200,
-        datos: [
-          Clasemodelo(
-            codigo: 9,
-            idGrupoCategoria: 'Deportes',
-            idGrupoCurso: 'Iniciacion',
-            idGrupoAnio: 2026,
-            idGrupoIterable: 1,
-            idInstructor: 'ins1',
-            fecha: DateTime(2026, 10, 22),
-            horas: 2,
-            minutos: 0,
-            eliminado: 0,
-          ),
-        ],
-      );
       final vm = Clasesviewmodel(
         Servicioclase(Claserepositorio(cliente: conexion)),
       );
@@ -113,8 +95,9 @@ void main() {
       //la clase se arma con el grupo inicializado
       expect(conexion.ultimaAgregada?.idGrupoIterable, 1);
       expect(conexion.ultimaAgregada?.idInstructor, 'ins1');
-      expect(conexion.ultimoGrupo, 'Deportes/Iniciacion/2026/1');
-      expect(vm.clases.map((c) => c.codigo), [9]);
+      //fase 4c: el formulario ya no recarga la lista; lo hace la pantalla
+      //del grupo al volver con true
+      expect(conexion.llamadasClases, 0);
     });
   });
 }

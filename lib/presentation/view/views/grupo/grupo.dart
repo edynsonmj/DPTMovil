@@ -1,16 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:dpt_movil/domain/entities/alumnoEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
-import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/widgetListaAlumnos.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/widgetListaClases.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/widgetListaHorarios.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
-import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
@@ -68,9 +63,9 @@ class Grupo extends StatelessWidget {
         informacionCurso(context),
         informacionGrupo(),
         cupos(),
-        Widgetlistahorarios(grupo: grupo),
-        Widgetlistaalumnos(grupo: grupo),
-        Widgetlistaclases(grupo: grupo),
+        const Widgetlistahorarios(),
+        const Widgetlistaalumnos(),
+        const Widgetlistaclases(),
         botonesCierre(),
       ],
     );
@@ -124,31 +119,22 @@ class Grupo extends StatelessWidget {
   }
 
   Widget informacionCurso(BuildContext context) {
-    //el vm lo crea la ruta grupo; esta pantalla pasa a un unico vm en la fase 4
-    CursosViewModel vmCurso = context.read<CursosViewModel>();
-    return FutureBuilder(
-      future: vmCurso.obtenerCurso(grupo.categoria, grupo.curso),
-      builder: (context, promesa) {
-        if (promesa.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (promesa.hasError) {
-          return Text('Error: ${promesa.error}');
-        } else if (!promesa.hasData) {
-          return Text('Sin informacion');
-        }
-        if (promesa.data!.codigoHttp != 200) {
-          return Text(
-            'no se logro obtener informacion: ${promesa.data!.codigoHttp} - ${promesa.data!.error?.mensaje}',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-        if (promesa.data!.datos is! CursoEntidad) {
-          return Text('informacion sobre el curso en formato erroneo');
-        }
-        CursoEntidad curso = promesa.data!.datos;
-        return mostrarInfoCurso(curso);
-      },
-    );
+    //el vm lo crea la ruta grupo y carga el curso al entrar; solo se
+    //reconstruye cuando cambia esta seccion
+    final seccion = context
+        .select<DetalleGrupoViewModel, EstadoSeccion<CursoEntidad?>>(
+          (vm) => vm.curso,
+        );
+    if (seccion.cargando) {
+      return CircularProgressIndicator();
+    }
+    if (seccion.error != null || seccion.datos == null) {
+      return Text(
+        'no se logro obtener informacion: ${seccion.error}',
+        style: Tipografia.cuerpo1(color: ColorTheme.error),
+      );
+    }
+    return mostrarInfoCurso(seccion.datos!);
   }
 
   Widget mostrarInfoCurso(CursoEntidad curso) {

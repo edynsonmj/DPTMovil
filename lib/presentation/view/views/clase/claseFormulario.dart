@@ -127,7 +127,7 @@ class _ClaseFormularioState extends State<Claseformulario> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-    //armar la clase, validar las horas y refrescar la lista lo hace el vm
+    //armar la clase y validar las horas lo hace el vm
     final resultado = await context.read<Clasesviewmodel>().registrarClase(
       fecha: fecha,
       horasTexto: _horasController.text,
@@ -148,7 +148,7 @@ class _ClaseFormularioState extends State<Claseformulario> {
                 mensaje: 'La clase se ha guardado exitosamente.',
               ),
         );
-        //el vm ya refresco la lista del grupo tras el exito
+        //con true la pantalla del grupo recarga sus clases
         if (mounted) Navigator.pop(context, true);
       case Fallo(:final codigo, :final mensaje):
         await showDialog(

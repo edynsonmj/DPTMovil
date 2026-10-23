@@ -49,6 +49,8 @@ import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
+import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
@@ -135,6 +137,20 @@ Clasesviewmodel crearClasesViewModel() => Clasesviewmodel(
     ),
   ),
 );
+DetalleGrupoViewModel crearDetalleGrupoViewModel(Grupoentidad grupo) {
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  return DetalleGrupoViewModel(
+    grupo,
+    ServicioCurso(
+      CursoRepositorio(
+        cliente: ConexionCursoRemoto(dio, Conexionimagenremoto(dio)),
+      ),
+    ),
+    Serviciohorario(Horariorepositorio(conexion: Conexionhorariosremoto(dio))),
+    Servicioalumno(Alumnosrepositorio(cliente: Conexionalumnosremoto(dio))),
+    Servicioclase(Claserepositorio(cliente: Conexionclasesremoto(dio))),
+  );
+}
 InstructoresViewModel crearInstructoresViewModel() => InstructoresViewModel(
   ServicioInstructor(
     Instructoresrepositorio(
@@ -166,8 +182,12 @@ probarViewModelModuloGrupo(){
     test.prueba2InsertarGrupo201(crearGruposViewModel);
     test.prueba3HorariosGrupoNuevo(crearHorariosViewModel);
     test.prueba4AlumnosGrupoNuevo(crearAlumnosViewModel);
-    test.prueba5RegistrarClase201(crearClasesViewModel);
-    test.prueba6EliminarClase200(crearClasesViewModel);
+    test.prueba4bPantallaGrupoNuevo(crearDetalleGrupoViewModel);
+    test.prueba5RegistrarClase201(
+      crearClasesViewModel,
+      crearDetalleGrupoViewModel,
+    );
+    test.prueba6EliminarClase200(crearDetalleGrupoViewModel);
   });
 }
 //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como
