@@ -1,9 +1,12 @@
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
+import 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart';
 import 'package:flutter/material.dart';
 
-class Gruposviewmodel with ChangeNotifier {
+//NotificacionSegura (fase 6c): las pantallas encadenan la carga de la lista
+//con otras y el usuario puede salir antes de que llegue
+class Gruposviewmodel with ChangeNotifier, NotificacionSegura {
   final Serviciogrupo serviciogrupo;
 
   bool _cargando = false;

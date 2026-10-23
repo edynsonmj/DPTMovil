@@ -14,6 +14,8 @@ class ConexioninscripcionFalsa implements Conexioninscripcion {
 
   Inscripcionmodelo? ultimaAgregada;
   Inscripcionmodelo? ultimaValidada;
+  //iterable de cada grupo validado, en orden
+  final List<int> iterablesValidados = [];
   Inscripcionmodelo? ultimaEliminada;
   int llamadasAgregar = 0;
   int llamadasValidar = 0;
@@ -34,6 +36,7 @@ class ConexioninscripcionFalsa implements Conexioninscripcion {
   ) async {
     llamadasValidar++;
     ultimaValidada = inscripcion;
+    iterablesValidados.add(inscripcion.iterable);
     return respuestaValidar;
   }
 

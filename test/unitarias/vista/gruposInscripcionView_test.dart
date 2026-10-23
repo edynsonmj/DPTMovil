@@ -150,4 +150,58 @@ void main() {
     expect(conexionInscripcion.ultimaAgregada?.iterable, 1);
     expect(find.text('Te has inscrito al grupo'), findsOneWidget);
   });
+
+  testWidgets('$capa - $tipo - Grupos de inscripcion - tras matricular el boton cambia', (
+    tester,
+  ) async {
+    await montar(tester);
+    //el backend ya responde que esta inscrito cuando se vuelve a validar
+    conexionInscripcion.respuestaValidar = RespuestaModelo(
+      codigoHttp: 200,
+      datos: true,
+    );
+
+    await tester.tap(find.text('Matricular'));
+    await tester.pumpAndSettle();
+    //se cierra el dialogo de exito
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Quitar matrícula'), findsOneWidget);
+    expect(find.text('Matricular'), findsNothing);
+  });
+
+  testWidgets('$capa - $tipo - Grupos de inscripcion - cada grupo se pide una sola vez', (
+    tester,
+  ) async {
+    //dos grupos: antes cada rebuild repetia horarios y validacion de todos
+    conexionGrupos.respuestaInscripcion = RespuestaModelo(
+      codigoHttp: 200,
+      datos: [
+        for (final iterable in [1, 2])
+          GrupoModelo(
+            cat_titulo: 'Deportes',
+            cur_nombre: 'Iniciacion',
+            anio: 2026,
+            iterable: iterable,
+            cupos: 20,
+            fechaCreacion: '2026-10-23',
+          ),
+      ],
+    );
+    await montar(tester);
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(conexionHorarios.llamadasHorarios, 2);
+    expect(conexionInscripcion.llamadasValidar, 2);
+
+    //matricular en el primero solo vuelve a validar ese grupo (J3)
+    await tester.tap(find.text('Matricular').first);
+    await tester.pumpAndSettle();
+
+    expect(conexionHorarios.llamadasHorarios, 2);
+    expect(conexionInscripcion.llamadasValidar, 3);
+    expect(conexionInscripcion.iterablesValidados.last, 1);
+  });
 }

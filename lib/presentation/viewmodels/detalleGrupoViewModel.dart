@@ -9,17 +9,12 @@ import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
+import 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart';
 import 'package:flutter/foundation.dart';
 
-//estado de una seccion de la pantalla. Inmutable: cada cambio crea uno
-//nuevo, asi context.select detecta el cambio y solo reconstruye esa seccion
-class EstadoSeccion<T> {
-  final T datos;
-  final bool cargando;
-  final String? error;
-
-  const EstadoSeccion(this.datos, {this.cargando = false, this.error});
-}
+//los widgets de la pantalla de grupo leen EstadoSeccion importando este vm
+export 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart'
+    show EstadoSeccion;
 
 //vm de la pantalla de un grupo (fase 4c): reune lo que antes pedia cada
 //widget por su cuenta (curso, horarios, alumnos, clases). Lo crea la ruta

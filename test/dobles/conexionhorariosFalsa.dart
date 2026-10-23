@@ -2,6 +2,8 @@ import 'package:dpt_movil/data/api/conexion/interfaces/ConexionHorarios.dart';
 import 'package:dpt_movil/data/models/horarioModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
+import 'copiaRespuesta.dart';
+
 //doble programable de la conexion de horarios: el test fija la respuesta
 class ConexionhorariosFalsa implements Conexionhorarios {
   RespuestaModelo respuestaHorarios = RespuestaModelo(
@@ -9,8 +11,9 @@ class ConexionhorariosFalsa implements Conexionhorarios {
     datos: <HorarioModelo>[],
   );
 
-  //grupo pedido, como "categoria/curso/anio/iterable"
+  //grupo pedido, como "categoria/curso/anio/iterable", y todos los pedidos
   String? ultimoGrupo;
+  final List<String> gruposPedidos = [];
   int llamadasHorarios = 0;
 
   @override
@@ -22,6 +25,8 @@ class ConexionhorariosFalsa implements Conexionhorarios {
   ) async {
     llamadasHorarios++;
     ultimoGrupo = '$categoria/$curso/$anio/$iterable';
-    return respuestaHorarios;
+    gruposPedidos.add(ultimoGrupo!);
+    //una copia por peticion: la misma respuesta sirve para varios grupos
+    return copiaRespuesta(respuestaHorarios);
   }
 }

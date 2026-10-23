@@ -1,12 +1,12 @@
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/view/widgets/tarjeta.dart';
+import 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:flutter/material.dart';
@@ -25,10 +25,13 @@ class _GrupoAsignadosState extends State<GruposAsignados> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      //los vms los crea la ruta gruposAsignados
-      final vm = Provider.of<Gruposviewmodel>(context, listen: false);
-      vm.listarGruposInstructor(widget.instructorId);
+    //los vms los crea la ruta gruposAsignados. La carga se encadena aqui una
+    //sola vez (fase 6c): primero la lista y, con ella, los horarios
+    final grupos = context.read<Gruposviewmodel>();
+    final horarios = context.read<Horariosviewmodel>();
+    Future.microtask(() async {
+      await grupos.listarGruposInstructor(widget.instructorId);
+      horarios.cargarHorariosDe(grupos.getListaGrupos ?? []);
     });
   }
 
@@ -89,48 +92,37 @@ class _GrupoAsignadosState extends State<GruposAsignados> {
     );
   }
 
+  //la tarjeta lee solo los horarios de su grupo con context.select: cuando
+  //llegan se reconstruye esa tarjeta, sin volver a pedir nada al backend
   Widget mostrarTarjeta(Grupoentidad grupo) {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Consumer<Horariosviewmodel>(
-          builder: (context, vmHorarios, _) {
-            return FutureBuilder(
-              future: vmHorarios.listarHorariosGrupo(
-                grupo.categoria,
-                grupo.curso,
-                grupo.anio,
-                grupo.iterable,
-              ),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                final String descripcion = _descripcionHorarios(
-                  snapshot.data!,
-                );
-                return InkWell(
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRutas.grupo,
-                      arguments: grupo,
-                    );
-                  },
-                  child: Tarjeta(
-                    atrTitulo: '${grupo.curso}-${grupo.anio}-${grupo.iterable}',
-                    atrInfoPie: grupo.categoria,
-                    //la url la da el vm; la tarjeta ya no arma la del servidor
-                    atrUrlImagen:
-                        grupo.imagen == null
-                            ? ''
-                            : context.read<Gruposviewmodel>().urlImagen(
-                              grupo.imagen!,
-                            ),
-                    atrDescripcion: descripcion,
-                  ),
-                );
+        Builder(
+          builder: (context) {
+            final horarios = context.select<
+              Horariosviewmodel,
+              EstadoSeccion<List<Horarioentidad>>
+            >((vm) => vm.horariosDe(grupo));
+            if (horarios.cargando) {
+              return Center(child: CircularProgressIndicator());
+            }
+            return InkWell(
+              onTap: () {
+                Navigator.pushNamed(context, AppRutas.grupo, arguments: grupo);
               },
+              child: Tarjeta(
+                atrTitulo: '${grupo.curso}-${grupo.anio}-${grupo.iterable}',
+                atrInfoPie: grupo.categoria,
+                //la url la da el vm; la tarjeta ya no arma la del servidor
+                atrUrlImagen:
+                    grupo.imagen == null
+                        ? ''
+                        : context.read<Gruposviewmodel>().urlImagen(
+                          grupo.imagen!,
+                        ),
+                atrDescripcion: _descripcionHorarios(horarios.datos),
+              ),
             );
           },
         ),
@@ -138,13 +130,10 @@ class _GrupoAsignadosState extends State<GruposAsignados> {
     );
   }
 
-  //solo pinta los horarios si la peticion salio bien: antes se hacia el cast
-  //sin revisar el codigo y un error lanzaba una excepcion en la tarjeta
-  String _descripcionHorarios(RespuestaModelo respuesta) {
-    if (respuesta.codigoHttp != 200 || respuesta.datos is! List) return '';
+  //sin horarios (o si su peticion fallo) la tarjeta queda sin descripcion
+  String _descripcionHorarios(List<Horarioentidad> horarios) {
     String descripcion = '';
-    for (Horarioentidad horario
-        in (respuesta.datos as List).cast<Horarioentidad>()) {
+    for (Horarioentidad horario in horarios) {
       descripcion =
           descripcion +
           '${horario.dia}: ${horario.horaInicio} - ${horario.horaFin} \n';

@@ -27,6 +27,13 @@ class Grupoentidad {
     this.fechaFinalizacion,
   });
 
+  //identifica al grupo (su llave en el backend). La usan los vms que guardan
+  //estado por grupo, como horarios e inscripcion
+  static String claveDe(String categoria, String curso, int anio, int iterable) =>
+      '$categoria/$curso/$anio/$iterable';
+
+  String get clave => claveDe(categoria, curso, anio, iterable);
+
   factory Grupoentidad.fromModelo(GrupoModelo grupo) {
     return Grupoentidad(
       categoria: grupo.cat_titulo,

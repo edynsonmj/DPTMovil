@@ -2,6 +2,8 @@ import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
+import 'copiaRespuesta.dart';
+
 //doble programable de la conexion de grupos: cada test fija la respuesta
 //que quiere y despues revisa lo que llego a la conexion
 class ConexiongruposFalsa implements Conexiongrupos {
@@ -34,17 +36,17 @@ class ConexiongruposFalsa implements Conexiongrupos {
     llamadasGruposDe++;
     ultimaCategoria = categoriaTitulo;
     ultimoCurso = nombreCurso;
-    return respuestaGruposDe;
+    return copiaRespuesta(respuestaGruposDe);
   }
 
   @override
   Future<RespuestaModelo> obtenerGruposInscripcionDisponible() async =>
-      respuestaInscripcion;
+      copiaRespuesta(respuestaInscripcion);
 
   @override
   Future<RespuestaModelo> obtenerGruposInstructor(String idInstructor) async {
     ultimoInstructor = idInstructor;
-    return respuestaInstructor;
+    return copiaRespuesta(respuestaInstructor);
   }
 
   @override
