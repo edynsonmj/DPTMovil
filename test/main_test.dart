@@ -12,6 +12,7 @@ import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAlumnosRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionAtencionesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
@@ -25,6 +26,7 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionInstructoresRemoto.da
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/alumnosRepositorio.dart';
+import 'package:dpt_movil/data/repositories/atencionesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
 import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
@@ -36,6 +38,7 @@ import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
 import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
 import 'package:dpt_movil/data/repositories/instructoresRepositorio.dart';
 import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
+import 'package:dpt_movil/domain/servicios/servicioAtencion.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
@@ -264,17 +267,23 @@ probarViewModelGrupo(){
     test.prueba1EstadoDuranteCarga(crearGruposViewModel);
   });
 }
+//misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como la
+//ruta clase
+Atencionviewmodel crearAtencionViewModel() => Atencionviewmodel(
+  Servicioatencion(
+    Atencionesrepositorio(
+      conexion: Conexionatencionesremoto(crearClienteHttp(baseUrlPruebas)),
+    ),
+  ),
+);
 probarViewModelAtencion(){
-  //no hay fake local de atenciones: el vm usa la conexion remota, aunque
-  //estos casos no llegan a hacer peticiones. Un vm por caso, como en la ruta
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
-  ConfigServicio.ip = "localhost";
+  //los tres primeros casos no llegan a hacer peticiones; el cuarto si
   group('Atenciones de clase:', () {
     VmAtencionTest test = VmAtencionTest();
-    test.prueba1RegistrarSinCargar(Atencionviewmodel.new);
-    test.prueba2ClaseSinCodigo(Atencionviewmodel.new);
-    test.prueba3MarcarSinLista(Atencionviewmodel.new);
-    test.prueba4BackendSinEndpoint(Atencionviewmodel.new);
+    test.prueba1RegistrarSinCargar(crearAtencionViewModel);
+    test.prueba2ClaseSinCodigo(crearAtencionViewModel);
+    test.prueba3MarcarSinLista(crearAtencionViewModel);
+    test.prueba4BackendSinEndpoint(crearAtencionViewModel);
   });
 }
 probarViewModelClase(){

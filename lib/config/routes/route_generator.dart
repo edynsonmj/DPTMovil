@@ -139,12 +139,16 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.clase:
       ClaseGrupoargumentos? datos = settings.arguments as ClaseGrupoargumentos;
-      //vm por pantalla: las atenciones solo las usa esta clase, se crea al
-      //entrar y provider llama a dispose al salir
+      //vm por pantalla: las atenciones solo las usa esta clase. Se crea al
+      //entrar, ya cargando con el grupo y la clase del argumento, y provider
+      //llama a dispose al salir
       return MaterialPageRoute(
         builder:
             (_) => ChangeNotifierProvider(
-              create: (_) => Atencionviewmodel(),
+              create:
+                  (c) =>
+                      Atencionviewmodel(c.read())
+                        ..cargarAtenciones(datos.grupo, datos.clase),
               child: Claseview(grupo: datos.grupo, clase: datos.clase),
             ),
       );

@@ -10,7 +10,10 @@ import 'package:flutter/foundation.dart';
 //descarta al salir, asi que no arrastra las atenciones de otra clase
 class Atencionviewmodel with ChangeNotifier {
   final Servicioatencion _servicioAtencion;
-  Atencionviewmodel() : _servicioAtencion = Servicioatencion();
+
+  //el servicio sale de la raiz; la ruta crea el vm y llama a cargarAtenciones
+  //con el grupo y la clase que recibe como argumento
+  Atencionviewmodel(this._servicioAtencion);
 
   //null = aun no se ha cargado
   List<Atencionentidad>? _atenciones;
@@ -44,7 +47,8 @@ class Atencionviewmodel with ChangeNotifier {
         grupo.iterable,
         clase.codigo!,
       );
-      //la conexion responde 200 tambien con la lista vacia, no hay 204
+      //al 2026-10-23 el backend no tiene este endpoint y responde 404: queda
+      //como error. Revisar como llega la lista vacia cuando se agregue
       if (respuesta.codigoHttp == 200 && respuesta.datos is List) {
         _atenciones = (respuesta.datos as List).cast<Atencionentidad>();
       } else {
@@ -87,6 +91,21 @@ class Atencionviewmodel with ChangeNotifier {
     } catch (e) {
       return Fallo(-1, e.toString(), origen: 'ViewModel');
     }
+  }
+
+  //la ruta desecha el vm al salir; una carga que llega despues no debe
+  //notificar (ChangeNotifier lanza si se usa tras dispose)
+  bool _desechado = false;
+
+  @override
+  void dispose() {
+    _desechado = true;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_desechado) super.notifyListeners();
   }
 
   //unico punto donde se lee el ErrorModelo: la vista recibe codigo y mensaje

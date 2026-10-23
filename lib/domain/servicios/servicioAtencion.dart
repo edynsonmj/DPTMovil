@@ -1,4 +1,3 @@
-import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/atencionesRepositorio.dart';
 import 'package:dpt_movil/domain/entities/atencionEntidad.dart';
@@ -6,12 +5,8 @@ import 'package:dpt_movil/domain/entities/atencionEntidad.dart';
 class Servicioatencion {
   Atencionesrepositorio repositorio;
 
-  Servicioatencion()
-    : repositorio = Atencionesrepositorio(
-        conexion:
-            ConexionFabricaAbstracta.obtenerConexionFabrica()
-                .crearConexionAtenciones(),
-      );
+  //el repositorio llega armado desde la raiz de composicion
+  Servicioatencion(this.repositorio);
 
   Future<RespuestaModelo> listarAtencionesClase(
     String categoria,

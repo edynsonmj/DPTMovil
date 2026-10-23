@@ -9,9 +9,8 @@ class VmAtencionTest {
   final String tipo = "remoto";
   final String metodo = "Atenciones de clase";
 
-  //todos los casos se resuelven en el vm antes de llamar al servicio: no
-  //necesitan backend aunque el vm use la conexion remota (no hay fake local
-  //de atenciones, crearConexionAtenciones lanza UnimplementedError).
+  //los casos 1 a 3 se resuelven en el vm antes de llamar al servicio: no
+  //necesitan backend aunque el vm use la conexion remota.
   //Cada caso construye su vm, como hace la ruta AppRutas.clase
   void prueba1RegistrarSinCargar(Atencionviewmodel Function() crearVm) {
     String caso = "error registrar sin cargar";

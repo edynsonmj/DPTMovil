@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAlumnosRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionAtencionesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
@@ -13,6 +14,7 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInstructoresRemoto.dart';
 import 'package:dpt_movil/data/repositories/alumnosRepositorio.dart';
+import 'package:dpt_movil/data/repositories/atencionesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
 import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
@@ -24,6 +26,7 @@ import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
 import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
 import 'package:dpt_movil/data/repositories/instructoresRepositorio.dart';
 import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
+import 'package:dpt_movil/domain/servicios/servicioAtencion.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
@@ -121,6 +124,14 @@ List<SingleChildWidget> proveedoresDatos() => [
         (c) => ServicioInstructor(
           Instructoresrepositorio(
             conexion: Conexioninstructoresremoto(c.read<Dio>()),
+          ),
+        ),
+  ),
+  Provider<Servicioatencion>(
+    create:
+        (c) => Servicioatencion(
+          Atencionesrepositorio(
+            conexion: Conexionatencionesremoto(c.read<Dio>()),
           ),
         ),
   ),

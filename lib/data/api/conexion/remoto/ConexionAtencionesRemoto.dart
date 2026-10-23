@@ -1,12 +1,17 @@
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
 import 'package:dpt_movil/data/models/atencionModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
+//ojo: al 2026-10-23 el backend no tiene /atencionesporclase ni /atenciones
+//(responden 404); esta conexion queda lista para cuando se agreguen
 class Conexionatencionesremoto implements Conexionatenciones {
-  final _dio = Dio(BaseOptions(baseUrl: ConfigServicio().obtenerBaseApi()));
+  //el Dio compartido llega desde la raiz de composicion, con la baseUrl
+  final Dio _dio;
+
+  Conexionatencionesremoto(this._dio);
+
   @override
   Future<RespuestaModelo> obtenerAtencionesClase(
     String categoria,

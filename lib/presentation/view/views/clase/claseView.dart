@@ -13,7 +13,8 @@ import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-//el Atencionviewmodel lo provee la ruta AppRutas.clase, uno por pantalla
+//el Atencionviewmodel lo provee la ruta AppRutas.clase, uno por pantalla, y
+//ya empieza a cargar al crearse: esta vista solo pinta y registra
 class Claseview extends StatefulWidget {
   final Grupoentidad grupo;
   final Claseentidad clase;
@@ -25,18 +26,6 @@ class Claseview extends StatefulWidget {
 }
 
 class _ClaseviewState extends State<Claseview> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      if (!mounted) return;
-      context.read<Atencionviewmodel>().cargarAtenciones(
-        widget.grupo,
-        widget.clase,
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

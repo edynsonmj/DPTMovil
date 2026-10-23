@@ -4,6 +4,7 @@ import 'package:dpt_movil/config/inyeccion/dependencias.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
+import 'package:dpt_movil/domain/servicios/servicioAtencion.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
@@ -58,6 +59,7 @@ void main() {
     expect(contexto.read<Servicioalumno>(), isNotNull);
     expect(contexto.read<Servicioclase>(), isNotNull);
     expect(contexto.read<ServicioInstructor>(), isNotNull);
+    expect(contexto.read<Servicioatencion>(), isNotNull);
     expect(contexto.read<Servicioautenticacion>(), isNotNull);
     expect(contexto.read<Serviciofacultades>(), isNotNull);
 
