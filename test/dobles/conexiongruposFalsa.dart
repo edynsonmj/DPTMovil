@@ -48,6 +48,10 @@ class ConexiongruposFalsa implements Conexiongrupos {
   }
 
   @override
+  String urlImagen(int idImagen) =>
+      'http://falso/imagenStream?idImagen=$idImagen';
+
+  @override
   Future<RespuestaModelo> insertarGrupo(GrupoModelo grupo) async {
     llamadasInsertar++;
     ultimoInsertado = grupo;

@@ -2,23 +2,18 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../../config/configServicio.dart';
-
 class EncabezadoImagen extends StatelessWidget {
   Uint8List? atrDatosImagen;
-  int? idImagen; // agrega esto
+  //la url llega armada desde el vm: el widget no conoce el servidor
+  String? urlImagen;
 
-  EncabezadoImagen({super.key, this.atrDatosImagen, this.idImagen});
+  EncabezadoImagen({super.key, this.atrDatosImagen, this.urlImagen});
 
   @override
   Widget build(BuildContext context) {
-    //TODO fase 4: recibir la url desde el vm, como Tarjeta; la pantalla de
-    //curso no tiene vm de cursos y se rediseña en esa fase
-    String path = '${ConfigServicio().obtenerBaseApi()}/imagenStream?idImagen=$idImagen';
-
-    if (idImagen != null) {
+    if (urlImagen != null && urlImagen!.isNotEmpty) {
       return Image.network(
-        path,
+        urlImagen!,
         height: 200,
         width: MediaQuery.of(context).size.width,
         fit: BoxFit.cover,

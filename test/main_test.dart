@@ -11,25 +11,40 @@ import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionAlumnosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionDeporteRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionInstructoresRemoto.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
+import 'package:dpt_movil/data/repositories/alumnosRepositorio.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
+import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/deporteRepositorio.dart';
 import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
+import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
+import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
 import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
+import 'package:dpt_movil/data/repositories/instructoresRepositorio.dart';
+import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
+import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
+import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
+import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
@@ -90,12 +105,45 @@ void main() {
   probarViewModelCurso();
   probarViewModelModuloGrupo();
 }
+//misma cadena que la raiz para el modulo grupo, con el Dio de pruebas; un
+//vm por caso, como cada ruta
+Gruposviewmodel crearGruposViewModel() => Gruposviewmodel(
+  Serviciogrupo(
+    Gruporepositorio(
+      conexion: Conexiongruposremoto(crearClienteHttp(baseUrlPruebas)),
+    ),
+  ),
+);
+Horariosviewmodel crearHorariosViewModel() => Horariosviewmodel(
+  Serviciohorario(
+    Horariorepositorio(
+      conexion: Conexionhorariosremoto(crearClienteHttp(baseUrlPruebas)),
+    ),
+  ),
+);
+Alumnosviewmodel crearAlumnosViewModel() => Alumnosviewmodel(
+  Servicioalumno(
+    Alumnosrepositorio(
+      cliente: Conexionalumnosremoto(crearClienteHttp(baseUrlPruebas)),
+    ),
+  ),
+);
+Clasesviewmodel crearClasesViewModel() => Clasesviewmodel(
+  Servicioclase(
+    Claserepositorio(
+      cliente: Conexionclasesremoto(crearClienteHttp(baseUrlPruebas)),
+    ),
+  ),
+);
+InstructoresViewModel crearInstructoresViewModel() => InstructoresViewModel(
+  ServicioInstructor(
+    Instructoresrepositorio(
+      conexion: Conexioninstructoresremoto(crearClienteHttp(baseUrlPruebas)),
+    ),
+  ),
+);
 probarViewModelModuloGrupo(){
-  //grupos, horarios, alumnos, clases e instructores sin migrar: siguen la
-  //fabrica (o Conexion*Remoto directo) y ConfigServicio. Categoria, curso y
-  //deporte, ya migrados, solo arman los datos de apoyo
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
-  ConfigServicio.ip = "localhost";
+  //categoria, curso y deporte solo arman los datos de apoyo
   Dio dio = crearClienteHttp(baseUrlPruebas);
   Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
   CategoriaViewModel vmCategoria = crearCategoriaViewModel(
@@ -112,14 +160,14 @@ probarViewModelModuloGrupo(){
       vmCategoria,
       crearDeporteViewModel,
       crearVmCurso,
-      InstructoresViewModel.new,
+      crearInstructoresViewModel,
     );
-    test.prueba1ListarInstructores(InstructoresViewModel.new);
-    test.prueba2InsertarGrupo201(Gruposviewmodel.new);
-    test.prueba3HorariosGrupoNuevo(Horariosviewmodel.new);
-    test.prueba4AlumnosGrupoNuevo(Alumnosviewmodel.new);
-    test.prueba5RegistrarClase201(Clasesviewmodel.new);
-    test.prueba6EliminarClase200(Clasesviewmodel.new);
+    test.prueba1ListarInstructores(crearInstructoresViewModel);
+    test.prueba2InsertarGrupo201(crearGruposViewModel);
+    test.prueba3HorariosGrupoNuevo(crearHorariosViewModel);
+    test.prueba4AlumnosGrupoNuevo(crearAlumnosViewModel);
+    test.prueba5RegistrarClase201(crearClasesViewModel);
+    test.prueba6EliminarClase200(crearClasesViewModel);
   });
 }
 //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como
@@ -189,13 +237,11 @@ probarViewModelAutenticacion(){
   });
 }
 probarViewModelGrupo(){
-  //no hay fake local de grupos. El caso hace una peticion real, pero solo
-  //comprueba el estado del vm, no los datos de la bd
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
-  ConfigServicio.ip = "localhost";
+  //el caso hace una peticion real, pero solo comprueba el estado del vm,
+  //no los datos de la bd
   group('Listar grupos de un curso:', () {
     VmListarGruposTest test = VmListarGruposTest();
-    test.prueba1EstadoDuranteCarga(Gruposviewmodel.new);
+    test.prueba1EstadoDuranteCarga(crearGruposViewModel);
   });
 }
 probarViewModelAtencion(){
@@ -211,11 +257,9 @@ probarViewModelAtencion(){
   });
 }
 probarViewModelClase(){
-  //no hay fake local de clases: el vm se construye con la conexion remota,
-  //aunque estos casos no llegan a hacer peticiones
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
-  ConfigServicio.ip = "localhost";
-  Clasesviewmodel vm = Clasesviewmodel();
+  //el vm se construye con la conexion remota, aunque estos casos no llegan
+  //a hacer peticiones
+  Clasesviewmodel vm = crearClasesViewModel();
   group('Registrar clase (validaciones):', () {
     VmRegistrarClaseTest test = VmRegistrarClaseTest();
     test.prueba1SinFecha(vm);

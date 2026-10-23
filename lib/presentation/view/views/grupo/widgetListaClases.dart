@@ -25,6 +25,7 @@ class _WidgetlistaclasesState extends State<Widgetlistaclases> {
   void initState() {
     super.initState();
     Future.microtask(() {
+      //el vm lo crea la ruta grupo (route_generator)
       final vmClase = Provider.of<Clasesviewmodel>(context, listen: false);
       vmClase.inicializarGrupo(
         widget.grupo.categoria,
@@ -64,10 +65,17 @@ class _WidgetlistaclasesState extends State<Widgetlistaclases> {
       children: [
         Text('Clases', style: Tipografia.h6()),
         OutlinedButton.icon(
-          //el formulario usa este mismo vm, que ya conoce el grupo y refresca
-          //la lista tras registrar: no hace falta recargar al volver
-          onPressed: () {
-            Navigator.pushNamed(context, AppRutas.formularioClase);
+          //el formulario es otra ruta con su propio vm: recibe el grupo como
+          //argumento y, si vuelve con true, esta pantalla recarga su lista
+          onPressed: () async {
+            final registrada = await Navigator.pushNamed(
+              context,
+              AppRutas.formularioClase,
+              arguments: widget.grupo,
+            );
+            if (registrada == true && mounted) {
+              context.read<Clasesviewmodel>().listarYNotificarClases();
+            }
           },
           label: Text('AGREGAR CLASE'),
           icon: Icon(Icons.add),

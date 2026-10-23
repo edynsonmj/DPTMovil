@@ -1,12 +1,14 @@
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionInstructores.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/instructorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexioninstructoresremoto implements Conexioninstructores {
-  final _dio = Dio(BaseOptions(baseUrl: ConfigServicio().obtenerBaseApi()));
+  //el Dio compartido llega desde la raiz de composicion, con la baseUrl
+  final Dio _dio;
+
+  Conexioninstructoresremoto(this._dio);
 
   @override
   Future<RespuestaModelo> obtenerInstructores() async {

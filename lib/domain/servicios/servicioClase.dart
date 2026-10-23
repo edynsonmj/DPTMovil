@@ -1,4 +1,3 @@
-import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
@@ -6,12 +5,8 @@ import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 class Servicioclase {
   Claserepositorio repositorio;
 
-  Servicioclase()
-    : repositorio = Claserepositorio(
-        cliente:
-            ConexionFabricaAbstracta.obtenerConexionFabrica()
-                .crearConexionClases(),
-      );
+  //el repositorio llega armado desde la raiz de composicion
+  Servicioclase(this.repositorio);
 
   Future<RespuestaModelo> eliminarClase(int id) async {
     return repositorio.eliminarClase(id);

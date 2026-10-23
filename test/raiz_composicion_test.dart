@@ -3,20 +3,22 @@ import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/config/inyeccion/dependencias.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
+import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
+import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
 import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
-import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
+import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -51,6 +53,11 @@ void main() {
     expect(contexto.read<ServicioCurso>(), isNotNull);
     expect(contexto.read<Serviciodeporte>(), isNotNull);
     expect(contexto.read<Servicioimagen>(), isNotNull);
+    expect(contexto.read<Serviciogrupo>(), isNotNull);
+    expect(contexto.read<Serviciohorario>(), isNotNull);
+    expect(contexto.read<Servicioalumno>(), isNotNull);
+    expect(contexto.read<Servicioclase>(), isNotNull);
+    expect(contexto.read<ServicioInstructor>(), isNotNull);
     expect(contexto.read<Servicioautenticacion>(), isNotNull);
     expect(contexto.read<Serviciofacultades>(), isNotNull);
 
@@ -58,10 +65,7 @@ void main() {
     expect(contexto.read<EstadisticasViewModel>(), isNotNull);
     expect(contexto.read<Gruposviewmodel>(), isNotNull);
     expect(contexto.read<Horariosviewmodel>(), isNotNull);
-    expect(contexto.read<Alumnosviewmodel>(), isNotNull);
-    expect(contexto.read<Clasesviewmodel>(), isNotNull);
     expect(contexto.read<AutenticacionViewModel>(), isNotNull);
     expect(contexto.read<Inscripcionviewmodel>(), isNotNull);
-    expect(contexto.read<InstructoresViewModel>(), isNotNull);
   });
 }

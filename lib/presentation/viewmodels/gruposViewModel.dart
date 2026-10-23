@@ -4,7 +4,7 @@ import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:flutter/material.dart';
 
 class Gruposviewmodel with ChangeNotifier {
-  late final Serviciogrupo serviciogrupo;
+  final Serviciogrupo serviciogrupo;
 
   bool _cargando = false;
   bool get cargando => _cargando;
@@ -18,7 +18,12 @@ class Gruposviewmodel with ChangeNotifier {
   //get para la lista
   List<Grupoentidad>? get getListaGrupos => _listaGrupos;
 
-  Gruposviewmodel() : serviciogrupo = Serviciogrupo();
+  //el servicio sale de la raiz. Hay una instancia global (GruposAsignados y
+  //GruposInscripcion, fase 6) y una propia en las rutas curso y grupoFormulario
+  Gruposviewmodel(this.serviciogrupo);
+
+  //url de la imagen de un grupo o curso: la vista no conoce el servidor
+  String urlImagen(int idImagen) => serviciogrupo.urlImagen(idImagen);
 
   Future<List<Grupoentidad>> listarGruposDe(
     String categoria,
@@ -130,18 +135,9 @@ class Gruposviewmodel with ChangeNotifier {
 
   Future<RespuestaModelo> insertarGrupo(Grupoentidad entidad) async {
     try {
-
-      print('Grupo a enviar:');
-      print('categoria: ${entidad.categoria}');
-      print('curso: ${entidad.curso}');
-      print('imagen: ${entidad.imagen}');
-      print('anio: ${entidad.anio}');
-      print('idInstructor: ${entidad.idInstructor}');
-      print('cupos: ${entidad.cupos}');
-
-      RespuestaModelo respuesta = await serviciogrupo.insertarGrupo(entidad);
-      listarGruposDe(entidad.categoria, entidad.curso);
-      return respuesta;
+      //no refresca: el formulario tiene su propio vm y la pantalla del
+      //curso recarga su lista al volver con pop(true)
+      return await serviciogrupo.insertarGrupo(entidad);
     } catch (error) {
       return RespuestaModelo.fromObjectError(
         error,

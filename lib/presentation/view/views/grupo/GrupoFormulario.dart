@@ -36,7 +36,6 @@ class _GrupoFormularioState extends State<Grupoformulario> {
 
   String? _idInstructor;
   int? _anio;
-  String? _fechaCreacion;
 
   @override
   void initState() {
@@ -44,10 +43,13 @@ class _GrupoFormularioState extends State<Grupoformulario> {
     _esEdicion = widget.argumentos.esEdicion;
     _curso = widget.argumentos.curso;
     _grupo = widget.argumentos.grupo;
-    print('nombreCurso: ${_curso.nombreCurso}');
-    print('tituloCategoria: ${_curso.tituloCategoria}');
-    print('imagen: ${_curso.imagen}');
+    //antes se fijaba con setState dentro de build (_infoCurso); la fecha de
+    //creacion se calcula al guardar
+    if (!_esEdicion) {
+      _anio = DateTime.now().year;
+    }
 
+    //el vm lo crea la ruta grupoFormulario (route_generator)
     Future.microtask(() {
       final vmInstructor = Provider.of<InstructoresViewModel>(
         context,
@@ -157,12 +159,6 @@ class _GrupoFormularioState extends State<Grupoformulario> {
   }
 
   Widget _infoCurso() {
-    if (!_esEdicion) {
-      setState(() {
-        _anio = DateTime.now().year;
-        _fechaCreacion = FormatDate.fechaACadena(DateTime.now(), '-');
-      });
-    }
     return Column(
       children: [
         ListTile(
@@ -233,6 +229,7 @@ class _GrupoFormularioState extends State<Grupoformulario> {
           backgroundColor: ColorTheme.error,
         ),
       );
+      return;
     }
     if (_formKey.currentState!.validate()) {
       Grupoentidad g = Grupoentidad(
@@ -246,14 +243,7 @@ class _GrupoFormularioState extends State<Grupoformulario> {
         fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
       );
 
-      print('Grupo a guardar:');
-      print('categoria: ${g.categoria}');
-      print('curso: ${g.curso}');
-      print('imagen: ${g.imagen}');
-      print('anio: ${g.anio}');
-      print('idInstructor: ${g.idInstructor}');
-      print('cupos: ${g.cupos}');
-
+      //vm propio de la ruta: guardar ya no recarga ninguna lista
       Gruposviewmodel vm = Provider.of<Gruposviewmodel>(context, listen: false);
 
       RespuestaModelo respuesta = await vm.insertarGrupo(g);

@@ -3,9 +3,11 @@ import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
 import 'package:flutter/foundation.dart';
 
 class Horariosviewmodel with ChangeNotifier {
-  late final Serviciohorario servicioHorario;
+  final Serviciohorario servicioHorario;
 
-  Horariosviewmodel() : servicioHorario = Serviciohorario();
+  //el servicio sale de la raiz. Hay una instancia global (GruposAsignados y
+  //GruposInscripcion, fase 6) y una propia en la ruta grupo
+  Horariosviewmodel(this.servicioHorario);
 
   Future<RespuestaModelo> listarHorariosGrupo(
     String categoria,

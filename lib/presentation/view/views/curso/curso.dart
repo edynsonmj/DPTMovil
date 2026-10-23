@@ -31,7 +31,15 @@ class Curso extends StatelessWidget {
         child: Column(
           children: [
             // Contenido estático
-            EncabezadoImagen(idImagen: curso.imagen),
+            //la url la da el vm; el encabezado ya no arma la del servidor
+            EncabezadoImagen(
+              urlImagen:
+                  curso.imagen == null
+                      ? null
+                      : context.read<Gruposviewmodel>().urlImagen(
+                        curso.imagen!,
+                      ),
+            ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Column(

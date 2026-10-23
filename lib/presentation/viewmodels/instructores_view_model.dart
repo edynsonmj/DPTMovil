@@ -3,7 +3,7 @@ import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:flutter/material.dart';
 
 class InstructoresViewModel with ChangeNotifier {
-  final ServicioInstructor _servicioInstructor = ServicioInstructor();
+  final ServicioInstructor _servicioInstructor;
 
   List<Instructorentidad> _instructores = [];
   List<Instructorentidad> get instructores => _instructores;
@@ -14,7 +14,8 @@ class InstructoresViewModel with ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  InstructoresViewModel();
+  //el servicio sale de la raiz; el vm lo crea la ruta grupoFormulario
+  InstructoresViewModel(this._servicioInstructor);
 
   Future<void> listarYNotificarInstructores() async {
     _cargando = true;

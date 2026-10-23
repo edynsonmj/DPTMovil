@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 class Alumnosviewmodel with ChangeNotifier {
   final Servicioalumno _servicioAlumno;
-  Alumnosviewmodel() : _servicioAlumno = Servicioalumno();
+  //el servicio sale de la raiz; el vm lo crea la ruta grupo
+  Alumnosviewmodel(this._servicioAlumno);
 
   Future<RespuestaModelo> listarAlumnosGrupo(
     String categoria,

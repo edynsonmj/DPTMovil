@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
@@ -7,6 +6,8 @@ import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 class Gruporepositorio {
   Conexiongrupos conexion;
   Gruporepositorio({required this.conexion});
+
+  String urlImagen(int idImagen) => conexion.urlImagen(idImagen);
 
   Future<RespuestaModelo> listarGruposDe(String categoria, String curso) async {
     final RespuestaModelo respuesta = await conexion.obtenerGruposDe(

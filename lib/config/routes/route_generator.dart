@@ -6,12 +6,16 @@ import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionView.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
+import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/GrupoFormulario.dart';
@@ -72,19 +76,33 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder:
             (_) => ChangeNotifierProvider(
-              create: (_) => Gruposviewmodel(),
+              create: (c) => Gruposviewmodel(c.read()),
               child: Curso(curso: datos),
             ),
       );
 
     case AppRutas.grupo:
       Grupoentidad datos = settings.arguments as Grupoentidad;
-      //vm de cursos por pantalla solo para mostrar el curso del grupo; la
-      //pantalla pasa a un unico vm en la fase 4
+      //vms propios de la pantalla del grupo, uno por seccion. Horarios
+      //sombrea al global; clases recarga cuando formularioClase vuelve con
+      //true. Se fusionan en un unico vm en el siguiente paso (fase 4c)
       return MaterialPageRoute(
         builder:
-            (_) => ChangeNotifierProvider(
-              create: (c) => CursosViewModel(c.read()),
+            (_) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (c) => CursosViewModel(c.read()),
+                ),
+                ChangeNotifierProvider(
+                  create: (c) => Horariosviewmodel(c.read()),
+                ),
+                ChangeNotifierProvider(
+                  create: (c) => Alumnosviewmodel(c.read()),
+                ),
+                ChangeNotifierProvider(
+                  create: (c) => Clasesviewmodel(c.read()),
+                ),
+              ],
               child: Grupo(grupo: datos),
             ),
       );
@@ -140,9 +158,24 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
 
     case AppRutas.formularioClase:
-      //sin argumentos: el grupo lo conoce el vm global, que fijo
-      //widgetListaClases con inicializarGrupo
-      return MaterialPageRoute(builder: (_) => const Claseformulario());
+      Grupoentidad grupo = settings.arguments as Grupoentidad;
+      //vm propio del formulario, inicializado con el grupo que llega como
+      //argumento; al guardar hace pop(true) y la pantalla del grupo recarga
+      return MaterialPageRoute(
+        builder:
+            (_) => ChangeNotifierProvider(
+              create:
+                  (c) =>
+                      Clasesviewmodel(c.read())..inicializarGrupo(
+                        grupo.categoria,
+                        grupo.curso,
+                        grupo.anio,
+                        grupo.iterable,
+                        grupo.idInstructor!,
+                      ),
+              child: const Claseformulario(),
+            ),
+      );
 
     case AppRutas.formularioCurso:
       Formcursoargumentos datos = settings.arguments as Formcursoargumentos;
@@ -188,8 +221,21 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case AppRutas.grupoFormulario:
       Formgrupoargumentos argumentos =
           settings.arguments as Formgrupoargumentos;
+      //vms propios del formulario: al guardar hace pop(true) y la pantalla
+      //del curso recarga su lista
       return MaterialPageRoute(
-        builder: (_) => Grupoformulario(argumentos: argumentos),
+        builder:
+            (_) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (c) => Gruposviewmodel(c.read()),
+                ),
+                ChangeNotifierProvider(
+                  create: (c) => InstructoresViewModel(c.read()),
+                ),
+              ],
+              child: Grupoformulario(argumentos: argumentos),
+            ),
       );
 
     case AppRutas.page1:

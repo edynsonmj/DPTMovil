@@ -12,4 +12,7 @@ abstract class Conexiongrupos {
   Future<RespuestaModelo> obtenerGruposInstructor(String idInstructor);
 
   Future<RespuestaModelo> insertarGrupo(GrupoModelo grupo);
+
+  //la direccion del servidor la conoce la conexion, no la vista
+  String urlImagen(int idImagen);
 }

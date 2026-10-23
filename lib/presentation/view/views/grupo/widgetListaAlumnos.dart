@@ -6,6 +6,7 @@ import 'package:dpt_movil/presentation/view/widgets/campoBusqueda.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Widgetlistaalumnos extends StatelessWidget {
   Grupoentidad grupo;
@@ -16,10 +17,10 @@ class Widgetlistaalumnos extends StatelessWidget {
   Widget build(BuildContext context) {
     // TODO: implement build
     //throw UnimplementedError();
-    return alumnos();
+    return alumnos(context);
   }
 
-  Widget alumnos() {
+  Widget alumnos(BuildContext context) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 15),
       child: Column(
@@ -40,14 +41,15 @@ class Widgetlistaalumnos extends StatelessWidget {
               ],
             ),
           ),
-          listadoAlumnos(),
+          listadoAlumnos(context),
         ],
       ),
     );
   }
 
-  Widget listadoAlumnos() {
-    Alumnosviewmodel vmAlumno = Alumnosviewmodel();
+  Widget listadoAlumnos(BuildContext context) {
+    //el vm lo crea la ruta grupo (route_generator)
+    Alumnosviewmodel vmAlumno = context.read<Alumnosviewmodel>();
     return FutureBuilder(
       future: vmAlumno.listarAlumnosGrupo(
         grupo.categoria,

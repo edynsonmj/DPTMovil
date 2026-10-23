@@ -1,32 +1,44 @@
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configApi.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionAlumnosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionDeporteRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionInstructoresRemoto.dart';
+import 'package:dpt_movil/data/repositories/alumnosRepositorio.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
+import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/deporteRepositorio.dart';
 import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
+import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
+import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
 import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
+import 'package:dpt_movil/data/repositories/instructoresRepositorio.dart';
+import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
+import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
+import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
 import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
-import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
+import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -80,6 +92,38 @@ List<SingleChildWidget> proveedoresDatos() => [
           Imagenrepositorio(conexion: c.read<Conexionimagen>()),
         ),
   ),
+  Provider<Serviciogrupo>(
+    create:
+        (c) => Serviciogrupo(
+          Gruporepositorio(conexion: Conexiongruposremoto(c.read<Dio>())),
+        ),
+  ),
+  Provider<Serviciohorario>(
+    create:
+        (c) => Serviciohorario(
+          Horariorepositorio(conexion: Conexionhorariosremoto(c.read<Dio>())),
+        ),
+  ),
+  Provider<Servicioalumno>(
+    create:
+        (c) => Servicioalumno(
+          Alumnosrepositorio(cliente: Conexionalumnosremoto(c.read<Dio>())),
+        ),
+  ),
+  Provider<Servicioclase>(
+    create:
+        (c) => Servicioclase(
+          Claserepositorio(cliente: Conexionclasesremoto(c.read<Dio>())),
+        ),
+  ),
+  Provider<ServicioInstructor>(
+    create:
+        (c) => ServicioInstructor(
+          Instructoresrepositorio(
+            conexion: Conexioninstructoresremoto(c.read<Dio>()),
+          ),
+        ),
+  ),
   Provider<Servicioautenticacion>(
     create:
         (c) => Servicioautenticacion(
@@ -100,11 +144,10 @@ List<SingleChildWidget> proveedoresDatos() => [
 //la sesion; los demas pasan a su ruta en route_generator al migrar su modulo
 List<SingleChildWidget> vmsGlobales() => [
   ChangeNotifierProvider(create: (_) => EstadisticasViewModel()), //fase 7
-  ChangeNotifierProvider(create: (_) => Gruposviewmodel()), //fases 4 y 6
-  ChangeNotifierProvider(create: (_) => Horariosviewmodel()), //fases 4 y 6
-  //nadie lo lee del arbol: widgetListaAlumnos crea su propia instancia
-  ChangeNotifierProvider(create: (_) => Alumnosviewmodel()), //fase 4
-  ChangeNotifierProvider(create: (_) => Clasesviewmodel()), //fase 4
+  //los usan GruposAsignados y GruposInscripcion; las pantallas de curso y
+  //grupo ya tienen su propia instancia en la ruta
+  ChangeNotifierProvider(create: (c) => Gruposviewmodel(c.read())), //fase 6
+  ChangeNotifierProvider(create: (c) => Horariosviewmodel(c.read())), //fase 6
   //se queda: la sesion la leen el menu lateral y casi todas las pantallas
   ChangeNotifierProvider(
     create:
@@ -114,5 +157,4 @@ List<SingleChildWidget> vmsGlobales() => [
         ),
   ),
   ChangeNotifierProvider(create: (_) => Inscripcionviewmodel()), //fase 6
-  ChangeNotifierProvider(create: (_) => InstructoresViewModel()), //fase 4
 ];

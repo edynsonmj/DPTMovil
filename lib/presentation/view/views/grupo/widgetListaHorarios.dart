@@ -5,6 +5,7 @@ import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Widgetlistahorarios extends StatelessWidget {
   Grupoentidad grupo;
@@ -13,11 +14,12 @@ class Widgetlistahorarios extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return horarios();
+    return horarios(context);
   }
 
-  Widget horarios() {
-    Horariosviewmodel vmHorario = Horariosviewmodel();
+  Widget horarios(BuildContext context) {
+    //el vm lo crea la ruta grupo (route_generator)
+    Horariosviewmodel vmHorario = context.read<Horariosviewmodel>();
     return FutureBuilder(
       future: vmHorario.listarHorariosGrupo(
         grupo.categoria,

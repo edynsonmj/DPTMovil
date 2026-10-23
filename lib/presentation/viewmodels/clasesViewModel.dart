@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 
 class Clasesviewmodel with ChangeNotifier {
   final Servicioclase _servicioClase;
-  Clasesviewmodel() : _servicioClase = Servicioclase();
+  //el servicio sale de la raiz. Una instancia por ruta: la de grupo lista y
+  //elimina, la de formularioClase registra (y la pantalla recarga al volver)
+  Clasesviewmodel(this._servicioClase);
 
   List<Claseentidad> _clases = [];
   List<Claseentidad> get clases => _clases;

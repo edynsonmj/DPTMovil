@@ -1,12 +1,15 @@
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionHorarios.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/horarioModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexionhorariosremoto extends Conexionhorarios {
-  final _dio = Dio(BaseOptions(baseUrl: ConfigServicio().obtenerBaseApi()));
+  //el Dio compartido llega desde la raiz de composicion, con la baseUrl
+  final Dio _dio;
+
+  Conexionhorariosremoto(this._dio);
+
   @override
   Future<RespuestaModelo> obtenerHorariosGrupo(
     String categoria,
