@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dpt_movil/data/models/cursoModelo.dart';
-import 'package:dpt_movil/domain/entities/imagenEntidad.dart';
 
 class CursoEntidad {
   String nombreCurso;

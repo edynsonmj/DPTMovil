@@ -19,7 +19,9 @@ export 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart'
 //vm de la pantalla de un grupo (fase 4c): reune lo que antes pedia cada
 //widget por su cuenta (curso, horarios, alumnos, clases). Lo crea la ruta
 //grupo con el grupo de la pantalla y carga todo una sola vez al entrar
-class DetalleGrupoViewModel with ChangeNotifier {
+//NotificacionSegura (fase 8): la ruta lo desecha al salir y una peticion
+//que llega despues no notifica
+class DetalleGrupoViewModel with ChangeNotifier, NotificacionSegura {
   final Grupoentidad grupo;
   final ServicioCurso _servicioCurso;
   final Serviciohorario _servicioHorario;
@@ -162,21 +164,6 @@ class DetalleGrupoViewModel with ChangeNotifier {
       return EstadoSeccion((respuesta.datos as List).cast<T>());
     }
     return EstadoSeccion(<T>[], error: _mensaje(respuesta));
-  }
-
-  //la ruta desecha el vm al salir; una peticion que llega despues no debe
-  //notificar (ChangeNotifier lanza si se usa tras dispose)
-  bool _desechado = false;
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
-  }
-
-  @override
-  void notifyListeners() {
-    if (!_desechado) super.notifyListeners();
   }
 
   String _mensaje(RespuestaModelo respuesta) =>

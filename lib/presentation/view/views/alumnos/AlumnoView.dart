@@ -3,7 +3,6 @@ import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/presentation/view/widgets/avatar.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
-import 'package:dpt_movil/presentation/view/widgets/campoBusqueda.dart';
 import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';

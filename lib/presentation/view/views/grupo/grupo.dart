@@ -7,7 +7,6 @@ import 'package:dpt_movil/presentation/view/views/grupo/widgetListaClases.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/widgetListaHorarios.dart';
 import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
 import 'package:flutter/material.dart';
-import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';

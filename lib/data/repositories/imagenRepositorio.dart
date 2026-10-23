@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
-import 'package:dpt_movil/data/models/imagenModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/imagenEntidad.dart';
 

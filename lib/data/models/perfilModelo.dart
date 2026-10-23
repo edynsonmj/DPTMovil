@@ -1,5 +1,4 @@
 import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
-import 'package:flutter/material.dart';
 
 class Perfilmodelo {
   String id;

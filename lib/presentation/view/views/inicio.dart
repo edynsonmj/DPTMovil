@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/tarjeta.dart';
-import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 
 class Inicio extends StatelessWidget {
   const Inicio({super.key});

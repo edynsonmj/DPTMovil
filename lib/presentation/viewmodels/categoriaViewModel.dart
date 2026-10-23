@@ -1,12 +1,10 @@
 import 'dart:io';
 
-import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogCargando.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 
 class CategoriaViewModel with ChangeNotifier {

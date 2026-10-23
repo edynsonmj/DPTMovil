@@ -10,14 +10,6 @@ class ServicioCurso {
   //(lib/config/inyeccion/dependencias.dart)
   ServicioCurso(this.repositorio);
 
-  Future<List<CursoEntidad>> call() async {
-    return await repositorio.obtenerCursos();
-  }
-
-  Future<RespuestaModelo> listarTodosCursos() async {
-    return repositorio.listarTodosLosCursos();
-  }
-
   Future<RespuestaModelo> listarCursosDe(CategoriaEntidad categoria) async {
     return await repositorio.listarCursosDe(categoria);
   }

@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
 
 ///Widget sin estado que muestra una tarjeta con imagen e informacion
 class Tarjeta extends StatelessWidget {

@@ -24,88 +24,9 @@ class CursosViewModel with ChangeNotifier {
   //url de la imagen de un curso: la vista no conoce la direccion del servidor
   String urlImagen(int idImagen) => servicioCurso.urlImagen(idImagen);
 
-  Future<void> cargarListaCursos() async {
-    try {
-      _listaCursos = await servicioCurso.call();
-      _cargarEntradas();
-      notifyListeners();
-    } catch (e) {
-      print('error en CursosViewModel: $e');
-    }
-  }
-
   Future<RespuestaModelo> agregarCurso(CursoEntidad entidad) async {
     RespuestaModelo respuesta = await servicioCurso.insertarCurso(entidad);
     return respuesta;
-  }
-
-  Future<void> listarTodosCursos(context) async {
-    RespuestaModelo? respuesta;
-    _listaCursos = [];
-    try {
-      respuesta = await servicioCurso.listarTodosCursos();
-      switch (respuesta.codigoHttp) {
-        case 200: // respuesta correcta, cargar datos
-          if (respuesta.datos is List<CursoEntidad>) {
-            _listaCursos = respuesta.datos as List<CursoEntidad>;
-          } else {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return DialogError(
-                  titulo: 'datos inconsistentes',
-                  mensaje:
-                      'no se ha obtenido una lista de tipo entidad para cargar los datos',
-                  codigo: 0,
-                );
-              },
-            );
-          }
-          break;
-        case 204: //listado vacio
-          showDialog(
-            context: context,
-            builder: (context) {
-              return DialogError(
-                titulo: 'Exito en la operacion',
-                mensaje:
-                    'Lastimosamente no se encontraron categorias en el sistema',
-                codigo: 204,
-              );
-            },
-          );
-          break;
-        default: //Otro tipo de error reportado
-          showDialog(
-            context: context,
-            builder: (context) {
-              return DialogError(
-                titulo: 'No se pudo obtener datos',
-                mensaje:
-                    respuesta?.error?.mensaje ??
-                    'no hay informacion respecto al error',
-                codigo: respuesta?.codigoHttp ?? 0,
-              );
-            },
-          );
-          break;
-      }
-    } catch (e) {
-      //error no esperado
-      showDialog(
-        context: context,
-        builder: (context) {
-          return DialogError(
-            titulo: 'excepcion no controlada',
-            mensaje: e.toString(),
-            codigo: 0,
-          );
-        },
-      );
-    } finally {
-      _cargarEntradas();
-      notifyListeners();
-    }
   }
 
   Future<void> listarCursosDe(context, CategoriaEntidad categoria) async {

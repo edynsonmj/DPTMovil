@@ -1,5 +1,4 @@
 import 'package:dpt_movil/data/models/alumnoModelo.dart';
-import 'package:dpt_movil/domain/entities/alumnoEntidad.dart';
 
 class Atencionmodelo {
   Alumnomodelo alumno;

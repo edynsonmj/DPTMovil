@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dpt_movil/data/models/imagenModelo.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 
 class CursoModelo {

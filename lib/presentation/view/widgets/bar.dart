@@ -1,8 +1,6 @@
-import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:provider/provider.dart';
 
 class Bar extends StatelessWidget implements PreferredSizeWidget {
   String title;

@@ -1,4 +1,3 @@
-import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:flutter/material.dart';
 

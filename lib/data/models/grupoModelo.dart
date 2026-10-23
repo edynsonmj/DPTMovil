@@ -1,4 +1,3 @@
-import 'package:dpt_movil/data/models/imagenModelo.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 
 class GrupoModelo {

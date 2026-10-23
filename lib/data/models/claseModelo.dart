@@ -1,6 +1,4 @@
-import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
-import 'package:flutter/material.dart';
 
 class Clasemodelo {
   int? codigo;

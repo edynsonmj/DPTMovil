@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';

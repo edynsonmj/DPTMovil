@@ -4,11 +4,14 @@ import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioAtencion.dart';
+import 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart';
 import 'package:flutter/foundation.dart';
 
 //estado de la pantalla de una clase: se crea con la ruta AppRutas.clase y se
 //descarta al salir, asi que no arrastra las atenciones de otra clase
-class Atencionviewmodel with ChangeNotifier {
+//NotificacionSegura (fase 8): la ruta lo desecha al salir y una carga que
+//llega despues no notifica
+class Atencionviewmodel with ChangeNotifier, NotificacionSegura {
   final Servicioatencion _servicioAtencion;
 
   //el servicio sale de la raiz; la ruta crea el vm y llama a cargarAtenciones
@@ -91,21 +94,6 @@ class Atencionviewmodel with ChangeNotifier {
     } catch (e) {
       return Fallo(-1, e.toString(), origen: 'ViewModel');
     }
-  }
-
-  //la ruta desecha el vm al salir; una carga que llega despues no debe
-  //notificar (ChangeNotifier lanza si se usa tras dispose)
-  bool _desechado = false;
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
-  }
-
-  @override
-  void notifyListeners() {
-    if (!_desechado) super.notifyListeners();
   }
 
   //unico punto donde se lee el ErrorModelo: la vista recibe codigo y mensaje
