@@ -61,6 +61,7 @@ import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
+import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'dobles/conexionCategoriaLocal.dart';
@@ -80,6 +81,7 @@ import 'remoto/viewModel/autenticacion/vmLoginTest.dart';
 import 'remoto/viewModel/facultades/vmListarFacultadesTest.dart';
 import 'remoto/viewModel/grupo/vmListarGruposTest.dart';
 import 'remoto/viewModel/grupo/vmModuloGrupoTest.dart';
+import 'remoto/viewModel/inscripcion/vmGruposInscripcionTest.dart';
 import 'remoto/viewModel/categoria/vmEliminarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmListarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarCategoriaTest.dart';
@@ -109,6 +111,43 @@ void main() {
   probarViewModelDeporte();
   probarViewModelCurso();
   probarViewModelModuloGrupo();
+  probarViewModelGruposInscripcion();
+}
+probarViewModelGruposInscripcion(){
+  //inscripcion sin migrar: su conexion toma la url de ConfigServicio al
+  //construirse. Lo demas solo arma los datos de apoyo
+  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
+  ConfigServicio.ip = "localhost";
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
+  Facultadesviewmodel crearVmFacultades() => Facultadesviewmodel(
+    Serviciofacultades(
+      Facultadesrepositorio(conexion: Conexionfacultadremoto(dio)),
+    ),
+  );
+  group('Grupos asignados e inscripcion remotos:', () {
+    VmGruposInscripcionTest test = VmGruposInscripcionTest();
+    test.preparar(
+      vmCategoria: crearCategoriaViewModel(
+        ConexionCategoriaRemota(dio, conexionImagen),
+      ),
+      crearVmDeporte: crearDeporteViewModel,
+      crearVmCurso: () => CursosViewModel(
+        ServicioCurso(
+          CursoRepositorio(cliente: ConexionCursoRemoto(dio, conexionImagen)),
+        ),
+      ),
+      crearVmInstructores: crearInstructoresViewModel,
+      crearVmGrupos: crearGruposViewModel,
+      crearVmFacultades: crearVmFacultades,
+      servicioAutenticacion: Servicioautenticacion(
+        Autenticacionrepositorio(conexion: Conexionautenticacionremoto(dio)),
+      ),
+    );
+    test.prueba1GruposDelInstructor(crearGruposViewModel);
+    test.prueba2GruposDisponibles(crearGruposViewModel);
+    test.prueba3CicloInscripcion(Inscripcionviewmodel.new);
+  });
 }
 //misma cadena que la raiz para el modulo grupo, con el Dio de pruebas; un
 //vm por caso, como cada ruta
