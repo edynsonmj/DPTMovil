@@ -5,7 +5,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:dpt_movil/domain/entities/estadistica.dart';
 
 /***
  * Construye un grafico de barras agrupado por atenciones y categorias
@@ -45,16 +44,15 @@ class GraficoBarrasAgrupado extends StatelessWidget {
   }
 
   Widget etiquetas() {
+    //sin Expanded: su padre no es un Flex (fase 7c)
     return SizedBox(
       width: double.infinity,
-      child: Expanded(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            etiqueta('Atenciones', ColorTheme.primary),
-            etiqueta('Horas', ColorTheme.secondary),
-          ],
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          etiqueta('Atenciones', ColorTheme.primary),
+          etiqueta('Horas', ColorTheme.secondary),
+        ],
       ),
     );
   }

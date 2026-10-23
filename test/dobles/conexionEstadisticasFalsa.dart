@@ -2,6 +2,8 @@ import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart
 import 'package:dpt_movil/data/models/estadisticaModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
+import 'copiaRespuesta.dart';
+
 //doble programable de la conexion de estadisticas: cada test fija la
 //respuesta que quiere y despues revisa el rango que llego a la conexion
 class ConexionEstadisticasFalsa implements ConexionEstadisticas {
@@ -18,6 +20,10 @@ class ConexionEstadisticasFalsa implements ConexionEstadisticas {
     datos: <EstadisticaModelo>[],
   );
 
+  //si se fija, cada peticion la espera antes de responder: permite ver el
+  //estado del vm a mitad de carga o hacer llegar tarde un rango anterior
+  Future<void> Function(String inicio)? antesDeResponder;
+
   //rango de la ultima peticion, sea cual sea la seccion
   String? ultimoInicio;
   String? ultimoFin;
@@ -25,37 +31,38 @@ class ConexionEstadisticasFalsa implements ConexionEstadisticas {
   int llamadasCursos = 0;
   int llamadasGrupos = 0;
 
+  Future<RespuestaModelo> _responder(
+    String inicio,
+    String fin,
+    RespuestaModelo Function() respuesta,
+  ) async {
+    ultimoInicio = inicio;
+    ultimoFin = fin;
+    await antesDeResponder?.call(inicio);
+    //se lee al responder (no al pedir) y se copia: el vm pide varias veces
+    //con la misma respuesta
+    return copiaRespuesta(respuesta());
+  }
+
   @override
   Future<RespuestaModelo> generalCategorias(
     String fechaInicio,
     String fechafin,
-  ) async {
+  ) {
     llamadasCategorias++;
-    ultimoInicio = fechaInicio;
-    ultimoFin = fechafin;
-    return respuestaCategorias;
+    return _responder(fechaInicio, fechafin, () => respuestaCategorias);
   }
 
   @override
-  Future<RespuestaModelo> generalCursos(
-    String fechaInicio,
-    String fechafin,
-  ) async {
+  Future<RespuestaModelo> generalCursos(String fechaInicio, String fechafin) {
     llamadasCursos++;
-    ultimoInicio = fechaInicio;
-    ultimoFin = fechafin;
-    return respuestaCursos;
+    return _responder(fechaInicio, fechafin, () => respuestaCursos);
   }
 
   @override
-  Future<RespuestaModelo> generalGrupos(
-    String fechaInicio,
-    String fechafin,
-  ) async {
+  Future<RespuestaModelo> generalGrupos(String fechaInicio, String fechafin) {
     llamadasGrupos++;
-    ultimoInicio = fechaInicio;
-    ultimoFin = fechafin;
-    return respuestaGrupos;
+    return _responder(fechaInicio, fechafin, () => respuestaGrupos);
   }
 
   //la conexion remota tampoco los implementa
