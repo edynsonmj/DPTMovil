@@ -165,14 +165,15 @@ class VmGruposInscripcionTest {
 
       expect(await vm.validarInscripcion(inscripcion), isFalse);
 
-      await vm.agregarIncripcion(inscripcion);
-      if (vm.error != null) print('error al inscribir: ${vm.error}');
-      expect(vm.cargando, isFalse);
-      expect(vm.error, isNull);
-      expect(vm.codigoInsercion, 201);
+      //fase 6b (I4): inscribir y desvincular devuelven Resultado. Antes aqui
+      //se leian vm.cargando, vm.error y vm.codigoInsercion == 201, y
+      //desvincular devolvia el codigo 200; el Exito es ese mismo 201 / 200
+      Resultado<void> inscribir = await vm.agregarIncripcion(inscripcion);
+      if (inscribir is Fallo) print('error al inscribir: ${inscribir.mensaje}');
+      expect(inscribir, isA<Exito>());
       expect(await vm.validarInscripcion(inscripcion), isTrue);
 
-      expect(await vm.desvincularInscripcion(inscripcion), 200);
+      expect(await vm.desvincularInscripcion(inscripcion), isA<Exito>());
       expect(await vm.validarInscripcion(inscripcion), isFalse);
     });
   }

@@ -22,6 +22,7 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionInscripcionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInstructoresRemoto.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
@@ -36,6 +37,7 @@ import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
 import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
+import 'package:dpt_movil/data/repositories/inscripcionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/instructoresRepositorio.dart';
 import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
 import 'package:dpt_movil/domain/servicios/servicioAtencion.dart';
@@ -47,6 +49,7 @@ import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
+import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
@@ -113,11 +116,17 @@ void main() {
   probarViewModelModuloGrupo();
   probarViewModelGruposInscripcion();
 }
+//misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como la
+//ruta gruposDisponiblesInscripcion
+Inscripcionviewmodel crearInscripcionViewModel() => Inscripcionviewmodel(
+  Servicioinscripcion(
+    Inscripcionrepositorio(
+      conexion: Conexioninscripcionremoto(crearClienteHttp(baseUrlPruebas)),
+    ),
+  ),
+);
 probarViewModelGruposInscripcion(){
-  //inscripcion sin migrar: su conexion toma la url de ConfigServicio al
-  //construirse. Lo demas solo arma los datos de apoyo
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
-  ConfigServicio.ip = "localhost";
+  //categoria, curso, grupo y alumno solo arman los datos de apoyo
   Dio dio = crearClienteHttp(baseUrlPruebas);
   Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
   Facultadesviewmodel crearVmFacultades() => Facultadesviewmodel(
@@ -146,7 +155,7 @@ probarViewModelGruposInscripcion(){
     );
     test.prueba1GruposDelInstructor(crearGruposViewModel);
     test.prueba2GruposDisponibles(crearGruposViewModel);
-    test.prueba3CicloInscripcion(Inscripcionviewmodel.new);
+    test.prueba3CicloInscripcion(crearInscripcionViewModel);
   });
 }
 //misma cadena que la raiz para el modulo grupo, con el Dio de pruebas; un

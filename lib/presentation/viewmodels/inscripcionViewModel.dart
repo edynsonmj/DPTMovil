@@ -1,50 +1,46 @@
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:flutter/material.dart';
 
+//vm de la pantalla de inscripcion del alumno (ruta gruposDisponiblesInscripcion).
+//Desde la fase 6 inscribir y desvincular devuelven Resultado: la vista decide
+//que dialogo mostrar y ya no lee estado compartido por todas las tarjetas
 class Inscripcionviewmodel with ChangeNotifier {
-  final Servicioinscripcion _servicio = Servicioinscripcion();
+  final Servicioinscripcion _servicio;
 
-  bool _cargando = false;
-  bool get cargando => _cargando;
+  //el servicio sale de la raiz; el vm lo crea la ruta
+  Inscripcionviewmodel(this._servicio);
 
-  String? _error;
-  String? get error => _error;
-
-  int? _codigoInsercion;
-  int? get codigoInsercion => _codigoInsercion;
-
-  Future<void> agregarIncripcion(Inscripcionentidad entidad) async {
+  Future<Resultado<void>> agregarIncripcion(Inscripcionentidad entidad) async {
     try {
-      _error = null;
-      _cargando = true;
-      _codigoInsercion = 0;
-      notifyListeners();
       RespuestaModelo respuesta = await _servicio.agregarInscripcion(entidad);
-      _cargando = false;
       if (respuesta.codigoHttp == 201) {
-        _codigoInsercion = 201;
-      } else {
-        _codigoInsercion = respuesta.codigoHttp;
-        _error = '${respuesta.error?.mensaje}';
+        //la tarjeta vuelve a validar y cambia el boton
+        notifyListeners();
+        return Exito();
       }
-    } on Exception catch (e) {
-      _error = e.toString();
+      return _fallo(respuesta);
+    } catch (e) {
+      return Fallo(-1, e.toString(), origen: 'ViewModel');
     }
-    notifyListeners();
   }
 
-  Future<int> desvincularInscripcion(Inscripcionentidad entidad) async {
+  Future<Resultado<void>> desvincularInscripcion(
+    Inscripcionentidad entidad,
+  ) async {
     try {
       RespuestaModelo respuesta = await _servicio.desvincularInscripcion(
         entidad,
       );
-      notifyListeners();
-      return respuesta.codigoHttp;
+      if (respuesta.codigoHttp == 200) {
+        notifyListeners();
+        return Exito();
+      }
+      return _fallo(respuesta);
     } catch (e) {
-      notifyListeners();
-      return 0;
+      return Fallo(-1, e.toString(), origen: 'ViewModel');
     }
   }
 
@@ -58,5 +54,16 @@ class Inscripcionviewmodel with ChangeNotifier {
     } catch (e) {
       return false;
     }
+  }
+
+  //unico punto donde se lee el ErrorModelo: la vista recibe codigo y mensaje
+  //ya resueltos y no necesita conocer la capa de datos
+  Fallo<T> _fallo<T>(RespuestaModelo respuesta) {
+    final error = respuesta.error;
+    return Fallo(
+      respuesta.codigoHttp,
+      error?.mensaje ?? 'Error desconocido. Código: ${respuesta.codigoHttp}',
+      origen: error == null ? null : '${error.metodo} ${error.url}',
+    );
   }
 }

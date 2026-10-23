@@ -4,11 +4,10 @@ import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
 import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogCargando.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
-import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/view/widgets/tarjeta.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
@@ -31,6 +30,7 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
   void initState() {
     super.initState();
     Future.microtask(() {
+      //los vms los crea la ruta gruposDisponiblesInscripcion
       final vm = Provider.of<Gruposviewmodel>(context, listen: false);
       vm.listarGruposDisponiblesInscripcion();
     });
@@ -117,20 +117,17 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
                 if (!snapshot.hasData) {
                   return Center(child: CircularProgressIndicator());
                 }
-                RespuestaModelo respuesta = snapshot.data!;
-                List<Horarioentidad> listaHorarios =
-                    respuesta.datos as List<Horarioentidad>;
-                String descripcion = '';
-                for (Horarioentidad horario in listaHorarios) {
-                  descripcion =
-                      descripcion +
-                      '${horario.dia}: ${horario.horaInicio} - ${horario.horaFin} \n';
-                }
                 return Tarjeta(
                   atrTitulo: '${grupo.curso}-${grupo.anio}-${grupo.iterable}',
                   atrInfoPie: grupo.categoria,
-                  idImagen: grupo.imagen,
-                  atrDescripcion: descripcion,
+                  //la url la da el vm; la tarjeta ya no arma la del servidor
+                  atrUrlImagen:
+                      grupo.imagen == null
+                          ? ''
+                          : context.read<Gruposviewmodel>().urlImagen(
+                            grupo.imagen!,
+                          ),
+                  atrDescripcion: _descripcionHorarios(snapshot.data!),
                 );
               },
             );
@@ -155,42 +152,11 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
                           estado ? ColorTheme.error : ColorTheme.secondary,
                     ),
                     onPressed: () async {
-                      if (estado) {
-                        await vm.desvincularInscripcion(inscripcion);
-                      } else {
-                        await vm.agregarIncripcion(inscripcion);
-                        if (vm.cargando) {
-                          showDialog(
-                            context: context,
-                            builder: (_) {
-                              return DialogCargando();
-                            },
-                          );
-                        }
-                        if (vm.codigoInsercion == 201) {
-                          showDialog(
-                            context: context,
-                            builder: (_) {
-                              return DialogExito(
-                                titulo: "Operacion exitosa",
-                                mensaje: "Te has inscrito al grupo",
-                              );
-                            },
-                          );
-                        }
-                        if (vm.error != null) {
-                          showDialog(
-                            context: context,
-                            builder: (_) {
-                              return DialogError(
-                                codigo: vm.codigoInsercion ?? 0,
-                                mensaje: vm.error ?? "Error desconocido",
-                                titulo: "Error en la operacion",
-                              );
-                            },
-                          );
-                        }
-                      }
+                      final resultado =
+                          estado
+                              ? await vm.desvincularInscripcion(inscripcion)
+                              : await vm.agregarIncripcion(inscripcion);
+                      await _mostrarResultado(resultado, inscrito: !estado);
                     },
                   ),
                 );
@@ -200,5 +166,52 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
         ),
       ],
     );
+  }
+
+  //solo pinta los horarios si la peticion salio bien: antes se hacia el cast
+  //sin revisar el codigo y un error lanzaba una excepcion en la tarjeta
+  String _descripcionHorarios(RespuestaModelo respuesta) {
+    if (respuesta.codigoHttp != 200 || respuesta.datos is! List) return '';
+    String descripcion = '';
+    for (Horarioentidad horario
+        in (respuesta.datos as List).cast<Horarioentidad>()) {
+      descripcion =
+          descripcion +
+          '${horario.dia}: ${horario.horaInicio} - ${horario.horaFin} \n';
+    }
+    return descripcion;
+  }
+
+  //el vm ya interpreto la respuesta: la vista solo decide que mostrar, y
+  //espera el dialogo para no usar un context que ya no sirve
+  Future<void> _mostrarResultado(
+    Resultado<void> resultado, {
+    required bool inscrito,
+  }) async {
+    if (!mounted) return;
+    switch (resultado) {
+      case Exito():
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogExito(
+                titulo: "Operacion exitosa",
+                mensaje:
+                    inscrito
+                        ? "Te has inscrito al grupo"
+                        : "Se quito tu matricula del grupo",
+              ),
+        );
+      case Fallo(:final codigo, :final mensaje):
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogError(
+                codigo: codigo,
+                mensaje: mensaje,
+                titulo: "Error en la operacion",
+              ),
+        );
+    }
   }
 }

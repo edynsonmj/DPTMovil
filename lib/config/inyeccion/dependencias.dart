@@ -12,6 +12,7 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionInscripcionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInstructoresRemoto.dart';
 import 'package:dpt_movil/data/repositories/alumnosRepositorio.dart';
 import 'package:dpt_movil/data/repositories/atencionesRepositorio.dart';
@@ -24,6 +25,7 @@ import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
 import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
+import 'package:dpt_movil/data/repositories/inscripcionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/instructoresRepositorio.dart';
 import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
 import 'package:dpt_movil/domain/servicios/servicioAtencion.dart';
@@ -36,12 +38,10 @@ import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
 import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
+import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -135,6 +135,14 @@ List<SingleChildWidget> proveedoresDatos() => [
           ),
         ),
   ),
+  Provider<Servicioinscripcion>(
+    create:
+        (c) => Servicioinscripcion(
+          Inscripcionrepositorio(
+            conexion: Conexioninscripcionremoto(c.read<Dio>()),
+          ),
+        ),
+  ),
   Provider<Servicioautenticacion>(
     create:
         (c) => Servicioautenticacion(
@@ -155,10 +163,6 @@ List<SingleChildWidget> proveedoresDatos() => [
 //la sesion; los demas pasan a su ruta en route_generator al migrar su modulo
 List<SingleChildWidget> vmsGlobales() => [
   ChangeNotifierProvider(create: (_) => EstadisticasViewModel()), //fase 7
-  //los usan GruposAsignados y GruposInscripcion; las pantallas de curso y
-  //grupo ya tienen su propia instancia en la ruta
-  ChangeNotifierProvider(create: (c) => Gruposviewmodel(c.read())), //fase 6
-  ChangeNotifierProvider(create: (c) => Horariosviewmodel(c.read())), //fase 6
   //se queda: la sesion la leen el menu lateral y casi todas las pantallas
   ChangeNotifierProvider(
     create:
@@ -167,5 +171,4 @@ List<SingleChildWidget> vmsGlobales() => [
           GoogleSignIn(scopes: ['email', 'profile']),
         ),
   ),
-  ChangeNotifierProvider(create: (_) => Inscripcionviewmodel()), //fase 6
 ];

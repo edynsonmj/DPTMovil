@@ -1,14 +1,12 @@
-import 'package:dpt_movil/data/api/conexion/remoto/ConexionInscripcionRemoto.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/inscripcionRepositorio.dart';
 import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
 
 class Servicioinscripcion {
   Inscripcionrepositorio repositorio;
-  Servicioinscripcion()
-    : repositorio = Inscripcionrepositorio(
-        conexion: Conexioninscripcionremoto(),
-      );
+
+  //el repositorio llega armado desde la raiz de composicion
+  Servicioinscripcion(this.repositorio);
 
   Future<RespuestaModelo> agregarInscripcion(Inscripcionentidad entidad) {
     return repositorio.agregarInscripcion(entidad);

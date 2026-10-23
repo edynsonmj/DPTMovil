@@ -14,12 +14,10 @@ import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
 import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
+import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -60,14 +58,12 @@ void main() {
     expect(contexto.read<Servicioclase>(), isNotNull);
     expect(contexto.read<ServicioInstructor>(), isNotNull);
     expect(contexto.read<Servicioatencion>(), isNotNull);
+    expect(contexto.read<Servicioinscripcion>(), isNotNull);
     expect(contexto.read<Servicioautenticacion>(), isNotNull);
     expect(contexto.read<Serviciofacultades>(), isNotNull);
 
     //vms globales (los que pasan a su ruta salen de esta lista)
     expect(contexto.read<EstadisticasViewModel>(), isNotNull);
-    expect(contexto.read<Gruposviewmodel>(), isNotNull);
-    expect(contexto.read<Horariosviewmodel>(), isNotNull);
     expect(contexto.read<AutenticacionViewModel>(), isNotNull);
-    expect(contexto.read<Inscripcionviewmodel>(), isNotNull);
   });
 }

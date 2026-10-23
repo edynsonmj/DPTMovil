@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
@@ -9,7 +8,6 @@ import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
 ///Widget sin estado que muestra una tarjeta con imagen e informacion
 class Tarjeta extends StatelessWidget {
   Uint8List? atrDatosImagen;
-  int? idImagen;
   String? atrUrlImagen;
   String? atrTitulo;
   String? atrDescripcion;
@@ -23,7 +21,6 @@ class Tarjeta extends StatelessWidget {
     //la url de la imagen no puede ser nula, pero si vacia, en cuyo caso tomara el valor por defecto
     this.atrDatosImagen,
     this.atrUrlImagen = '',
-    this.idImagen,
     this.atrTitulo,
     this.atrDescripcion,
     this.atrInfo1,
@@ -69,23 +66,20 @@ class Tarjeta extends StatelessWidget {
   }
 
   Widget imagen(BuildContext context, Size dimension) {
-    //la url llega armada desde el vm (categorias y cursos). Sin url se cae
-    //en armarla aqui con idImagen
-    //TODO fase 6: quitar el respaldo cuando GruposAsignados y
-    //GruposInscripcion pasen la url
-    String path =
-        (atrUrlImagen != null && atrUrlImagen!.isNotEmpty)
-            ? atrUrlImagen!
-            : '${ConfigServicio().obtenerBaseApi()}/imagenStream?idImagen=$idImagen';
+    //la url llega armada desde el vm: la tarjeta no conoce el servidor. Sin
+    //url (elemento sin imagen) se muestra la imagen por defecto
     atrDatosImagen=null;
+    final String? path =
+        (atrUrlImagen != null && atrUrlImagen!.isNotEmpty) ? atrUrlImagen : null;
     return ClipRRect(
       //border redondeador en la parte superior
       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       child: SizedBox(
                 height: 200,
                 width: double.infinity,
-                //child: Image.asset('assets/images/1.jpg', fit: BoxFit.cover),
-                child: Image.network(
+                child: path == null
+                ? Image.asset('assets/images/1.jpg', fit: BoxFit.cover)
+                : Image.network(
                   path,
                   fit: BoxFit.cover,
                   loadingBuilder:

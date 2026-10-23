@@ -1,18 +1,15 @@
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionInscripcion.dart';
 import 'package:dpt_movil/data/models/inscripcionModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexioninscripcionremoto implements Conexioninscripcion {
-  final _dio = Dio(
-    BaseOptions(
-      baseUrl: ConfigServicio().obtenerBaseApi(),
-      connectTimeout: Duration(minutes: 10),
-      receiveTimeout: Duration(minutes: 10),
-      sendTimeout: Duration(minutes: 10),
-    ),
-  );
+  //el Dio compartido llega desde la raiz de composicion. Antes esta conexion
+  //esperaba hasta 10 minutos; desde la fase 6 usa los 20 s del compartido
+  final Dio _dio;
+
+  Conexioninscripcionremoto(this._dio);
+
   @override
   Future<RespuestaModelo> agregarInscripcion(Inscripcionmodelo modelo) async {
     String metodo = "POST";

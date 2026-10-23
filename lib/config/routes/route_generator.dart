@@ -14,6 +14,8 @@ import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:dpt_movil/presentation/view/views/curso/FormularioCurso.dart';
@@ -69,9 +71,8 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.curso:
       CursoEntidad datos = settings.arguments as CursoEntidad;
-      //vm por pantalla: el Gruposviewmodel global lo comparten tambien
-      //GruposAsignados y GruposInscripcion con otra lista; aqui cada curso
-      //tiene la suya y se descarta al salir
+      //vm por pantalla: cada curso tiene su lista de grupos y se descarta al
+      //salir (desde la fase 6 ya no hay Gruposviewmodel global)
       return MaterialPageRoute(
         builder:
             (_) => ChangeNotifierProvider(
@@ -204,14 +205,43 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case AppRutas.gruposDisponiblesInscripcion:
       String idAlumno = settings.arguments as String;
+      //vms propios de la pantalla del alumno: grupos disponibles, horarios
+      //de cada tarjeta y su estado de inscripcion
       return MaterialPageRoute(
-        builder: (_) => Gruposinscripcion(alumnoId: idAlumno),
+        builder:
+            (_) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (c) => Gruposviewmodel(c.read()),
+                ),
+                ChangeNotifierProvider(
+                  create: (c) => Horariosviewmodel(c.read()),
+                ),
+                ChangeNotifierProvider(
+                  create: (c) => Inscripcionviewmodel(c.read()),
+                ),
+              ],
+              child: Gruposinscripcion(alumnoId: idAlumno),
+            ),
       );
 
     case AppRutas.gruposAsignados:
       String idInstructor = settings.arguments as String;
+      //vms propios de la pantalla del instructor: sus grupos y los horarios
+      //de cada tarjeta
       return MaterialPageRoute(
-        builder: (_) => GruposAsignados(instructorId: idInstructor),
+        builder:
+            (_) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (c) => Gruposviewmodel(c.read()),
+                ),
+                ChangeNotifierProvider(
+                  create: (c) => Horariosviewmodel(c.read()),
+                ),
+              ],
+              child: GruposAsignados(instructorId: idInstructor),
+            ),
       );
 
     case AppRutas.grupoFormulario:

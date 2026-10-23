@@ -4,17 +4,11 @@ import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
-import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogCargando.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
-import 'package:dpt_movil/presentation/view/widgets/edit_icon.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/view/widgets/tarjeta.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -32,6 +26,7 @@ class _GrupoAsignadosState extends State<GruposAsignados> {
   void initState() {
     super.initState();
     Future.microtask(() {
+      //los vms los crea la ruta gruposAsignados
       final vm = Provider.of<Gruposviewmodel>(context, listen: false);
       vm.listarGruposInstructor(widget.instructorId);
     });
@@ -95,13 +90,6 @@ class _GrupoAsignadosState extends State<GruposAsignados> {
   }
 
   Widget mostrarTarjeta(Grupoentidad grupo) {
-    Inscripcionentidad inscripcion = Inscripcionentidad(
-      alumnoId: widget.instructorId,
-      categoria: grupo.categoria,
-      curso: grupo.curso,
-      anio: grupo.anio,
-      iterable: grupo.iterable,
-    );
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -118,15 +106,9 @@ class _GrupoAsignadosState extends State<GruposAsignados> {
                 if (!snapshot.hasData) {
                   return Center(child: CircularProgressIndicator());
                 }
-                RespuestaModelo respuesta = snapshot.data!;
-                List<Horarioentidad> listaHorarios =
-                    respuesta.datos as List<Horarioentidad>;
-                String descripcion = '';
-                for (Horarioentidad horario in listaHorarios) {
-                  descripcion =
-                      descripcion +
-                      '${horario.dia}: ${horario.horaInicio} - ${horario.horaFin} \n';
-                }
+                final String descripcion = _descripcionHorarios(
+                  snapshot.data!,
+                );
                 return InkWell(
                   onTap: () {
                     Navigator.pushNamed(
@@ -138,7 +120,13 @@ class _GrupoAsignadosState extends State<GruposAsignados> {
                   child: Tarjeta(
                     atrTitulo: '${grupo.curso}-${grupo.anio}-${grupo.iterable}',
                     atrInfoPie: grupo.categoria,
-                    idImagen: grupo.imagen,
+                    //la url la da el vm; la tarjeta ya no arma la del servidor
+                    atrUrlImagen:
+                        grupo.imagen == null
+                            ? ''
+                            : context.read<Gruposviewmodel>().urlImagen(
+                              grupo.imagen!,
+                            ),
                     atrDescripcion: descripcion,
                   ),
                 );
@@ -148,5 +136,19 @@ class _GrupoAsignadosState extends State<GruposAsignados> {
         ),
       ],
     );
+  }
+
+  //solo pinta los horarios si la peticion salio bien: antes se hacia el cast
+  //sin revisar el codigo y un error lanzaba una excepcion en la tarjeta
+  String _descripcionHorarios(RespuestaModelo respuesta) {
+    if (respuesta.codigoHttp != 200 || respuesta.datos is! List) return '';
+    String descripcion = '';
+    for (Horarioentidad horario
+        in (respuesta.datos as List).cast<Horarioentidad>()) {
+      descripcion =
+          descripcion +
+          '${horario.dia}: ${horario.horaInicio} - ${horario.horaFin} \n';
+    }
+    return descripcion;
   }
 }
