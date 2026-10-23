@@ -269,11 +269,12 @@ probarViewModelAtencion(){
   //estos casos no llegan a hacer peticiones. Un vm por caso, como en la ruta
   ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
   ConfigServicio.ip = "localhost";
-  group('Atenciones de clase (sin backend):', () {
+  group('Atenciones de clase:', () {
     VmAtencionTest test = VmAtencionTest();
     test.prueba1RegistrarSinCargar(Atencionviewmodel.new);
     test.prueba2ClaseSinCodigo(Atencionviewmodel.new);
     test.prueba3MarcarSinLista(Atencionviewmodel.new);
+    test.prueba4BackendSinEndpoint(Atencionviewmodel.new);
   });
 }
 probarViewModelClase(){

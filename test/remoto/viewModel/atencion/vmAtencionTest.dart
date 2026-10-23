@@ -52,6 +52,24 @@ class VmAtencionTest {
     });
   }
 
+  //fija lo que hace hoy la pantalla de una clase contra el backend real.
+  //Visto el 2026-10-23: el backend no tiene ningun endpoint de atenciones
+  //(ni GET /atencionesporclase ni POST /atenciones; no aparecen en
+  ///v3/api-docs) y responde 404 sea cual sea la clase. Cuando se agreguen,
+  //este caso falla: reemplazarlo por los de listar y registrar
+  void prueba4BackendSinEndpoint(Atencionviewmodel Function() crearVm) {
+    String caso = "backend sin endpoint deja el 404 como error";
+    test('$capa - $tipo - $metodo - $caso', () async {
+      final vm = crearVm();
+
+      await vm.cargarAtenciones(_grupo(), _clase(codigo: 1));
+
+      expect(vm.cargando, isFalse);
+      expect(vm.error, contains('404'));
+      expect(vm.atenciones, isEmpty);
+    });
+  }
+
   Grupoentidad _grupo() => Grupoentidad(
     categoria: 'categoria_test',
     curso: 'curso_test',
