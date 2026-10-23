@@ -65,6 +65,7 @@ import 'package:dpt_movil/presentation/viewmodels/alumnosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'dobles/conexionCategoriaLocal.dart';
@@ -85,6 +86,7 @@ import 'remoto/viewModel/facultades/vmListarFacultadesTest.dart';
 import 'remoto/viewModel/grupo/vmListarGruposTest.dart';
 import 'remoto/viewModel/grupo/vmModuloGrupoTest.dart';
 import 'remoto/viewModel/inscripcion/vmGruposInscripcionTest.dart';
+import 'remoto/viewModel/estadisticas/vmEstadisticasTest.dart';
 import 'remoto/viewModel/categoria/vmEliminarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmListarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarCategoriaTest.dart';
@@ -115,6 +117,24 @@ void main() {
   probarViewModelCurso();
   probarViewModelModuloGrupo();
   probarViewModelGruposInscripcion();
+  probarViewModelEstadisticas();
+}
+probarViewModelEstadisticas(){
+  //estadisticas sin migrar: su conexion toma la url de ConfigServicio al
+  //construirse, por eso se fija antes de crear cada vm
+  EstadisticasViewModel crearVm() {
+    ConfigServicio.tipoFabricaServicio =
+        ConexionFabricaAbstracta.SERVICIO_REMOTO;
+    ConfigServicio.ip = "localhost";
+    return EstadisticasViewModel();
+  }
+  group('Estadisticas generales remotas:', () {
+    VmEstadisticasTest test = VmEstadisticasTest();
+    test.prueba1Categorias(crearVm);
+    test.prueba2GruposParaExportar(crearVm);
+    test.prueba3RangoSinClases(crearVm);
+    test.prueba4FechaMalFormada(crearVm);
+  });
 }
 //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como la
 //ruta gruposDisponiblesInscripcion
