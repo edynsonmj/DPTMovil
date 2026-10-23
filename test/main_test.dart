@@ -5,11 +5,8 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'dart:math';
-
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/configApi.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAlumnosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAtencionesRemoto.dart';
@@ -25,7 +22,6 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInscripcionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInstructoresRemoto.dart';
-import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/alumnosRepositorio.dart';
 import 'package:dpt_movil/data/repositories/atencionesRepositorio.dart';
@@ -38,7 +34,6 @@ import 'package:dpt_movil/data/repositories/estadisticasRepositorio.dart';
 import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
-import 'package:dpt_movil/data/repositories/imagenRepositorio.dart';
 import 'package:dpt_movil/data/repositories/inscripcionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/instructoresRepositorio.dart';
 import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
@@ -73,12 +68,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'dobles/conexionCategoriaLocal.dart';
 import 'dobles/googleSignInFalso.dart';
-import 'local/categorias/insertarCategoriaLocal.dart';
-import 'local/categorias/obtenerCategoriasLocal.dart';
 import 'local/viewModel/categoria/vmListarCategoriaLocalTest.dart';
-import 'remoto/categorias/insertarCategoriaTest.dart';
-import 'remoto/categorias/listarCategoriaTest.dart';
-import 'remoto/imagenes/obtenerImagenTest.dart';
 import 'remoto/viewModel/categoria/vmActualizarCategoriaTest.dart';
 import 'remoto/viewModel/clase/vmRegistrarClaseTest.dart';
 import 'remoto/viewModel/curso/vmCursoTest.dart';
@@ -96,8 +86,8 @@ import 'remoto/viewModel/categoria/vmGuardarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarFormularioCategoriaTest.dart';
 
 //direccion del backend de pruebas: cada vm recibe un Dio armado aqui, sin
-//pasar por ConfigServicio. Desde la fase 7 no queda ningun modulo sin
-//migrar; solo los tests inactivos probarRepositorio* fijan ConfigServicio.ip
+//pasar por ConfigServicio (desde la fase 7 no queda ningun modulo sin
+//migrar)
 const String baseUrlPruebas = 'http://localhost:8082/api/v2';
 
 //misma cadena que arma la raiz de composicion, con la conexion indicada
@@ -108,7 +98,6 @@ CategoriaViewModel crearCategoriaViewModel(ConexionCategoria conexion) {
 }
 
 void main() {
-  //probarRepositorioCategoriaRemota();
   probarViewModelCategoriaLocal();
   probarViewModelCategoria();
   probarViewModelClase();
@@ -428,92 +417,4 @@ grupoVMCategoriaRegistrar(CategoriaViewModel vm){
     test.prueba2Inexistente(vm);
     test.prueba3TituloVacio(vm);
   });
-}
-
-probarRepositorioCategoriaLocal() {
-  String ip = '192.168.100.66';
-  CategoriaRepositorio repositorio = configuracionCategoriaRepositorio(
-    true,
-    ip,
-  );
-  group('Obtener categorias:', () {
-    Obtenercategoriaslocal test = Obtenercategoriaslocal();
-    test.prueba1ObtenerLista(repositorio);
-    test.prueba2ListaTipo(repositorio);
-  });
-  group('insertar Categoria: ', () {
-    Insertarcategorialocal test = Insertarcategorialocal();
-    test.prueba1InsercionExitosa(repositorio);
-    test.prueba2InsercionRepetida(repositorio);
-    test.prueba3InsercionIncompleta(repositorio);
-  });
-}
-
-probarRepositorioImagenRemota() {
-  String ip = "localhost";
-  Imagenrepositorio repo = configuracionImagenRepositorio(ip);
-  grupoObtenerImagenRemota(repo);
-}
-
-probarRepositorioCategoriaRemota() {
-  String ip = 'localhost';
-  CategoriaRepositorio repositorio = configuracionCategoriaRepositorio(
-    false,
-    ip,
-  );
-  grupoInsercionCategoriaRemota(repositorio);
-  grupoObtenerCateogoriaRemota(repositorio);
-}
-
-grupoInsercionCategoriaRemota(CategoriaRepositorio repositorio) {
-  print("hola");
-  group('Insertar Categoria:', () {
-    Random random = Random();
-    InsertarCategoriaTest test = InsertarCategoriaTest();
-    test.prueba1(random, repositorio);
-    test.prueba2Exito(random, repositorio);
-    test.prueba3(random, repositorio);
-    test.prueba4(random, repositorio);
-    test.prueba5(random, repositorio);
-  });
-}
-
-grupoObtenerCateogoriaRemota(CategoriaRepositorio repositorio) {
-  group('Obtener Categoria:', () {
-    ListarCategoriaTest test = ListarCategoriaTest();
-    test.prueba1codigo200(repositorio);
-    test.prueba2codigo204(repositorio);
-  });
-}
-
-grupoObtenerImagenRemota(Imagenrepositorio repositorio) {
-  group('Obtener imagen remota:', () {
-    Obtenerimagentest test = Obtenerimagentest();
-    test.prueba1codigo200(repositorio);
-  });
-}
-
-CategoriaRepositorio configuracionCategoriaRepositorio(bool local, String? ip) {
-  CategoriaRepositorio repositorio;
-  if (local) {
-    repositorio = CategoriaRepositorio(cliente: ConexionCategoriaLocal());
-  } else {
-    Dio dio = crearClienteHttp('http://$ip:8082/api/v2');
-    repositorio = CategoriaRepositorio(
-      cliente: ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
-    );
-  }
-  return repositorio;
-}
-
-Imagenrepositorio configuracionImagenRepositorio(String? ip) {
-  Imagenrepositorio repositorio;
-
-  ConfigServicio.tipoFabricaServicio = ConexionFabricaAbstracta.SERVICIO_REMOTO;
-  ConfigServicio.ip = ip;
-  repositorio = Imagenrepositorio(
-    conexion: Conexionimagenremoto(crearClienteHttp('http://$ip:8082/api/v2')),
-  );
-
-  return repositorio;
 }
