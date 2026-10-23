@@ -1,10 +1,4 @@
-import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart';
-import 'package:dpt_movil/data/api/conexion/remoto/ConexionEstadisticasRemoto.dart';
 import 'package:dpt_movil/data/api/fabrica/ConexionFabricaAbstracta.dart';
 
-class ConexionRemotaFabrica implements ConexionFabricaAbstracta {
-  @override
-  ConexionEstadisticas crearConexionEstadisticas() {
-    return Conexionestadisticasremoto();
-  }
-}
+//estadisticas ya no se crea aqui (fase 7); se borra en la fase 8
+class ConexionRemotaFabrica implements ConexionFabricaAbstracta {}

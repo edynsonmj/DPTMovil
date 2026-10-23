@@ -17,8 +17,8 @@ class EstadisticasViewModel with ChangeNotifier {
   //
   List<DropdownMenuEntry> _listCategorias = [];
 
-  //constructor que instancia el servicio usado por el viewModel
-  EstadisticasViewModel() : _servicioEstadisticas = ServicioEstadisticas();
+  //el servicio llega de la raiz; el vm lo crea la ruta estadisticasGenerales
+  EstadisticasViewModel(this._servicioEstadisticas);
 
   Future<bool> export() async {
     if (_listEstadisticasGeneralesCategorias.isNotEmpty) {

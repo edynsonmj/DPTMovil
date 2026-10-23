@@ -8,6 +8,7 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart'
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionDeporteRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionEstadisticasRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
@@ -21,6 +22,7 @@ import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
 import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/deporteRepositorio.dart';
+import 'package:dpt_movil/data/repositories/estadisticasRepositorio.dart';
 import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
@@ -34,6 +36,7 @@ import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
+import 'package:dpt_movil/domain/servicios/servicioEstadisticas.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
@@ -41,7 +44,6 @@ import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
 import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -157,12 +159,19 @@ List<SingleChildWidget> proveedoresDatos() => [
           Facultadesrepositorio(conexion: Conexionfacultadremoto(c.read<Dio>())),
         ),
   ),
+  Provider<ServicioEstadisticas>(
+    create:
+        (c) => ServicioEstadisticas(
+          EstadisticasRespositorio(
+            conexion: Conexionestadisticasremoto(c.read<Dio>()),
+          ),
+        ),
+  ),
 ];
 
-//vms con estado que debe sobrevivir entre pantallas. Al final solo queda
-//la sesion; los demas pasan a su ruta en route_generator al migrar su modulo
+//vms con estado que debe sobrevivir entre pantallas. Desde la fase 7 solo
+//queda la sesion; los demas se crean en su ruta en route_generator
 List<SingleChildWidget> vmsGlobales() => [
-  ChangeNotifierProvider(create: (_) => EstadisticasViewModel()), //fase 7
   //se queda: la sesion la leen el menu lateral y casi todas las pantallas
   ChangeNotifierProvider(
     create:

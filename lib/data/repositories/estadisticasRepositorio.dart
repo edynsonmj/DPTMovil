@@ -25,7 +25,7 @@ class EstadisticasRespositorio {
           codigoHttp: 0,
           mensaje:
               'El servidor ha respondido correctamente, pero el formato entonctrado no corresponde a una lista de EstadisticaModelo',
-          url: '/estadisticasGenerales/categorias',
+          url: '/estadisticas/categorias',
           metodo: 'GET',
         );
         return respuesta;
@@ -62,7 +62,7 @@ class EstadisticasRespositorio {
           codigoHttp: 0,
           mensaje:
               'El servidor ha respondido correctamente, pero el formato entonctrado no corresponde a una lista de EstadisticaModelo',
-          url: '/estadisticasGenerales/categorias',
+          url: '/estadisticas/cursos',
           metodo: 'GET',
         );
         return respuesta;
@@ -98,7 +98,7 @@ class EstadisticasRespositorio {
           codigoHttp: 0,
           mensaje:
               'El servidor ha respondido correctamente, pero el formato entonctrado no corresponde a una lista de EstadisticaModelo',
-          url: '/estadisticasGenerales/categorias',
+          url: '/estadisticas/grupos',
           metodo: 'GET',
         );
         return respuesta;

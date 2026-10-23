@@ -10,6 +10,7 @@ import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
+import 'package:dpt_movil/domain/servicios/servicioEstadisticas.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
@@ -17,7 +18,6 @@ import 'package:dpt_movil/domain/servicios/servicioImagen.dart';
 import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -61,9 +61,9 @@ void main() {
     expect(contexto.read<Servicioinscripcion>(), isNotNull);
     expect(contexto.read<Servicioautenticacion>(), isNotNull);
     expect(contexto.read<Serviciofacultades>(), isNotNull);
+    expect(contexto.read<ServicioEstadisticas>(), isNotNull);
 
-    //vms globales (los que pasan a su ruta salen de esta lista)
-    expect(contexto.read<EstadisticasViewModel>(), isNotNull);
+    //vms globales: desde la fase 7 solo la sesion
     expect(contexto.read<AutenticacionViewModel>(), isNotNull);
   });
 }

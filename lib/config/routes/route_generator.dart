@@ -12,6 +12,7 @@ import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
@@ -136,7 +137,15 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         builder: (_) => _conCategorias(CategoriaFormulario(categoria: datos)),
       );
     case AppRutas.estadisticasGenerales:
-      return MaterialPageRoute(builder: (_) => EstadisticasGeneralesView());
+      //vm por pantalla: solo esta vista usa las estadisticas; provider
+      //llama a dispose al salir
+      return MaterialPageRoute(
+        builder:
+            (_) => ChangeNotifierProvider(
+              create: (c) => EstadisticasViewModel(c.read()),
+              child: EstadisticasGeneralesView(),
+            ),
+      );
 
     case AppRutas.clase:
       ClaseGrupoargumentos? datos = settings.arguments as ClaseGrupoargumentos;

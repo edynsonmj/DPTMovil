@@ -1,12 +1,14 @@
 import 'package:dio/dio.dart';
-import 'package:dpt_movil/config/configServicio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/estadisticaModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexionestadisticasremoto implements ConexionEstadisticas {
-  final _dio = Dio(BaseOptions(baseUrl: ConfigServicio().obtenerBaseApi()));
+  //Dio compartido de la raiz (fase 7): usa sus 20 s
+  final Dio _dio;
+
+  Conexionestadisticasremoto(this._dio);
 
   @override
   Future<RespuestaModelo> generalCategorias(

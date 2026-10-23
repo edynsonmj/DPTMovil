@@ -18,6 +18,7 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart'
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionDeporteRemoto.dart';
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionEstadisticasRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
@@ -33,6 +34,7 @@ import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
 import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/deporteRepositorio.dart';
+import 'package:dpt_movil/data/repositories/estadisticasRepositorio.dart';
 import 'package:dpt_movil/data/repositories/facultadesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
@@ -46,6 +48,7 @@ import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/domain/servicios/servicioDeporte.dart';
+import 'package:dpt_movil/domain/servicios/servicioEstadisticas.dart';
 import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
@@ -92,9 +95,9 @@ import 'remoto/viewModel/categoria/vmListarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmGuardarFormularioCategoriaTest.dart';
 
-//direccion del backend de pruebas para los modulos ya migrados: su vm recibe
-//un Dio armado aqui, sin pasar por ConfigServicio. Los no migrados siguen
-//fijando ConfigServicio.ip
+//direccion del backend de pruebas: cada vm recibe un Dio armado aqui, sin
+//pasar por ConfigServicio. Desde la fase 7 no queda ningun modulo sin
+//migrar; solo los tests inactivos probarRepositorio* fijan ConfigServicio.ip
 const String baseUrlPruebas = 'http://localhost:8082/api/v2';
 
 //misma cadena que arma la raiz de composicion, con la conexion indicada
@@ -119,21 +122,22 @@ void main() {
   probarViewModelGruposInscripcion();
   probarViewModelEstadisticas();
 }
+//misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como la
+//ruta estadisticasGenerales
+EstadisticasViewModel crearEstadisticasViewModel() => EstadisticasViewModel(
+  ServicioEstadisticas(
+    EstadisticasRespositorio(
+      conexion: Conexionestadisticasremoto(crearClienteHttp(baseUrlPruebas)),
+    ),
+  ),
+);
 probarViewModelEstadisticas(){
-  //estadisticas sin migrar: su conexion toma la url de ConfigServicio al
-  //construirse, por eso se fija antes de crear cada vm
-  EstadisticasViewModel crearVm() {
-    ConfigServicio.tipoFabricaServicio =
-        ConexionFabricaAbstracta.SERVICIO_REMOTO;
-    ConfigServicio.ip = "localhost";
-    return EstadisticasViewModel();
-  }
   group('Estadisticas generales remotas:', () {
     VmEstadisticasTest test = VmEstadisticasTest();
-    test.prueba1Categorias(crearVm);
-    test.prueba2GruposParaExportar(crearVm);
-    test.prueba3RangoSinClases(crearVm);
-    test.prueba4FechaMalFormada(crearVm);
+    test.prueba1Categorias(crearEstadisticasViewModel);
+    test.prueba2GruposParaExportar(crearEstadisticasViewModel);
+    test.prueba3RangoSinClases(crearEstadisticasViewModel);
+    test.prueba4FechaMalFormada(crearEstadisticasViewModel);
   });
 }
 //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como la
