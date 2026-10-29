@@ -25,5 +25,25 @@ class Serviciogrupo {
     return repositorio.insertarGrupo(grupo);
   }
 
+  Future<RespuestaModelo> listarGruposNoEliminados() {
+    return repositorio.listarGruposNoEliminados();
+  }
+
+  Future<RespuestaModelo> abrirInscripciones(
+    Grupoentidad grupo, {
+    DateTime? apertura,
+    DateTime? cierre,
+  }) {
+    return repositorio.abrirInscripciones(
+      grupo,
+      apertura: apertura,
+      cierre: cierre,
+    );
+  }
+
+  Future<RespuestaModelo> cerrarInscripciones(Grupoentidad grupo) {
+    return repositorio.cerrarInscripciones(grupo);
+  }
+
   String urlImagen(int idImagen) => repositorio.urlImagen(idImagen);
 }

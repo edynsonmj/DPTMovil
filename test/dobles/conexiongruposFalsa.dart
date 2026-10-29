@@ -1,5 +1,6 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
+import 'package:dpt_movil/data/models/periodoInscripcionModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 import 'copiaRespuesta.dart';
@@ -58,5 +59,54 @@ class ConexiongruposFalsa implements Conexiongrupos {
     llamadasInsertar++;
     ultimoInsertado = grupo;
     return respuestaInsertar;
+  }
+
+  //periodo de inscripcion (plan de abrir inscripciones)
+  RespuestaModelo respuestaNoEliminados = RespuestaModelo(
+    codigoHttp: 200,
+    datos: <GrupoModelo>[],
+  );
+  //abrir y cerrar devuelven el grupo actualizado, como el backend
+  RespuestaModelo respuestaAbrir = RespuestaModelo(codigoHttp: 200);
+  RespuestaModelo respuestaCerrar = RespuestaModelo(codigoHttp: 200);
+
+  //grupo pedido, como "categoria/curso/anio/iterable"
+  String? ultimoGrupoAbierto;
+  String? ultimoGrupoCerrado;
+  PeriodoInscripcionModelo? ultimoPeriodo;
+  int llamadasNoEliminados = 0;
+  int llamadasAbrir = 0;
+  int llamadasCerrar = 0;
+
+  @override
+  Future<RespuestaModelo> obtenerGruposNoEliminados() async {
+    llamadasNoEliminados++;
+    return copiaRespuesta(respuestaNoEliminados);
+  }
+
+  @override
+  Future<RespuestaModelo> abrirInscripciones(
+    String categoria,
+    String curso,
+    int anio,
+    int iterable,
+    PeriodoInscripcionModelo periodo,
+  ) async {
+    llamadasAbrir++;
+    ultimoGrupoAbierto = '$categoria/$curso/$anio/$iterable';
+    ultimoPeriodo = periodo;
+    return respuestaAbrir;
+  }
+
+  @override
+  Future<RespuestaModelo> cerrarInscripciones(
+    String categoria,
+    String curso,
+    int anio,
+    int iterable,
+  ) async {
+    llamadasCerrar++;
+    ultimoGrupoCerrado = '$categoria/$curso/$anio/$iterable';
+    return respuestaCerrar;
   }
 }

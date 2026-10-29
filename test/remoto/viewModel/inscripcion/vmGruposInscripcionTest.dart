@@ -16,6 +16,7 @@ import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
+import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 //rutas criticas de las pantallas Grupos asignados (instructor) y Grupos de
@@ -148,21 +149,42 @@ class VmGruposInscripcionTest {
     });
   }
 
-  //el ciclo del boton Matricular / Quitar matricula de la pantalla del alumno
-  void prueba3CicloInscripcion(Inscripcionviewmodel Function() crearVm) {
+  //regla del backend desde el 2026-10-29 (con los endpoints de periodo de
+  //inscripcion): no se puede inscribir en un grupo cuyas inscripciones no
+  //estan abiertas. El grupo recien creado nunca se abrio
+  void prueba3SinInscripcionesAbiertas(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscripcion de alumno";
-    String caso = "validar, inscribir, validar, desvincular, validar";
+    String caso = "un grupo sin inscripciones abiertas responde 409 GC-0012";
     test('$capa - $tipo - $metodo - $caso', () async {
-      final g = _grupoCreado();
-      final inscripcion = Inscripcionentidad(
-        alumnoId: _idAlumno,
-        categoria: g.categoria,
-        curso: g.curso,
-        anio: g.anio,
-        iterable: g.iterable,
-      );
       final vm = crearVm();
 
+      Resultado<void> inscribir = await vm.agregarIncripcion(_inscripcion());
+
+      expect(inscribir, isA<Fallo>());
+      final fallo = inscribir as Fallo;
+      expect(fallo.codigo, 409);
+      expect(fallo.mensaje, contains('GC-0012'));
+      expect(await vm.validarInscripcion(_inscripcion()), isFalse);
+    });
+  }
+
+  //el ciclo del boton Matricular / Quitar matricula de la pantalla del alumno.
+  //Antes de inscribir, el coordinador abre las inscripciones del grupo
+  void prueba4CicloInscripcion(
+    Inscripcionviewmodel Function() crearVm,
+    PeriodoInscripcionViewModel Function() crearVmPeriodo,
+  ) {
+    String metodo = "Inscripcion de alumno";
+    String caso = "abrir el grupo, validar, inscribir, validar, desvincular, validar";
+    test('$capa - $tipo - $metodo - $caso', () async {
+      final inscripcion = _inscripcion();
+      final vm = crearVm();
+
+      expect(
+        await crearVmPeriodo().abrir(_grupoCreado()),
+        isA<Exito>(),
+        reason: 'no se abrieron las inscripciones del grupo',
+      );
       expect(await vm.validarInscripcion(inscripcion), isFalse);
 
       //fase 6b (I4): inscribir y desvincular devuelven Resultado. Antes aqui
@@ -176,6 +198,17 @@ class VmGruposInscripcionTest {
       expect(await vm.desvincularInscripcion(inscripcion), isA<Exito>());
       expect(await vm.validarInscripcion(inscripcion), isFalse);
     });
+  }
+
+  Inscripcionentidad _inscripcion() {
+    final g = _grupoCreado();
+    return Inscripcionentidad(
+      alumnoId: _idAlumno,
+      categoria: g.categoria,
+      curso: g.curso,
+      anio: g.anio,
+      iterable: g.iterable,
+    );
   }
 
   Grupoentidad _grupoCreado() {

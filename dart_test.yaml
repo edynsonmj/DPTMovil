@@ -1,0 +1,5 @@
+# pruebas que afirman el comportamiento correcto y salen rojas mientras el bug
+# exista (auditoria-mvvm/plan-diagnostico-pruebas.md, seccion 2.2). Viven en
+# test/diagnostico y se corren aparte: flutter test test/diagnostico
+tags:
+  diagnostico:

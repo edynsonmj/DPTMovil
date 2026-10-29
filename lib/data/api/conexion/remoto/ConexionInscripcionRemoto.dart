@@ -44,10 +44,18 @@ class Conexioninscripcionremoto implements Conexioninscripcion {
     String path = "/validarInscripcion";
     String capa = "Conexion";
     try {
+      //el backend espera la inscripcion como parametros de query desde el
+      //2026-10-29 (IN-07); antes iba en el cuerpo del GET, que ahora da 400.
+      //queryParameters los codifica: los titulos llevan espacios y tildes
       final response = await _dio.get(
         path,
-        data: modelo,
-        options: Options(contentType: 'application/json'),
+        queryParameters: {
+          'alumnoId': modelo.alumnoId,
+          'categoria': modelo.categoria,
+          'curso': modelo.curso,
+          'anio': modelo.anio,
+          'iterable': modelo.iterable,
+        },
       );
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
@@ -62,8 +70,9 @@ class Conexioninscripcionremoto implements Conexioninscripcion {
         path,
         capa,
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    } catch (error) {
+      //incluye el TypeError si la respuesta no es un booleano
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 

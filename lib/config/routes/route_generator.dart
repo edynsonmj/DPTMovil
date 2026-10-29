@@ -8,6 +8,7 @@ import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:dpt_movil/presentation/viewmodels/atencionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
@@ -110,8 +111,24 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
 
     case AppRutas.InscripcionesParticulares:
+      //vms propios de la pantalla: las categorias del filtro y los grupos con
+      //su periodo de inscripcion; ambos cargan una vez al entrar
       return MaterialPageRoute(
-        builder: (_) => _conCategorias(InscripcionesParticularesView()),
+        builder:
+            (_) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create:
+                      (c) =>
+                          CategoriaViewModel(c.read())
+                            ..listarYNotificarCategorias(),
+                ),
+                ChangeNotifierProvider(
+                  create: (c) => PeriodoInscripcionViewModel(c.read())..cargar(),
+                ),
+              ],
+              child: InscripcionesParticularesView(),
+            ),
       );
 
     case AppRutas.alumnos:

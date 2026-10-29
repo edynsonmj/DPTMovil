@@ -11,6 +11,14 @@ class GrupoModelo {
   String? estado;
   String fechaCreacion;
   String? fechaFinalizacion;
+  //periodo de inscripcion (yyyy-MM-dd); lo fija el coordinador al abrir o
+  //cerrar inscripciones. Null = nunca se abrio
+  String? fechaInscripcionApertura;
+  String? fechaInscripcionCierre;
+
+  //la clave del cierre en el json del backend lleva una errata (falta la
+  //"s"): se aisla aqui para que el resto de la app use el nombre correcto
+  static const String claveCierreInscripcion = 'fechaIncripcionCierre';
 
   GrupoModelo({
     required this.cat_titulo,
@@ -23,6 +31,8 @@ class GrupoModelo {
     required this.fechaCreacion,
     this.fechaFinalizacion,
     this.idInstructor,
+    this.fechaInscripcionApertura,
+    this.fechaInscripcionCierre,
   });
 
   factory GrupoModelo.fromJson(dynamic json) {
@@ -40,6 +50,8 @@ class GrupoModelo {
           (json['fechaFinalizacion'] != null)
               ? json['fechaFinalizacion']
               : null,
+      fechaInscripcionApertura: json['fechaInscripcionApertura'],
+      fechaInscripcionCierre: json[claveCierreInscripcion],
     );
   }
 

@@ -1,0 +1,7 @@
+{
+  "codigoError": "GC-0003",
+  "mensaje": "No se encuentra registrado el elemento: el grupo no se encuentra registrado en el sistema",
+  "codigoHttp": 404,
+  "url": "http://localhost:8082/api/v2/abrirInscripcionesGrupo",
+  "metodo": "PUT"
+}

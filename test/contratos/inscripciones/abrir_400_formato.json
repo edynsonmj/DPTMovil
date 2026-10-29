@@ -1,0 +1,4 @@
+{
+  "mensaje": "El cuerpo de la solicitud contiene JSON mal formado o datos no válidos.",
+  "detalle": "Text '29/10/2026' could not be parsed at index 0"
+}

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
+import 'package:dpt_movil/data/models/periodoInscripcionModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
 class Conexiongruposremoto extends Conexiongrupos {
@@ -168,6 +169,116 @@ class Conexiongruposremoto extends Conexiongrupos {
       );
     } on Exception catch (error) {
       return RespuestaModelo.fromException(error, metodo, path, capa);
+    }
+  }
+
+  @override
+  Future<RespuestaModelo> obtenerGruposNoEliminados() async {
+    String metodo = "GET";
+    String path = '/gruposNoEliminados';
+    String capa = "conexion";
+    try {
+      final response = await _dio.get(path);
+      if (response.statusCode != 200) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      if (response.data is! List) {
+        return RespuestaModelo(
+          codigoHttp: 406,
+          datos: response.data,
+          error: ErrorModelo(
+            codigoHttp: 406,
+            mensaje: "se esperaba una lista",
+            url: path,
+            metodo: metodo,
+          ),
+        );
+      }
+      List<dynamic> data = response.data;
+      List<GrupoModelo> grupos =
+          data.map((json) => GrupoModelo.fromJson(json)).toList();
+      return RespuestaModelo(codigoHttp: 200, datos: grupos);
+    } on DioException catch (dioError) {
+      return RespuestaModelo.fromDioException(dioError, metodo);
+    } catch (error) {
+      //incluye TypeError de un json incompleto: no escapa de la capa
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
+    }
+  }
+
+  @override
+  Future<RespuestaModelo> abrirInscripciones(
+    String categoria,
+    String curso,
+    int anio,
+    int iterable,
+    PeriodoInscripcionModelo periodo,
+  ) {
+    return _cambiarPeriodo(
+      '/abrirInscripcionesGrupo',
+      categoria,
+      curso,
+      anio,
+      iterable,
+      periodo.toJson(),
+    );
+  }
+
+  @override
+  Future<RespuestaModelo> cerrarInscripciones(
+    String categoria,
+    String curso,
+    int anio,
+    int iterable,
+  ) {
+    return _cambiarPeriodo(
+      '/cerrarInscripcionesGrupo',
+      categoria,
+      curso,
+      anio,
+      iterable,
+      null,
+    );
+  }
+
+  //abrir y cerrar comparten forma: PUT con la llave del grupo en la query y
+  //el grupo actualizado como respuesta. La llave va en queryParameters para
+  //que Dio la codifique: los titulos llevan espacios, tildes y hasta "&"
+  Future<RespuestaModelo> _cambiarPeriodo(
+    String path,
+    String categoria,
+    String curso,
+    int anio,
+    int iterable,
+    Map<String, dynamic>? cuerpo,
+  ) async {
+    String metodo = "PUT";
+    String capa = "conexion";
+    try {
+      final response = await _dio.put(
+        path,
+        queryParameters: {
+          'categoria': categoria,
+          'curso': curso,
+          'anio': anio,
+          'iterable': iterable,
+        },
+        data: cuerpo,
+        options:
+            cuerpo == null ? null : Options(contentType: 'application/json'),
+      );
+      if (response.statusCode != 200) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      return RespuestaModelo(
+        codigoHttp: 200,
+        datos: GrupoModelo.fromJson(response.data),
+      );
+    } on DioException catch (dioError) {
+      return RespuestaModelo.fromDioException(dioError, metodo);
+    } catch (error) {
+      //incluye TypeError de un json incompleto: no escapa de la capa
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 }

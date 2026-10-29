@@ -63,6 +63,7 @@ import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'dobles/conexionCategoriaLocal.dart';
@@ -78,6 +79,7 @@ import 'remoto/viewModel/facultades/vmListarFacultadesTest.dart';
 import 'remoto/viewModel/grupo/vmListarGruposTest.dart';
 import 'remoto/viewModel/grupo/vmModuloGrupoTest.dart';
 import 'remoto/viewModel/inscripcion/vmGruposInscripcionTest.dart';
+import 'remoto/viewModel/grupo/vmPeriodoInscripcionTest.dart';
 import 'remoto/viewModel/estadisticas/vmEstadisticasTest.dart';
 import 'remoto/viewModel/categoria/vmEliminarCategoriaTest.dart';
 import 'remoto/viewModel/categoria/vmListarCategoriaTest.dart';
@@ -108,7 +110,47 @@ void main() {
   probarViewModelCurso();
   probarViewModelModuloGrupo();
   probarViewModelGruposInscripcion();
+  probarViewModelPeriodoInscripcion();
   probarViewModelEstadisticas();
+}
+//misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como la
+//ruta InscripcionesParticulares
+PeriodoInscripcionViewModel crearPeriodoInscripcionViewModel() =>
+    PeriodoInscripcionViewModel(
+      Serviciogrupo(
+        Gruporepositorio(
+          conexion: Conexiongruposremoto(crearClienteHttp(baseUrlPruebas)),
+        ),
+      ),
+    );
+probarViewModelPeriodoInscripcion(){
+  //categoria, curso y grupo solo arman los datos de apoyo
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
+  group('Periodo de inscripcion remoto:', () {
+    VmPeriodoInscripcionTest test = VmPeriodoInscripcionTest();
+    test.preparar(
+      vmCategoria: crearCategoriaViewModel(
+        ConexionCategoriaRemota(dio, conexionImagen),
+      ),
+      crearVmDeporte: crearDeporteViewModel,
+      crearVmCurso: () => CursosViewModel(
+        ServicioCurso(
+          CursoRepositorio(cliente: ConexionCursoRemoto(dio, conexionImagen)),
+        ),
+      ),
+      crearVmInstructores: crearInstructoresViewModel,
+      crearVmGrupos: crearGruposViewModel,
+      crearVm: crearPeriodoInscripcionViewModel,
+    );
+    test.prueba1GrupoNuevoSinPeriodo(crearPeriodoInscripcionViewModel, crearGruposViewModel);
+    test.prueba2AbrirDesdeHoy(crearPeriodoInscripcionViewModel, crearGruposViewModel);
+    test.prueba3CierreHoy(crearPeriodoInscripcionViewModel, crearGruposViewModel);
+    test.prueba4Programar(crearPeriodoInscripcionViewModel, crearGruposViewModel);
+    test.prueba5CierreAntesDeApertura(crearPeriodoInscripcionViewModel);
+    test.prueba6Cerrar(crearPeriodoInscripcionViewModel, crearGruposViewModel);
+    test.prueba7GrupoInexistente(crearPeriodoInscripcionViewModel);
+  });
 }
 //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como la
 //ruta estadisticasGenerales
@@ -167,7 +209,11 @@ probarViewModelGruposInscripcion(){
     );
     test.prueba1GruposDelInstructor(crearGruposViewModel);
     test.prueba2GruposDisponibles(crearGruposViewModel);
-    test.prueba3CicloInscripcion(crearInscripcionViewModel);
+    test.prueba3SinInscripcionesAbiertas(crearInscripcionViewModel);
+    test.prueba4CicloInscripcion(
+      crearInscripcionViewModel,
+      crearPeriodoInscripcionViewModel,
+    );
   });
 }
 //misma cadena que la raiz para el modulo grupo, con el Dio de pruebas; un
