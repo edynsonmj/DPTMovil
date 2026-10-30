@@ -24,7 +24,7 @@ void main() {
   testWidgets('$capa - $tipo - Toma de asistencia - BUG AS-07 - un POST 201 se muestra como exito', (
     tester,
   ) async {
-    app.adaptador.responder('POST', '/atenciones', 201);
+    app.adaptador.responder('POST', '/asistenciasClase', 201);
     await app.abrirClase(tester);
 
     await tester.tap(find.text('Guardar'));
@@ -43,7 +43,7 @@ void main() {
             .toList();
 
     //la asistencia quedo guardada: el instructor debe verlo asi
-    expect(app.adaptador.peticionesA('POST', '/atenciones').length, 1);
+    expect(app.adaptador.peticionesA('POST', '/asistenciasClase').length, 1);
     expect(
       find.text('Error al registrar atenciones'),
       findsNothing,
@@ -55,7 +55,7 @@ void main() {
   testWidgets('$capa - $tipo - Toma de asistencia - BUG AS-02 - el doble toque no duplica el registro', (
     tester,
   ) async {
-    final pausa = app.adaptador.retener('POST', '/atenciones');
+    final pausa = app.adaptador.retener('POST', '/asistenciasClase');
     await app.abrirClase(tester);
 
     await tester.tap(find.text('Guardar'));
@@ -66,7 +66,7 @@ void main() {
     pausa.complete();
     await tester.pumpAndSettle();
 
-    expect(app.adaptador.peticionesA('POST', '/atenciones').length, 1);
+    expect(app.adaptador.peticionesA('POST', '/asistenciasClase').length, 1);
     expect(find.byType(Claseview), findsWidgets);
   });
 }

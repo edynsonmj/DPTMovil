@@ -11,8 +11,7 @@
       "tipoid": "CC",
       "imagen": 12
     },
-    "idClase": 210,
-    "estaAtendido": false
+    "asistio": false
   },
   {
     "alumno": {
@@ -26,8 +25,7 @@
       "tipoid": "CC",
       "imagen": null
     },
-    "idClase": 210,
-    "estaAtendido": false
+    "asistio": false
   },
   {
     "alumno": {
@@ -41,7 +39,6 @@
       "tipoid": "CC",
       "imagen": null
     },
-    "idClase": 210,
-    "estaAtendido": true
+    "asistio": true
   }
 ]

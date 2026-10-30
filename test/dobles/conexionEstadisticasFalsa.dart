@@ -24,6 +24,11 @@ class ConexionEstadisticasFalsa implements ConexionEstadisticas {
   //estado del vm a mitad de carga o hacer llegar tarde un rango anterior
   Future<void> Function(String inicio)? antesDeResponder;
 
+  //si se fija, todas las secciones lanzan esto en vez de responder: la
+  //conexion real solo captura Exception, asi que un TypeError de fromJson
+  //(p. ej. leyenda1 nula) sale hacia el repositorio
+  Object? lanzar;
+
   //rango de la ultima peticion, sea cual sea la seccion
   String? ultimoInicio;
   String? ultimoFin;
@@ -39,6 +44,7 @@ class ConexionEstadisticasFalsa implements ConexionEstadisticas {
     ultimoInicio = inicio;
     ultimoFin = fin;
     await antesDeResponder?.call(inicio);
+    if (lanzar != null) throw lanzar!;
     //se lee al responder (no al pedir) y se copia: el vm pide varias veces
     //con la misma respuesta
     return copiaRespuesta(respuesta());

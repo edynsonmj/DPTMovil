@@ -1,3 +1,4 @@
+import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/inscripcionRepositorio.dart';
 import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
@@ -65,5 +66,57 @@ void main() {
       expect(conexion.ultimaEliminada?.iterable, 1);
       expect(respuesta.codigoHttp, 200);
     });
+  });
+
+  //diagnostico del modulo 4 (plan-diagnostico-inscripciones.md, 4.1): lo que
+  //el repositorio debe cumplir cuando la conexion falla o hay fechas
+  group('Inscripciones (repositorio con doble, errores y fechas):', () {
+    RespuestaModelo error(int codigo) => RespuestaModelo(
+      codigoHttp: codigo,
+      error: ErrorModelo(
+        codigoHttp: codigo,
+        mensaje: 'fallo $codigo',
+        url: '/inscripcion',
+        metodo: 'POST',
+      ),
+    );
+
+    test('$capa - $tipo - Agregar inscripcion - un error de la conexion pasa sin cambios', () async {
+      final fallo = error(409);
+      conexion.respuestaAgregar = fallo;
+
+      expect(await repositorio.agregarInscripcion(inscripcion()), same(fallo));
+    });
+
+    test('$capa - $tipo - Validar inscripcion - un error de la conexion pasa sin cambios', () async {
+      final fallo = error(503);
+      conexion.respuestaValidar = fallo;
+
+      expect(await repositorio.validarInscripcion(inscripcion()), same(fallo));
+    });
+
+    test('$capa - $tipo - Eliminar inscripcion - un error de la conexion pasa sin cambios', () async {
+      final fallo = error(500);
+      conexion.respuestaEliminar = fallo;
+
+      expect(await repositorio.eliminarInscripcion(inscripcion()), same(fallo));
+    });
+
+    test('$capa - $tipo - Agregar y eliminar - las fechas de la entidad llegan al modelo', () async {
+      final alta = DateTime(2026, 10, 29, 8, 30);
+      final baja = DateTime(2026, 11, 2, 17);
+      final conFechas = inscripcion()
+        ..fechaInscripcion = alta
+        ..fechaDesvinculacion = baja;
+
+      await repositorio.agregarInscripcion(conFechas);
+      await repositorio.eliminarInscripcion(conFechas);
+
+      expect(conexion.ultimaAgregada?.fechaInscripcion, alta);
+      expect(conexion.ultimaEliminada?.fechaInscripcion, alta);
+      expect(conexion.ultimaEliminada?.fechaDesvinculacion, baja);
+    });
+    //un TypeError de la conexion escapa del repositorio: BUG IN-12, en
+    //test/diagnostico/inscripciones/repositorio_diagnostico_test.dart
   });
 }

@@ -94,7 +94,7 @@ void main() {
         error: ErrorModelo(
           codigoHttp: 404,
           mensaje: 'no existe la clase',
-          url: '/atencionesporclase',
+          url: '/asistenciasClase',
           metodo: 'GET',
         ),
       );
@@ -117,7 +117,7 @@ void main() {
         error: ErrorModelo(
           codigoHttp: 500,
           mensaje: 'fallo interno',
-          url: '/atenciones',
+          url: '/asistenciasClase',
           metodo: 'POST',
         ),
       );

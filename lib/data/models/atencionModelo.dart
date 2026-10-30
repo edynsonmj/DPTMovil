@@ -1,5 +1,7 @@
 import 'package:dpt_movil/data/models/alumnoModelo.dart';
 
+//asistencia de un alumno a una clase. El backend (/asistenciasClase) no
+//repite la clase en cada elemento: la conexion la pasa al leer
 class Atencionmodelo {
   Alumnomodelo alumno;
   int idClase;
@@ -10,19 +12,18 @@ class Atencionmodelo {
     required this.estaAtendido,
   });
 
-  factory Atencionmodelo.fromJson(dynamic json) {
+  //lee un AsistenciaAlumnoDto: {alumno, asistio}
+  factory Atencionmodelo.fromJson(dynamic json, int idClase) {
     return Atencionmodelo(
       alumno: Alumnomodelo.fromJson(json['alumno']),
-      idClase: json['idClase'],
-      estaAtendido: json['estaAtendido'],
+      idClase: idClase,
+      estaAtendido: json['asistio'],
     );
   }
 
+  //escribe un RegistroAsistenciaDto: el backend solo necesita el perfil del
+  //alumno y la marca, la clase va en la url
   Map<String, dynamic> toJson() {
-    return {
-      'alumno': alumno.toJson(),
-      'idClase': idClase,
-      'estaAtendido': estaAtendido,
-    };
+    return {'idPerfil': alumno.id, 'asistio': estaAtendido};
   }
 }

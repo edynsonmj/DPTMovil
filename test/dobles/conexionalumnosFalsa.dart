@@ -12,6 +12,10 @@ class ConexionalumnosFalsa implements Conexionalumnos {
   //grupo pedido, como "categoria/curso/anio/iterable"
   String? ultimoGrupo;
   int llamadasAlumnos = 0;
+  //si se fija, la conexion lanza esto en vez de responder: la real solo
+  //captura Exception, asi que un TypeError de Alumnomodelo.fromJson sale
+  //hacia el repositorio
+  Object? lanzar;
 
   @override
   Future<RespuestaModelo> obtenerAlumnosGrupo(
@@ -22,6 +26,7 @@ class ConexionalumnosFalsa implements Conexionalumnos {
   ) async {
     llamadasAlumnos++;
     ultimoGrupo = '$categoria/$curso/$anio/$iterable';
+    if (lanzar != null) throw lanzar!;
     return respuestaAlumnos;
   }
 }

@@ -1,47 +1,14 @@
 [
   {
-    "alumno": {
-      "eliminadoestado": 0,
-      "id": "1061001",
-      "codigo": "104619011001",
-      "tipo": "Estudiante",
-      "nombre": "Ana Gomez",
-      "correo": "anagomez@unicauca.edu.co",
-      "sexo": "F",
-      "tipoid": "CC",
-      "imagen": 12
-    },
-    "idClase": 210,
-    "estaAtendido": false
+    "idPerfil": "1061001",
+    "asistio": false
   },
   {
-    "alumno": {
-      "eliminadoestado": 0,
-      "id": "1061002",
-      "codigo": "104619011002",
-      "tipo": "Estudiante",
-      "nombre": "Luis Perez",
-      "correo": "luisperez@unicauca.edu.co",
-      "sexo": "M",
-      "tipoid": "CC",
-      "imagen": null
-    },
-    "idClase": 210,
-    "estaAtendido": true
+    "idPerfil": "1061002",
+    "asistio": true
   },
   {
-    "alumno": {
-      "eliminadoestado": 0,
-      "id": "1061003",
-      "codigo": null,
-      "tipo": "Funcionario",
-      "nombre": "Marta Ruiz",
-      "correo": "mruiz@unicauca.edu.co",
-      "sexo": "F",
-      "tipoid": "CC",
-      "imagen": null
-    },
-    "idClase": 210,
-    "estaAtendido": true
+    "idPerfil": "1061003",
+    "asistio": true
   }
 ]

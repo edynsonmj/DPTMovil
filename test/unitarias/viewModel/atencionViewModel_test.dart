@@ -152,7 +152,7 @@ void main() {
         final fallo = resultado as Fallo;
         expect(fallo.codigo, codigo);
         expect(fallo.mensaje, 'detalle $codigo');
-        expect(fallo.origen, 'POST /atenciones');
+        expect(fallo.origen, 'POST /asistenciasClase');
       }
     });
 
@@ -197,7 +197,7 @@ RespuestaModelo error(int codigo, String metodo) => RespuestaModelo(
   error: ErrorModelo(
     codigoHttp: codigo,
     mensaje: 'detalle $codigo',
-    url: metodo == 'GET' ? '/atencionesporclase' : '/atenciones',
+    url: metodo == 'GET' ? '/asistenciasClase' : '/asistenciasClase',
     metodo: metodo,
   ),
 );

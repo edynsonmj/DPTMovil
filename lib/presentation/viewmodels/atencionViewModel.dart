@@ -50,8 +50,7 @@ class Atencionviewmodel with ChangeNotifier, NotificacionSegura {
         grupo.iterable,
         clase.codigo!,
       );
-      //al 2026-10-23 el backend no tiene este endpoint y responde 404: queda
-      //como error. Revisar como llega la lista vacia cuando se agregue
+      //un grupo sin alumnos llega como 200 []; una clase inexistente, 404
       if (respuesta.codigoHttp == 200 && respuesta.datos is List) {
         _atenciones = (respuesta.datos as List).cast<Atencionentidad>();
       } else {

@@ -1,0 +1,41 @@
+[
+  {
+    "codigo": 207,
+    "idGrupoCategoria": "Categoria Fase 4",
+    "idGrupoCurso": "Curso Categoria Fase 4",
+    "idGrupoAnio": 2026,
+    "idGrupoIterable": 1,
+    "idInstructor": "2",
+    "fecha": "2026-10-22",
+    "horas": 10,
+    "minutos": 0,
+    "observacion": null,
+    "eliminado": 0
+  },
+  {
+    "codigo": 211,
+    "idGrupoCategoria": "Categoria Fase 4",
+    "idGrupoCurso": "Curso Categoria Fase 4",
+    "idGrupoAnio": 2026,
+    "idGrupoIterable": 1,
+    "idInstructor": "2",
+    "fecha": "2026-10-22",
+    "horas": 3,
+    "minutos": 0,
+    "observacion": null,
+    "eliminado": 0
+  },
+  {
+    "codigo": 212,
+    "idGrupoCategoria": "Categoria Fase 4",
+    "idGrupoCurso": "Curso Categoria Fase 4",
+    "idGrupoAnio": 2026,
+    "idGrupoIterable": 1,
+    "idInstructor": "2",
+    "fecha": "2026-10-22",
+    "horas": 4,
+    "minutos": 0,
+    "observacion": null,
+    "eliminado": 0
+  }
+]

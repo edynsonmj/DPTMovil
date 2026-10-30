@@ -28,6 +28,11 @@ class ConexiongruposFalsa implements Conexiongrupos {
   String? ultimoInstructor;
   int llamadasGruposDe = 0;
   int llamadasInsertar = 0;
+  //si se fija, las tres listas (por curso, inscripcion e instructor) lanzan
+  //esto en vez de responder: la conexion real solo captura Exception en
+  //ellas, asi que un TypeError de GrupoModelo.fromJson sale hacia el
+  //repositorio
+  Object? lanzarAlListar;
 
   @override
   Future<RespuestaModelo> obtenerGruposDe(
@@ -37,16 +42,20 @@ class ConexiongruposFalsa implements Conexiongrupos {
     llamadasGruposDe++;
     ultimaCategoria = categoriaTitulo;
     ultimoCurso = nombreCurso;
+    if (lanzarAlListar != null) throw lanzarAlListar!;
     return copiaRespuesta(respuestaGruposDe);
   }
 
   @override
-  Future<RespuestaModelo> obtenerGruposInscripcionDisponible() async =>
-      copiaRespuesta(respuestaInscripcion);
+  Future<RespuestaModelo> obtenerGruposInscripcionDisponible() async {
+    if (lanzarAlListar != null) throw lanzarAlListar!;
+    return copiaRespuesta(respuestaInscripcion);
+  }
 
   @override
   Future<RespuestaModelo> obtenerGruposInstructor(String idInstructor) async {
     ultimoInstructor = idInstructor;
+    if (lanzarAlListar != null) throw lanzarAlListar!;
     return copiaRespuesta(respuestaInstructor);
   }
 

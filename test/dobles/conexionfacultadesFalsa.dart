@@ -9,10 +9,15 @@ class ConexionfacultadesFalsa implements Conexionfacultades {
     datos: <Facultadmodelo>[],
   );
   int llamadasListar = 0;
+  //si se fija, la conexion lanza esto en vez de responder: la real solo
+  //captura Exception, asi que un TypeError de Facultadmodelo.fromJson sale
+  //hacia el repositorio
+  Object? lanzar;
 
   @override
   Future<RespuestaModelo> obtenerFacultades() async {
     llamadasListar++;
+    if (lanzar != null) throw lanzar!;
     return respuestaListar;
   }
 }

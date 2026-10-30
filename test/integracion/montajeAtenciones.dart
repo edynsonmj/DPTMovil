@@ -58,14 +58,19 @@ class MontajeAtenciones {
   );
 
   MontajeAtenciones() {
-    //el backend propuesto: GET con la lista del contrato y POST con 200
+    //el backend segun el contrato: GET con la lista y POST con el resumen
     adaptador.responder(
       'GET',
-      '/atencionesporclase',
+      '/asistenciasClase',
       200,
       leerContrato('atenciones', 'listar_200'),
     );
-    adaptador.responder('POST', '/atenciones', 200);
+    adaptador.responder(
+      'POST',
+      '/asistenciasClase',
+      200,
+      leerContrato('atenciones', 'registrar_200'),
+    );
     sesion.perfilSesion = PerfilEntidad(
       id: 'ins1',
       nombre: 'Instructor del grupo',

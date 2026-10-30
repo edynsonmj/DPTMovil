@@ -51,20 +51,14 @@ class VmAtencionTest {
     });
   }
 
-  //fija lo que hace hoy la pantalla de una clase contra el backend real.
-  //Visto el 2026-10-23 y otra vez el 2026-10-28: el backend no tiene ningun
-  //endpoint de atenciones (ni GET /atencionesporclase ni POST /atenciones;
-  //no aparecen en /v3/api-docs) y responde 404 sea cual sea la clase.
-  //Su verde NO es un comportamiento aceptado: documenta el bug AS-B01
-  //(auditoria-mvvm/registro-bugs.md). Cuando se agreguen los endpoints este
-  //caso falla: reemplazarlo por los de listar y registrar
-  void prueba4BackendSinEndpoint(Atencionviewmodel Function() crearVm) {
-    String caso =
-        "BUG AS-B01 - backend sin endpoints (fija el 404, no es lo esperado)";
+  //GET /asistenciasClase (publicado el 2026-10-29, cierra AS-B01): una
+  //clase que no existe responde 404 GC-0003 y la pantalla muestra el error
+  void prueba4ClaseInexistente(Atencionviewmodel Function() crearVm) {
+    String caso = "clase inexistente 404";
     test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
 
-      await vm.cargarAtenciones(_grupo(), _clase(codigo: 1));
+      await vm.cargarAtenciones(_grupo(), _clase(codigo: 999999999));
 
       expect(vm.cargando, isFalse);
       expect(vm.error, contains('404'));

@@ -1,0 +1,24 @@
+[
+  {
+    "eliminadoestado": 0,
+    "id": "1111111",
+    "codigo": null,
+    "tipo": "Estudiante",
+    "nombre": "Daniel Antonio Tucanes",
+    "correo": "daniel@gmail.com",
+    "sexo": "M",
+    "tipoid": "CC",
+    "imagen": null
+  },
+  {
+    "eliminadoestado": 0,
+    "id": "2222222",
+    "codigo": null,
+    "tipo": "Docente",
+    "nombre": "Daniel Antonio Tucanes Cuaical",
+    "correo": "danieltucanes@gmail.com",
+    "sexo": "M",
+    "tipoid": "CC",
+    "imagen": null
+  }
+]

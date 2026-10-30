@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dpt_movil/data/models/categoriaModelo.dart';
+import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
@@ -100,5 +103,77 @@ void main() {
       expect(respuesta.datos, isA<CategoriaEntidad>());
       expect((respuesta.datos as CategoriaEntidad).descripcion, 'Nueva');
     });
+  });
+
+  //diagnostico del modulo 7 (plan-diagnostico-categorias.md, U-Repo)
+  group('Categorias (repositorio con doble, errores y peticiones):', () {
+    RespuestaModelo error(int codigo, String metodo) => RespuestaModelo(
+      codigoHttp: codigo,
+      error: ErrorModelo(
+        codigoHttp: codigo,
+        mensaje: 'fallo $codigo',
+        url: '/categoria',
+        metodo: metodo,
+      ),
+    );
+
+    test('$capa - $tipo - Listar categorias - un error pasa sin cambios', () async {
+      final e500 = error(500, 'GET');
+      conexion.respuestaListar = e500;
+
+      expect(await repositorio.encontrarCategorias(), same(e500));
+    });
+
+    test('$capa - $tipo - Guardar categoria - sin archivo ni idImagen es 400 y no llama a la conexion', () async {
+      final respuesta = await repositorio.insertarCategoria(
+        CategoriaEntidad(titulo: 'Futbol', descripcion: 'Desc'),
+      );
+
+      expect(respuesta.codigoHttp, 400);
+      expect(conexion.llamadasGuardar, 0);
+    });
+
+    test('$capa - $tipo - Guardar categoria - con archivo lo pasa a la conexion y un error pasa sin cambios', () async {
+      final e400 = error(400, 'POST');
+      conexion.respuestaGuardar = e400;
+      final archivo = File('assets/images/1.jpg');
+
+      final respuesta = await repositorio.insertarCategoria(
+        CategoriaEntidad(titulo: 'Futbol', descripcion: 'Desc', imagenFile: archivo),
+      );
+
+      expect(conexion.ultimaGuardada?.imagenFile, same(archivo));
+      expect(respuesta, same(e400));
+    });
+
+    test('$capa - $tipo - Actualizar categoria - con imagen nueva pasa el archivo y conserva el id', () async {
+      final archivo = File('assets/images/1.jpg');
+      conexion.respuestaActualizar = error(404, 'PUT');
+
+      final respuesta = await repositorio.actualizarCategoria(
+        CategoriaEntidad(
+          titulo: 'Futbol',
+          descripcion: 'Desc',
+          idImagen: 4,
+          imagenFile: archivo,
+        ),
+      );
+
+      expect(conexion.ultimaActualizada?.imagenFile, same(archivo));
+      expect(conexion.ultimaActualizada?.imagenId, 4);
+      expect(respuesta.codigoHttp, 404);
+    });
+
+    test('$capa - $tipo - Eliminar categoria - pasa el titulo y un error pasa sin cambios', () async {
+      final e404 = error(404, 'DELETE');
+      conexion.respuestaEliminar = e404;
+
+      final respuesta = await repositorio.eliminarCategoria('Fútbol & Voleibol');
+
+      expect(conexion.ultimoTituloEliminado, 'Fútbol & Voleibol');
+      expect(respuesta, same(e404));
+    });
+    //los casos rojos (CAT-13 y CAT-14) estan en
+    //test/diagnostico/categorias/repositorio_diagnostico_test.dart
   });
 }

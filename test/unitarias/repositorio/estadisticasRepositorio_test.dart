@@ -96,4 +96,102 @@ void main() {
       expect(respuesta.codigoHttp, 400);
     });
   });
+
+  //diagnostico del modulo 5 (plan-diagnostico-estadisticas.md, 4.1)
+  group('Estadisticas (repositorio con doble, rutas y errores):', () {
+    EstadisticaModelo modelo(String l1, [String? l2]) => EstadisticaModelo(
+      leyenda1: l1,
+      leyenda2: l2,
+      clases: 2,
+      horas: 3,
+      minutos: 15,
+      duracion: 195,
+    );
+
+    RespuestaModelo error(int codigo, String url) => RespuestaModelo(
+      codigoHttp: codigo,
+      error: ErrorModelo(
+        codigoHttp: codigo,
+        mensaje: 'fallo $codigo',
+        url: url,
+        metodo: 'GET',
+      ),
+    );
+
+    test('$capa - $tipo - Estadisticas de categorias - 200 convierte a entidades sin leyenda2', () async {
+      conexion.respuestaCategorias = RespuestaModelo(
+        codigoHttp: 200,
+        datos: [modelo('Deportes'), modelo('Cultura')],
+      );
+
+      final respuesta = await repositorio.generalCategorias('2026-01-01', '2026-12-31');
+
+      expect(respuesta.codigoHttp, 200);
+      final lista = respuesta.datos as List<Estadistica>;
+      expect(lista.map((e) => e.leyenda1), ['Deportes', 'Cultura']);
+      expect(lista.every((e) => e.leyenda2 == null), isTrue);
+      expect(lista.first.duracion, 195);
+    });
+
+    test('$capa - $tipo - Estadisticas de cursos - 200 convierte a entidades con categoria y curso', () async {
+      conexion.respuestaCursos = RespuestaModelo(
+        codigoHttp: 200,
+        datos: [modelo('Deportes', 'Natacion')],
+      );
+
+      final respuesta = await repositorio.generalCursos('2026-01-01', '2026-12-31');
+
+      final e = (respuesta.datos as List<Estadistica>).single;
+      expect(e.leyenda1, 'Deportes');
+      expect(e.leyenda2, 'Natacion');
+      expect(e.horas, 3);
+      expect(e.minutos, 15);
+    });
+
+    test('$capa - $tipo - Estadisticas de las tres rutas - 200 [] es una lista vacia de entidades', () async {
+      for (final pedir in [
+        repositorio.generalCategorias,
+        repositorio.generalCursos,
+        repositorio.generalGrupos,
+      ]) {
+        final respuesta = await pedir('2026-01-01', '2026-12-31');
+        expect(respuesta.codigoHttp, 200);
+        expect(respuesta.datos, isA<List<Estadistica>>());
+        expect(respuesta.datos, isEmpty);
+        expect(respuesta.error, isNull);
+      }
+    });
+
+    test('$capa - $tipo - Estadisticas de categorias y grupos - un error pasa sin cambios', () async {
+      final falloCategorias = error(503, '/estadisticas/categorias');
+      final falloGrupos = error(500, '/estadisticas/grupos');
+      conexion.respuestaCategorias = falloCategorias;
+      conexion.respuestaGrupos = falloGrupos;
+
+      expect(
+        await repositorio.generalCategorias('2026-01-01', '2026-12-31'),
+        same(falloCategorias),
+      );
+      expect(
+        await repositorio.generalGrupos('2026-01-01', '2026-12-31'),
+        same(falloGrupos),
+      );
+    });
+
+    test('$capa - $tipo - Estadisticas de cursos y grupos - 200 sin lista pasa a codigo 0', () async {
+      conexion.respuestaCursos = RespuestaModelo(codigoHttp: 200, datos: 'texto');
+      conexion.respuestaGrupos = RespuestaModelo(codigoHttp: 200, datos: {'a': 1});
+
+      final cursos = await repositorio.generalCursos('2026-01-01', '2026-12-31');
+      final grupos = await repositorio.generalGrupos('2026-01-01', '2026-12-31');
+
+      expect(cursos.codigoHttp, 0);
+      expect(cursos.error?.url, '/estadisticas/cursos');
+      expect(grupos.codigoHttp, 0);
+      expect(grupos.error?.url, '/estadisticas/grupos');
+    });
+
+    //un TypeError de la conexion atraviesa el repositorio: BUG ES-01, en
+    //test/diagnostico/estadisticas/repositorio_diagnostico_test.dart
+  });
 }

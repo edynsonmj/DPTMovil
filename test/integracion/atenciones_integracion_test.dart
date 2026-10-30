@@ -32,14 +32,8 @@ void main() {
 
     //la ruta clase creo el vm y cargo una vez, con los datos del grupo
     expect(find.byType(Claseview), findsOneWidget);
-    final pedida = app.adaptador.peticionesA('GET', '/atencionesporclase').single;
-    expect(pedida.uri.queryParameters, {
-      'categoria': 'Deportes',
-      'curso': 'Iniciacion',
-      'anio': '2026',
-      'iterable': '1',
-      'claseid': '210',
-    });
+    final pedida = app.adaptador.peticionesA('GET', '/asistenciasClase').single;
+    expect(pedida.uri.queryParameters, {'idClase': '210'});
     expect(marcas(tester), [false, false, true]);
 
     //marca a Ana y a Luis y desmarca a Marta
@@ -55,18 +49,15 @@ void main() {
     //una sola peticion de cada tipo, en orden: cargar y despues registrar
     expect(
       app.adaptador.peticiones.map((p) => '${p.metodo} ${p.ruta}'),
-      ['GET /atencionesporclase', 'POST /atenciones'],
+      ['GET /asistenciasClase', 'POST /asistenciasClase'],
     );
-    final enviada = app.adaptador.peticionesA('POST', '/atenciones').single;
-    expect(enviada.uri.queryParameters, {'idclase': '210'});
-    final cuerpo = enviada.cuerpo as List;
-    expect(cuerpo.map((a) => a['alumno']['id']), [
-      '1061001',
-      '1061002',
-      '1061003',
+    final enviada = app.adaptador.peticionesA('POST', '/asistenciasClase').single;
+    expect(enviada.uri.queryParameters, {'idClase': '210'});
+    expect(enviada.cuerpo, [
+      {'idPerfil': '1061001', 'asistio': true},
+      {'idPerfil': '1061002', 'asistio': true},
+      {'idPerfil': '1061003', 'asistio': false},
     ]);
-    expect(cuerpo.map((a) => a['estaAtendido']), [true, true, false]);
-    expect(cuerpo.every((a) => a['idClase'] == 210), isTrue);
 
     //aviso de exito y regreso a la pantalla del grupo
     expect(find.text('Atenciones registradas'), findsOneWidget);
@@ -81,7 +72,7 @@ void main() {
   ) async {
     app.adaptador.fallar(
       'POST',
-      '/atenciones',
+      '/asistenciasClase',
       DioExceptionType.connectionError,
     );
     await app.abrirClase(tester);
@@ -106,7 +97,7 @@ void main() {
   ) async {
     app.adaptador.responder(
       'GET',
-      '/atencionesporclase',
+      '/asistenciasClase',
       404,
       'No se encontro la clase',
     );

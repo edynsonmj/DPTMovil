@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dpt_movil/data/models/cursoModelo.dart';
+import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
@@ -115,5 +116,76 @@ void main() {
       expect(entidad.nombreCurso, 'Iniciacion');
       expect(entidad.imagen, 3);
     });
+  });
+
+  //diagnostico del modulo 8 (plan-diagnostico-cursos.md, U-Repo)
+  group('Cursos (repositorio con doble, listas vacias y errores):', () {
+    RespuestaModelo error(int codigo, String url) => RespuestaModelo(
+      codigoHttp: codigo,
+      error: ErrorModelo(
+        codigoHttp: codigo,
+        mensaje: 'fallo $codigo',
+        url: url,
+        metodo: 'GET',
+      ),
+    );
+
+    test('$capa - $tipo - Listar cursos de - 200 [] es una lista vacia de entidades', () async {
+      final respuesta = await repositorio.listarCursosDe(
+        CategoriaEntidad(titulo: 'Sin cursos', descripcion: 'x'),
+      );
+
+      expect(respuesta.codigoHttp, 200);
+      expect(respuesta.datos, isA<List<CursoEntidad>>());
+      expect(respuesta.datos, isEmpty);
+    });
+
+    test('$capa - $tipo - Obtener curso - 404 pasa sin cambios', () async {
+      final e404 = error(404, '/curso');
+      conexion.respuestaObtener = e404;
+
+      expect(await repositorio.obtenerCurso('Deportes', 'No existe'), same(e404));
+    });
+
+    test('$capa - $tipo - Guardar curso - un error pasa sin cambios y no hay entidad', () async {
+      final e400 = error(400, '/curso');
+      conexion.respuestaAgregar = e400;
+
+      final respuesta = await repositorio.guardaCurso(
+        CursoEntidad(
+          nombreCurso: 'Iniciacion',
+          nombreDeporte: 'Futbol',
+          tituloCategoria: 'Deportes',
+          descripcion: 'Desc',
+          imagenFile: File('assets/images/1.jpg'),
+        ),
+      );
+
+      expect(respuesta, same(e400));
+      expect(respuesta.datos, isNull);
+    });
+
+    test('$capa - $tipo - Guardar curso - el modelo enviado lleva deporte, descripcion e imagen existente', () async {
+      conexion.respuestaAgregar = RespuestaModelo(
+        codigoHttp: 201,
+        datos: modelo('Iniciacion', imagen: 4),
+      );
+
+      await repositorio.guardaCurso(
+        CursoEntidad(
+          nombreCurso: 'Iniciacion',
+          nombreDeporte: 'Natacion',
+          tituloCategoria: 'Deportes',
+          descripcion: 'Curso de natacion',
+          imagen: 4,
+        ),
+      );
+
+      expect(conexion.ultimoAgregado?.nombreDeporte, 'Natacion');
+      expect(conexion.ultimoAgregado?.descripcion, 'Curso de natacion');
+      expect(conexion.ultimoAgregado?.imagen, 4);
+    });
+    //el caso rojo (CU-01) esta en
+    //test/diagnostico/cursos/repositorio_diagnostico_test.dart
   });
 }

@@ -1,3 +1,4 @@
+import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
@@ -193,5 +194,84 @@ void main() {
       expect(await repositorio.cerrarInscripciones(grupo), same(error404));
       expect(await repositorio.listarGruposNoEliminados(), same(error503));
     });
+  });
+
+  //diagnostico del modulo 3 (plan-diagnostico-grupos.md, U-Repo)
+  group('Grupos (repositorio con doble, listas y errores):', () {
+    RespuestaModelo error(int codigo) => RespuestaModelo(
+      codigoHttp: codigo,
+      error: ErrorModelo(
+        codigoHttp: codigo,
+        mensaje: 'fallo $codigo',
+        url: '/grupos',
+        metodo: 'GET',
+      ),
+    );
+
+    test('$capa - $tipo - Listar grupos del instructor - 200 convierte a entidades y pasa el id', () async {
+      conexion.respuestaInstructor = RespuestaModelo(
+        codigoHttp: 200,
+        datos: [modelo(1, imagen: 7), modelo(2)],
+      );
+
+      final respuesta = await repositorio.listarGruposInstructores('ins1');
+
+      expect(conexion.ultimoInstructor, 'ins1');
+      final lista = respuesta.datos as List<Grupoentidad>;
+      expect(lista.map((g) => g.iterable), [1, 2]);
+      expect(lista.first.imagen, 7);
+      expect(lista.first.idInstructor, 'ins1');
+      expect(lista.first.cupos, 20);
+    });
+
+    test('$capa - $tipo - Listar grupos disponibles - 200 convierte a entidades', () async {
+      conexion.respuestaInscripcion = RespuestaModelo(
+        codigoHttp: 200,
+        datos: [modelo(3)],
+      );
+
+      final respuesta = await repositorio.listarGruposDisponiblesInscripcion();
+
+      expect((respuesta.datos as List<Grupoentidad>).single.clave, 'Deportes/Iniciacion/2026/3');
+    });
+
+    test('$capa - $tipo - Listar grupos de - 200 [] es una lista vacia de entidades', () async {
+      final respuesta = await repositorio.listarGruposDe('Deportes', 'Iniciacion');
+
+      expect(respuesta.codigoHttp, 200);
+      expect(respuesta.datos, isA<List<Grupoentidad>>());
+      expect(respuesta.datos, isEmpty);
+    });
+
+    test('$capa - $tipo - Listar grupos del instructor y disponibles - un error pasa sin cambios', () async {
+      final e503 = error(503);
+      final e500 = error(500);
+      conexion.respuestaInstructor = e503;
+      conexion.respuestaInscripcion = e500;
+
+      expect(await repositorio.listarGruposInstructores('ins1'), same(e503));
+      expect(await repositorio.listarGruposDisponiblesInscripcion(), same(e500));
+    });
+
+    test('$capa - $tipo - Insertar grupo - un error pasa sin cambios', () async {
+      final e400 = error(400);
+      conexion.respuestaInsertar = e400;
+
+      final respuesta = await repositorio.insertarGrupo(
+        Grupoentidad(
+          categoria: 'Deportes',
+          curso: 'Iniciacion',
+          anio: 0,
+          iterable: 0,
+          cupos: 20,
+          fechaCreacion: '2026-10-29',
+          idInstructor: 'ins1',
+        ),
+      );
+
+      expect(respuesta, same(e400));
+    });
+    //los casos rojos (GR-01 y GR-02) estan en
+    //test/diagnostico/grupos/repositorio_diagnostico_test.dart
   });
 }

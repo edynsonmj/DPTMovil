@@ -19,6 +19,10 @@ class ConexionclasesFalsa implements Conexionclases {
   int llamadasClases = 0;
   int llamadasAgregar = 0;
   int llamadasEliminar = 0;
+  //si se fija, los tres metodos lanzan esto en vez de responder: la conexion
+  //real solo captura Exception, asi que un TypeError de Clasemodelo.fromJson
+  //sale hacia el repositorio
+  Object? lanzar;
 
   @override
   Future<RespuestaModelo> obtenerClasesGrupo(
@@ -29,6 +33,7 @@ class ConexionclasesFalsa implements Conexionclases {
   ) async {
     llamadasClases++;
     ultimoGrupo = '$categoria/$curso/$anio/$iterable';
+    if (lanzar != null) throw lanzar!;
     return respuestaClases;
   }
 
@@ -36,6 +41,7 @@ class ConexionclasesFalsa implements Conexionclases {
   Future<RespuestaModelo> agregarClaseGrupo(Clasemodelo modelo) async {
     llamadasAgregar++;
     ultimaAgregada = modelo;
+    if (lanzar != null) throw lanzar!;
     return respuestaAgregar;
   }
 
@@ -43,6 +49,7 @@ class ConexionclasesFalsa implements Conexionclases {
   Future<RespuestaModelo> eliminarClase(int id) async {
     llamadasEliminar++;
     ultimoIdEliminado = id;
+    if (lanzar != null) throw lanzar!;
     return respuestaEliminar;
   }
 }

@@ -79,6 +79,15 @@ import 'remoto/viewModel/facultades/vmListarFacultadesTest.dart';
 import 'remoto/viewModel/grupo/vmListarGruposTest.dart';
 import 'remoto/viewModel/grupo/vmModuloGrupoTest.dart';
 import 'remoto/viewModel/inscripcion/vmGruposInscripcionTest.dart';
+import 'remoto/viewModel/inscripcion/vmInscripcionTest.dart';
+import 'remoto/viewModel/estadisticas/vmEstadisticasAsistenciaTest.dart';
+import 'remoto/viewModel/grupo/vmGrupoDiagnosticoTest.dart';
+import 'remoto/viewModel/curso/vmCursoDiagnosticoTest.dart';
+import 'remoto/viewModel/categoria/vmCategoriaDiagnosticoTest.dart';
+import 'remoto/viewModel/clase/vmClaseDiagnosticoTest.dart';
+import 'remoto/viewModel/horario/vmHorarioDiagnosticoTest.dart';
+import 'remoto/viewModel/alumno/vmAlumnoDiagnosticoTest.dart';
+import 'remoto/viewModel/instructor/vmInstructorDiagnosticoTest.dart';
 import 'remoto/viewModel/grupo/vmPeriodoInscripcionTest.dart';
 import 'remoto/viewModel/estadisticas/vmEstadisticasTest.dart';
 import 'remoto/viewModel/categoria/vmEliminarCategoriaTest.dart';
@@ -111,7 +120,15 @@ void main() {
   probarViewModelModuloGrupo();
   probarViewModelGruposInscripcion();
   probarViewModelPeriodoInscripcion();
+  probarViewModelInscripcion();
   probarViewModelEstadisticas();
+  probarViewModelGrupoDiagnostico();
+  probarViewModelCursoDiagnostico();
+  probarViewModelCategoriaDiagnostico();
+  probarViewModelClaseDiagnostico();
+  probarViewModelHorarioDiagnostico();
+  probarViewModelAlumnoDiagnostico();
+  probarViewModelInstructorDiagnostico();
 }
 //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como la
 //ruta InscripcionesParticulares
@@ -169,6 +186,51 @@ probarViewModelEstadisticas(){
     test.prueba3RangoSinClases(crearEstadisticasViewModel);
     test.prueba4FechaMalFormada(crearEstadisticasViewModel);
   });
+  //diagnostico del modulo 5 (plan-diagnostico-estadisticas.md): su propio
+  //grupo con una clase y asistencias reales por corrida
+  group('Estadisticas con asistencias remotas:', () {
+    VmEstadisticasAsistenciaTest test = VmEstadisticasAsistenciaTest();
+    prepararVmEstadisticasAsistencia(test);
+    test.prueba1AsistenciaContada(crearEstadisticasViewModel);
+    test.prueba2TotalesCuadran(crearEstadisticasViewModel);
+    test.prueba4RangoSinLaClase(crearEstadisticasViewModel);
+    test.prueba5AsistenciaRepetida(crearEstadisticasViewModel);
+    test.prueba6DosAsistencias(crearEstadisticasViewModel);
+    //el caso rojo (ES-05) va en
+    //test/diagnostico/estadisticas/remoto_diagnostico_test.dart
+  });
+}
+//datos de apoyo del diagnostico de estadisticas; tambien lo usa
+//test/diagnostico/estadisticas/remoto_diagnostico_test.dart
+void prepararVmEstadisticasAsistencia(VmEstadisticasAsistenciaTest test) {
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
+  test.preparar(
+    dio: dio,
+    vmCategoria: crearCategoriaViewModel(
+      ConexionCategoriaRemota(dio, conexionImagen),
+    ),
+    crearVmDeporte: crearDeporteViewModel,
+    crearVmCurso: () => CursosViewModel(
+      ServicioCurso(
+        CursoRepositorio(cliente: ConexionCursoRemoto(dio, conexionImagen)),
+      ),
+    ),
+    crearVmInstructores: crearInstructoresViewModel,
+    crearVmGrupos: crearGruposViewModel,
+    crearVmFacultades: () => Facultadesviewmodel(
+      Serviciofacultades(
+        Facultadesrepositorio(conexion: Conexionfacultadremoto(dio)),
+      ),
+    ),
+    crearVmPeriodo: crearPeriodoInscripcionViewModel,
+    crearVmInscripcion: crearInscripcionViewModel,
+    crearVmClase: crearClasesViewModel,
+    crearVmDetalle: crearDetalleGrupoViewModel,
+    servicioAutenticacion: Servicioautenticacion(
+      Autenticacionrepositorio(conexion: Conexionautenticacionremoto(dio)),
+    ),
+  );
 }
 //misma cadena que la raiz, con el Dio de pruebas; un vm por caso, como la
 //ruta gruposDisponiblesInscripcion
@@ -215,6 +277,50 @@ probarViewModelGruposInscripcion(){
       crearPeriodoInscripcionViewModel,
     );
   });
+}
+//diagnostico del modulo 4 (plan-diagnostico-inscripciones.md): su propio
+//grupo de datos por corrida
+probarViewModelInscripcion(){
+  group('Inscripcion del alumno remota:', () {
+    VmInscripcionTest test = VmInscripcionTest();
+    prepararVmInscripcion(test);
+    test.prueba1InscribirDosVeces(crearInscripcionViewModel);
+    test.prueba2DesvincularYReactivar(crearInscripcionViewModel);
+    test.prueba3DesvincularSinInscripcion(crearInscripcionViewModel);
+    test.prueba4CupoLleno(crearInscripcionViewModel);
+    test.prueba5Inexistentes(crearInscripcionViewModel);
+    test.prueba7CargarEstados(crearInscripcionViewModel);
+    //los casos rojos (IN-08, IN-13) van en
+    //test/diagnostico/inscripciones/remoto_diagnostico_test.dart
+  });
+}
+//datos de apoyo (categoria, curso, grupos y alumnos); tambien lo usa el
+//diagnostico remoto de inscripciones
+void prepararVmInscripcion(VmInscripcionTest test) {
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
+  test.preparar(
+    vmCategoria: crearCategoriaViewModel(
+      ConexionCategoriaRemota(dio, conexionImagen),
+    ),
+    crearVmDeporte: crearDeporteViewModel,
+    crearVmCurso: () => CursosViewModel(
+      ServicioCurso(
+        CursoRepositorio(cliente: ConexionCursoRemoto(dio, conexionImagen)),
+      ),
+    ),
+    crearVmInstructores: crearInstructoresViewModel,
+    crearVmGrupos: crearGruposViewModel,
+    crearVmFacultades: () => Facultadesviewmodel(
+      Serviciofacultades(
+        Facultadesrepositorio(conexion: Conexionfacultadremoto(dio)),
+      ),
+    ),
+    crearVmPeriodo: crearPeriodoInscripcionViewModel,
+    servicioAutenticacion: Servicioautenticacion(
+      Autenticacionrepositorio(conexion: Conexionautenticacionremoto(dio)),
+    ),
+  );
 }
 //misma cadena que la raiz para el modulo grupo, con el Dio de pruebas; un
 //vm por caso, como cada ruta
@@ -389,7 +495,7 @@ probarViewModelAtencion(){
     test.prueba1RegistrarSinCargar(crearAtencionViewModel);
     test.prueba2ClaseSinCodigo(crearAtencionViewModel);
     test.prueba3MarcarSinLista(crearAtencionViewModel);
-    test.prueba4BackendSinEndpoint(crearAtencionViewModel);
+    test.prueba4ClaseInexistente(crearAtencionViewModel);
   });
 }
 probarViewModelClase(){
@@ -461,5 +567,209 @@ grupoVMCategoriaRegistrar(CategoriaViewModel vm){
     test.prueba1codigo200(vm);
     test.prueba2Inexistente(vm);
     test.prueba3TituloVacio(vm);
+  });
+}
+//diagnostico del modulo 3 (plan-diagnostico-grupos.md): su propio juego de
+//categorias, cursos y grupos por corrida
+probarViewModelGrupoDiagnostico(){
+  group('Grupos remotos (diagnostico):', () {
+    VmGrupoDiagnosticoTest test = VmGrupoDiagnosticoTest();
+    prepararVmGrupoDiagnostico(test);
+    test.prueba1ListarGruposDelCurso(crearGruposViewModel);
+    test.prueba2SegundoGrupo(crearGruposViewModel);
+    test.prueba3ListasVacias(crearGruposViewModel);
+    test.prueba4PantallaDelGrupo(crearDetalleGrupoViewModel);
+    test.prueba5CuposEnCero(crearGruposViewModel);
+    test.prueba6DatosInexistentes(crearGruposViewModel);
+    //los casos rojos van en test/diagnostico/grupos/remoto_diagnostico_test.dart
+  });
+}
+//datos de apoyo del diagnostico de grupos; tambien lo usa
+//test/diagnostico/grupos/remoto_diagnostico_test.dart
+void prepararVmGrupoDiagnostico(VmGrupoDiagnosticoTest test) {
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
+  test.preparar(
+    vmCategoria: crearCategoriaViewModel(
+      ConexionCategoriaRemota(dio, conexionImagen),
+    ),
+    crearVmDeporte: crearDeporteViewModel,
+    crearVmCurso: () => CursosViewModel(
+      ServicioCurso(
+        CursoRepositorio(cliente: ConexionCursoRemoto(dio, conexionImagen)),
+      ),
+    ),
+    crearVmInstructores: crearInstructoresViewModel,
+    crearVmGrupos: crearGruposViewModel,
+    crearVmFacultades: () => Facultadesviewmodel(
+      Serviciofacultades(
+        Facultadesrepositorio(conexion: Conexionfacultadremoto(dio)),
+      ),
+    ),
+    crearVmPeriodo: crearPeriodoInscripcionViewModel,
+    crearVmInscripcion: crearInscripcionViewModel,
+    crearVmClase: crearClasesViewModel,
+    servicioAutenticacion: Servicioautenticacion(
+      Autenticacionrepositorio(conexion: Conexionautenticacionremoto(dio)),
+    ),
+  );
+}
+//diagnostico del modulo 8 (plan-diagnostico-cursos.md): sus propias
+//categorias por corrida
+probarViewModelCursoDiagnostico(){
+  group('Cursos remotos (diagnostico):', () {
+    VmCursoDiagnosticoTest test = VmCursoDiagnosticoTest();
+    prepararVmCursoDiagnostico(test);
+    test.prueba1AgregarListarObtener(crearCursoViewModelRemoto);
+    test.prueba2CursoRepetido(crearCursoViewModelRemoto);
+    test.prueba3DatosInvalidos(crearCursoViewModelRemoto);
+    test.prueba4CategoriaSinCursos(crearCursoViewModelRemoto);
+    test.prueba5CursoInexistente(crearCursoViewModelRemoto);
+    //el caso rojo va en test/diagnostico/cursos/remoto_diagnostico_test.dart
+  });
+}
+//misma cadena que la raiz para cursos, con el Dio de pruebas; un vm por caso
+CursosViewModel crearCursoViewModelRemoto() {
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  return CursosViewModel(
+    ServicioCurso(
+      CursoRepositorio(cliente: ConexionCursoRemoto(dio, Conexionimagenremoto(dio))),
+    ),
+  );
+}
+//datos de apoyo del diagnostico de cursos; tambien lo usa
+//test/diagnostico/cursos/remoto_diagnostico_test.dart
+void prepararVmCursoDiagnostico(VmCursoDiagnosticoTest test) {
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  test.preparar(
+    vmCategoria: crearCategoriaViewModel(
+      ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
+    ),
+    crearVmDeporte: crearDeporteViewModel,
+    crearVmCurso: crearCursoViewModelRemoto,
+  );
+}
+//diagnostico del modulo 7 (plan-diagnostico-categorias.md): cada caso crea
+//sus propias categorias
+probarViewModelCategoriaDiagnostico(){
+  group('Categorias remotas (diagnostico):', () {
+    VmCategoriaDiagnosticoTest test = VmCategoriaDiagnosticoTest();
+    test.preparar(crearCategoriaViewModelRemoto);
+    test.prueba1TituloRepetido(crearCategoriaViewModelRemoto);
+    test.prueba2EliminarSaleDeLaLista(crearCategoriaViewModelRemoto);
+    test.prueba3ObservacionBorradoLogico(
+      crearCategoriaViewModelRemoto,
+      crearCursoViewModelRemoto,
+      crearDeporteViewModel,
+    );
+    //el caso rojo va en test/diagnostico/categorias/remoto_diagnostico_test.dart
+  });
+}
+//misma cadena que la raiz para categorias, con el Dio de pruebas; un vm por
+//caso, como la ruta
+CategoriaViewModel crearCategoriaViewModelRemoto() {
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  return crearCategoriaViewModel(
+    ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
+  );
+}
+//diagnostico del modulo 2 (plan-diagnostico-clases.md): su propio grupo por
+//corrida
+probarViewModelClaseDiagnostico(){
+  group('Clases remotas (diagnostico):', () {
+    VmClaseDiagnosticoTest test = VmClaseDiagnosticoTest();
+    prepararVmClaseDiagnostico(test);
+    test.prueba1RegistrarAyer(crearClasesViewModel, crearDetalleGrupoViewModel);
+    test.prueba2RegistrarHoy(crearClasesViewModel, crearDetalleGrupoViewModel);
+    test.prueba3FechaSinCorrimiento(crearClasesViewModel, crearDetalleGrupoViewModel);
+    test.prueba4ObservacionFuturaYLarga(crearClasesViewModel);
+    test.prueba5EliminarInexistente(crearDetalleGrupoViewModel);
+    //los casos rojos van en test/diagnostico/clases/remoto_diagnostico_test.dart
+  });
+}
+//datos de apoyo del diagnostico de clases; tambien lo usa
+//test/diagnostico/clases/remoto_diagnostico_test.dart
+void prepararVmClaseDiagnostico(VmClaseDiagnosticoTest test) {
+  Dio dio = crearClienteHttp(baseUrlPruebas);
+  Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
+  test.preparar(
+    vmCategoria: crearCategoriaViewModel(
+      ConexionCategoriaRemota(dio, conexionImagen),
+    ),
+    crearVmDeporte: crearDeporteViewModel,
+    crearVmCurso: crearCursoViewModelRemoto,
+    crearVmInstructores: crearInstructoresViewModel,
+    crearVmGrupos: crearGruposViewModel,
+    crearVmPeriodo: crearPeriodoInscripcionViewModel,
+  );
+}
+//diagnostico del modulo 6 (plan-diagnostico-horarios.md): su propio grupo por
+//corrida; el backend no permite crear horarios
+probarViewModelHorarioDiagnostico(){
+  group('Horarios remotos (diagnostico):', () {
+    VmHorarioDiagnosticoTest test = VmHorarioDiagnosticoTest();
+    Dio dio = crearClienteHttp(baseUrlPruebas);
+    test.preparar(
+      vmCategoria: crearCategoriaViewModel(
+        ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
+      ),
+      crearVmDeporte: crearDeporteViewModel,
+      crearVmCurso: crearCursoViewModelRemoto,
+      crearVmInstructores: crearInstructoresViewModel,
+      crearVmGrupos: crearGruposViewModel,
+      crearVmPeriodo: crearPeriodoInscripcionViewModel,
+    );
+    test.prueba1TarjetaSinHorarios(crearHorariosViewModel);
+    test.prueba2PantallaSinHorarios(crearDetalleGrupoViewModel);
+    test.prueba3GrupoInexistente(crearHorariosViewModel);
+  });
+}
+//diagnostico del modulo 9a (plan-diagnostico-alumnos.md): tres grupos y tres
+//alumnos propios por corrida
+probarViewModelAlumnoDiagnostico(){
+  group('Alumnos del grupo remotos (diagnostico):', () {
+    VmAlumnoDiagnosticoTest test = VmAlumnoDiagnosticoTest();
+    Dio dio = crearClienteHttp(baseUrlPruebas);
+    test.preparar(
+      vmCategoria: crearCategoriaViewModel(
+        ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
+      ),
+      crearVmDeporte: crearDeporteViewModel,
+      crearVmCurso: crearCursoViewModelRemoto,
+      crearVmInstructores: crearInstructoresViewModel,
+      crearVmGrupos: crearGruposViewModel,
+      crearVmFacultades: () => Facultadesviewmodel(
+        Serviciofacultades(
+          Facultadesrepositorio(conexion: Conexionfacultadremoto(dio)),
+        ),
+      ),
+      crearVmPeriodo: crearPeriodoInscripcionViewModel,
+      crearVmInscripcion: crearInscripcionViewModel,
+      servicioAutenticacion: Servicioautenticacion(
+        Autenticacionrepositorio(conexion: Conexionautenticacionremoto(dio)),
+      ),
+    );
+    test.prueba1AlumnosDelGrupo(crearDetalleGrupoViewModel);
+    test.prueba2GrupoSinAlumnos(crearDetalleGrupoViewModel);
+    test.prueba3GrupoInexistente(crearDetalleGrupoViewModel);
+  });
+}
+
+probarViewModelInstructorDiagnostico(){
+  group('Instructores remotos (diagnostico):', () {
+    VmInstructorDiagnosticoTest test = VmInstructorDiagnosticoTest();
+    Dio dio = crearClienteHttp(baseUrlPruebas);
+    test.preparar(
+      crearVmFacultades: () => Facultadesviewmodel(
+        Serviciofacultades(
+          Facultadesrepositorio(conexion: Conexionfacultadremoto(dio)),
+        ),
+      ),
+      servicioAutenticacion: Servicioautenticacion(
+        Autenticacionrepositorio(conexion: Conexionautenticacionremoto(dio)),
+      ),
+    );
+    test.prueba1CamposDelDesplegable(crearInstructoresViewModel);
+    test.prueba2AlumnoNoEsInstructor(crearInstructoresViewModel);
   });
 }

@@ -1,0 +1,16 @@
+[
+  {
+    "nombre": "Curso Categoria Fase 4",
+    "deporte": "Atletismo",
+    "categoriaCurso": "Categoria Fase 4",
+    "descripcion": "Nuevo Curso categoria Fase 4",
+    "idImagen": 1197
+  },
+  {
+    "nombre": "Curso 2 Fase 4",
+    "deporte": "Natación",
+    "categoriaCurso": "Categoria Fase 4",
+    "descripcion": "Segundo curso de la categoria",
+    "idImagen": 1198
+  }
+]

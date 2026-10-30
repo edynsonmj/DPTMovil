@@ -9,8 +9,7 @@ import '../../dobles/adaptadorHttpFalso.dart';
 
 //la conexion real de atenciones sobre el transporte falso (fase 3 del
 //diagnostico): url armada, codigos y conversion a modelos, sin backend.
-//El backend aun no tiene estos endpoints; lo esperado sale del contrato
-//propuesto en test/contratos/atenciones
+//Lo esperado sale del contrato observado en test/contratos/atenciones
 void main() {
   const String capa = "conexion";
   const String tipo = "unitaria";
@@ -26,49 +25,46 @@ void main() {
   Future obtener() =>
       conexion.obtenerAtencionesClase('Deportes', 'Iniciacion', 2026, 1, 210);
 
-  //modelos armados campo por campo desde el json, sin pasar por fromJson:
-  //asi este caso prueba solo el envio. La ida y vuelta por fromJson es otra
-  //hipotesis (AS-05) y va en test/diagnostico
-  List<Atencionmodelo> modelosCompletos(String nombre) =>
-      (leerContrato('atenciones', nombre) as List).map((json) {
-        final alumno = json['alumno'];
-        return Atencionmodelo(
-          alumno: Alumnomodelo(
-            eliminadoestado: alumno['eliminadoestado'],
-            id: alumno['id'],
-            codigo: alumno['codigo'],
-            tipo: alumno['tipo'],
-            nombre: alumno['nombre'],
-            correo: alumno['correo'],
-            sexo: alumno['sexo'],
-            tipoid: alumno['tipoid'],
-            imagen: alumno['imagen'],
-          ),
-          idClase: json['idClase'],
-          estaAtendido: json['estaAtendido'],
-        );
-      }).toList();
+  //modelos armados campo por campo, sin pasar por fromJson: asi este caso
+  //prueba solo el envio. Son los de listar_200 con Luis (indice 1) marcado
+  List<Atencionmodelo> modelosMarcados() {
+    final lista =
+        (leerContrato('atenciones', 'listar_200') as List).map((json) {
+          final alumno = json['alumno'];
+          return Atencionmodelo(
+            alumno: Alumnomodelo(
+              eliminadoestado: alumno['eliminadoestado'],
+              id: alumno['id'],
+              codigo: alumno['codigo'],
+              tipo: alumno['tipo'],
+              nombre: alumno['nombre'],
+              correo: alumno['correo'],
+              sexo: alumno['sexo'],
+              tipoid: alumno['tipoid'],
+              imagen: alumno['imagen'],
+            ),
+            idClase: 210,
+            estaAtendido: json['asistio'],
+          );
+        }).toList();
+    lista[1].estaAtendido = true;
+    return lista;
+  }
 
   group('Atenciones (conexion remota con transporte falso):', () {
-    test('$capa - $tipo - Listar atenciones - arma la uri con los datos de la clase', () async {
-      adaptador.responder('GET', '/atencionesporclase', 200, []);
+    test('$capa - $tipo - Listar atenciones - pide la clase solo por su codigo', () async {
+      adaptador.responder('GET', '/asistenciasClase', 200, []);
 
       await obtener();
 
-      final peticion = adaptador.peticionesA('GET', '/atencionesporclase').single;
-      expect(peticion.uri.queryParameters, {
-        'categoria': 'Deportes',
-        'curso': 'Iniciacion',
-        'anio': '2026',
-        'iterable': '1',
-        'claseid': '210',
-      });
+      final peticion = adaptador.peticionesA('GET', '/asistenciasClase').single;
+      expect(peticion.uri.queryParameters, {'idClase': '210'});
     });
 
     test('$capa - $tipo - Listar atenciones - 200 lista convierte a modelos', () async {
       adaptador.responder(
         'GET',
-        '/atencionesporclase',
+        '/asistenciasClase',
         200,
         leerContrato('atenciones', 'listar_200'),
       );
@@ -91,7 +87,7 @@ void main() {
     test('$capa - $tipo - Listar atenciones - 200 lista vacia no es error', () async {
       adaptador.responder(
         'GET',
-        '/atencionesporclase',
+        '/asistenciasClase',
         200,
         leerContrato('atenciones', 'listar_vacia'),
       );
@@ -104,7 +100,7 @@ void main() {
 
     test('$capa - $tipo - Listar atenciones - 200 sin lista responde 406', () async {
       //mismo trato que /alumnosGrupo: 200 con un objeto en vez de lista
-      adaptador.responder('GET', '/atencionesporclase', 200, {
+      adaptador.responder('GET', '/asistenciasClase', 200, {
         'codigo': 'GC-0002',
       });
 
@@ -118,7 +114,7 @@ void main() {
       for (final codigo in [404, 500]) {
         adaptador.responder(
           'GET',
-          '/atencionesporclase',
+          '/asistenciasClase',
           codigo,
           'detalle del backend $codigo',
         );
@@ -135,7 +131,7 @@ void main() {
     test('$capa - $tipo - Listar atenciones - sin red responde 503', () async {
       adaptador.fallar(
         'GET',
-        '/atencionesporclase',
+        '/asistenciasClase',
         DioExceptionType.connectionError,
       );
 
@@ -146,25 +142,31 @@ void main() {
     });
 
     test('$capa - $tipo - Registrar atenciones - envia el cuerpo del contrato', () async {
-      adaptador.responder('POST', '/atenciones', 200);
+      adaptador.responder(
+        'POST',
+        '/asistenciasClase',
+        200,
+        leerContrato('atenciones', 'registrar_200'),
+      );
 
       final respuesta = await conexion.registrarAtencionesClase(
-        modelosCompletos('registrar_peticion'),
+        modelosMarcados(),
         210,
       );
 
       expect(respuesta.codigoHttp, 200);
-      final enviada = adaptador.peticionesA('POST', '/atenciones').single;
-      expect(enviada.uri.queryParameters, {'idclase': '210'});
+      final enviada = adaptador.peticionesA('POST', '/asistenciasClase').single;
+      expect(enviada.uri.queryParameters, {'idClase': '210'});
       expect(enviada.cuerpo, leerContrato('atenciones', 'registrar_peticion'));
     });
 
-    test('$capa - $tipo - Registrar atenciones - 400 y 500 llegan con su codigo', () async {
-      for (final codigo in [400, 500]) {
-        adaptador.responder('POST', '/atenciones', codigo, 'rechazado $codigo');
+    test('$capa - $tipo - Registrar atenciones - 400, 404, 424 y 500 llegan con su codigo', () async {
+      //424: algun alumno no pertenece al grupo de la clase
+      for (final codigo in [400, 404, 424, 500]) {
+        adaptador.responder('POST', '/asistenciasClase', codigo, 'rechazado $codigo');
 
         final respuesta = await conexion.registrarAtencionesClase(
-          modelosCompletos('registrar_peticion'),
+          modelosMarcados(),
           210,
         );
 
@@ -175,10 +177,10 @@ void main() {
     });
 
     test('$capa - $tipo - Registrar atenciones - sin red responde 503', () async {
-      adaptador.fallar('POST', '/atenciones', DioExceptionType.connectionError);
+      adaptador.fallar('POST', '/asistenciasClase', DioExceptionType.connectionError);
 
       final respuesta = await conexion.registrarAtencionesClase(
-        modelosCompletos('registrar_peticion'),
+        modelosMarcados(),
         210,
       );
 

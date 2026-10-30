@@ -15,6 +15,10 @@ class ConexionhorariosFalsa implements Conexionhorarios {
   String? ultimoGrupo;
   final List<String> gruposPedidos = [];
   int llamadasHorarios = 0;
+  //si se fija, la conexion lanza esto en vez de responder: la real solo
+  //captura Exception, asi que un TypeError de HorarioModelo.fromJson sale
+  //hacia el repositorio
+  Object? lanzar;
 
   @override
   Future<RespuestaModelo> obtenerHorariosGrupo(
@@ -26,6 +30,7 @@ class ConexionhorariosFalsa implements Conexionhorarios {
     llamadasHorarios++;
     ultimoGrupo = '$categoria/$curso/$anio/$iterable';
     gruposPedidos.add(ultimoGrupo!);
+    if (lanzar != null) throw lanzar!;
     //una copia por peticion: la misma respuesta sirve para varios grupos
     return copiaRespuesta(respuestaHorarios);
   }

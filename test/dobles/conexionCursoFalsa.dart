@@ -20,11 +20,16 @@ class ConexionCursoFalsa implements ConexionCurso {
   int llamadasCursosDe = 0;
   int llamadasAgregar = 0;
   int llamadasObtener = 0;
+  //si se fija, los tres metodos lanzan esto en vez de responder: la conexion
+  //real solo captura Exception, asi que un TypeError (fromJson incompleto o
+  //imagenFile! nulo) sale hacia el repositorio
+  Object? lanzar;
 
   @override
   Future<RespuestaModelo> enconcontrarCursosDe(String tituloCategoria) async {
     llamadasCursosDe++;
     ultimaCategoria = tituloCategoria;
+    if (lanzar != null) throw lanzar!;
     return respuestaCursosDe;
   }
 
@@ -32,6 +37,7 @@ class ConexionCursoFalsa implements ConexionCurso {
   Future<RespuestaModelo> agregarCurso(CursoModelo curso) async {
     llamadasAgregar++;
     ultimoAgregado = curso;
+    if (lanzar != null) throw lanzar!;
     return respuestaAgregar;
   }
 
@@ -40,6 +46,7 @@ class ConexionCursoFalsa implements ConexionCurso {
     llamadasObtener++;
     ultimaCategoria = categoria;
     ultimoCurso = curso;
+    if (lanzar != null) throw lanzar!;
     return respuestaObtener;
   }
 

@@ -4,8 +4,9 @@ import 'package:dpt_movil/data/models/atencionModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 
-//ojo: al 2026-10-23 el backend no tiene /atencionesporclase ni /atenciones
-//(responden 404); esta conexion queda lista para cuando se agreguen
+//GET y POST /asistenciasClase?idClase= (publicados en /v3/api-docs el
+//2026-10-29). El backend solo usa el codigo de la clase: categoria, curso,
+//anio e iterable ya no viajan
 class Conexionatencionesremoto implements Conexionatenciones {
   //el Dio compartido llega desde la raiz de composicion, con la baseUrl
   final Dio _dio;
@@ -21,10 +22,12 @@ class Conexionatencionesremoto implements Conexionatenciones {
     int claseid,
   ) async {
     String metodo = "GET";
-    String path =
-        '/atencionesporclase?categoria=$categoria&curso=$curso&anio=$anio&iterable=$iterable&claseid=$claseid';
+    String path = '/asistenciasClase';
     try {
-      final response = await _dio.get(path);
+      final response = await _dio.get(
+        path,
+        queryParameters: {'idClase': claseid},
+      );
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
@@ -42,7 +45,7 @@ class Conexionatencionesremoto implements Conexionatenciones {
       }
       List<dynamic> data = response.data;
       List<Atencionmodelo> atenciones =
-          data.map((json) => Atencionmodelo.fromJson(json)).toList();
+          data.map((json) => Atencionmodelo.fromJson(json, claseid)).toList();
       return RespuestaModelo(codigoHttp: 200, datos: atenciones);
     } on DioException catch (dioError) {
       return RespuestaModelo.fromDioException(dioError, metodo);
@@ -64,11 +67,14 @@ class Conexionatencionesremoto implements Conexionatenciones {
     int idClase,
   ) async {
     String metodo = "POST";
-    String path = '/atenciones?idclase=$idClase';
+    String path = '/asistenciasClase';
     try {
+      //responde 200 con el resumen {idClase, registradas, eliminadas,
+      //sinCambios}; la app solo necesita saber que se guardo
       final response = await _dio.post(
         path,
-        data: atenciones,
+        queryParameters: {'idClase': idClase},
+        data: atenciones.map((atencion) => atencion.toJson()).toList(),
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
       if (response.statusCode != 200) {

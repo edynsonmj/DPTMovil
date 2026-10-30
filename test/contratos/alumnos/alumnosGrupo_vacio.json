@@ -1,0 +1,7 @@
+{
+  "codigoError": "GC-0002",
+  "mensaje": "El listado a retornar se encuentra vacio, No se encuentran alumnos registrados para el grupo consultado",
+  "codigoHttp": 200,
+  "url": "http://localhost:8082/api/v2/alumnosGrupo",
+  "metodo": "GET"
+}

@@ -20,6 +20,11 @@ class ConexioninscripcionFalsa implements Conexioninscripcion {
   int llamadasAgregar = 0;
   int llamadasValidar = 0;
   int llamadasEliminar = 0;
+  //si se fija, la conexion lanza esto en vez de responder: la conexion real
+  //solo captura Exception, asi que un TypeError (p. ej. al armar el
+  //ErrorModelo de un 2xx sin cuerpo) le sale hacia el repositorio
+  Object? lanzarAlAgregar;
+  Object? lanzarAlEliminar;
 
   @override
   Future<RespuestaModelo> agregarInscripcion(
@@ -27,6 +32,7 @@ class ConexioninscripcionFalsa implements Conexioninscripcion {
   ) async {
     llamadasAgregar++;
     ultimaAgregada = inscripcion;
+    if (lanzarAlAgregar != null) throw lanzarAlAgregar!;
     return respuestaAgregar;
   }
 
@@ -46,6 +52,7 @@ class ConexioninscripcionFalsa implements Conexioninscripcion {
   ) async {
     llamadasEliminar++;
     ultimaEliminada = inscripcion;
+    if (lanzarAlEliminar != null) throw lanzarAlEliminar!;
     return respuestaEliminar;
   }
 }

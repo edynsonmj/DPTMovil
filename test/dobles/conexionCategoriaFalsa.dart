@@ -24,10 +24,15 @@ class ConexionCategoriaFalsa implements ConexionCategoria {
   int llamadasGuardar = 0;
   int llamadasActualizar = 0;
   int llamadasEliminar = 0;
+  //si se fija, los cuatro metodos lanzan esto en vez de responder: la
+  //conexion real solo captura Exception, asi que un TypeError (fromJson
+  //incompleto o imagenFile! nulo) sale hacia el repositorio
+  Object? lanzar;
 
   @override
   Future<RespuestaModelo> encontrarCategorias() async {
     llamadasListar++;
+    if (lanzar != null) throw lanzar!;
     return respuestaListar;
   }
 
@@ -35,6 +40,7 @@ class ConexionCategoriaFalsa implements ConexionCategoria {
   Future<RespuestaModelo> guardarCategoria(categoriaModelo categoria) async {
     llamadasGuardar++;
     ultimaGuardada = categoria;
+    if (lanzar != null) throw lanzar!;
     return respuestaGuardar;
   }
 
@@ -42,6 +48,7 @@ class ConexionCategoriaFalsa implements ConexionCategoria {
   Future<RespuestaModelo> actualizarCategoria(categoriaModelo categoria) async {
     llamadasActualizar++;
     ultimaActualizada = categoria;
+    if (lanzar != null) throw lanzar!;
     return respuestaActualizar;
   }
 
@@ -49,6 +56,7 @@ class ConexionCategoriaFalsa implements ConexionCategoria {
   Future<RespuestaModelo> eliminarCategoria(String titulo) async {
     llamadasEliminar++;
     ultimoTituloEliminado = titulo;
+    if (lanzar != null) throw lanzar!;
     return respuestaEliminar;
   }
 

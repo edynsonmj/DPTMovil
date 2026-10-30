@@ -299,7 +299,7 @@ void main() {
         error: ErrorModelo(
           codigoHttp: 500,
           mensaje: 'fallo interno',
-          url: '/atencionesporclase',
+          url: '/asistenciasClase',
           metodo: 'GET',
         ),
       );

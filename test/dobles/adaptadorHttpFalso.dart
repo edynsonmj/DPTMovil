@@ -14,7 +14,7 @@ class PeticionRegistrada {
 
   PeticionRegistrada(this.metodo, this.uri, this.cuerpo);
 
-  //ruta sin la base, como la escribe la conexion: '/atenciones'
+  //ruta sin la base, como la escribe la conexion: '/asistenciasClase'
   String get ruta => uri.path.substring(AdaptadorHttpFalso._basePath.length);
 
   @override
@@ -115,7 +115,9 @@ class AdaptadorHttpFalso implements HttpClientAdapter {
     if (requestStream == null) return null;
     final bytes = await requestStream.expand((trozo) => trozo).toList();
     if (bytes.isEmpty) return null;
-    final texto = utf8.decode(bytes);
+    //allowMalformed: un multipart con una imagen trae bytes que no son UTF-8;
+    //sin esto la peticion fallaba aqui, antes de llegar al adaptador
+    final texto = utf8.decode(bytes, allowMalformed: true);
     try {
       return jsonDecode(texto);
     } on FormatException {

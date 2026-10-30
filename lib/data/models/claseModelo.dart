@@ -72,7 +72,9 @@ class Clasemodelo {
 
       'idInstructor': idInstructor,
 
-      'fecha': fecha.toIso8601String(),
+      //con zona (Z): sin ella el backend toma la hora local como UTC y la
+      //clase de las 00:00 a las 04:59 quedaba en el dia anterior (CL-06)
+      'fecha': fecha.toUtc().toIso8601String(),
 
       'horas': horas,
 
