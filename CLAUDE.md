@@ -80,7 +80,8 @@ Backend behaviours the tests pin down:
 Tests that assert the **correct** behaviour for a suspected bug, so they are **red while the bug exists**. They come from the audit in `auditoria-mvvm/`:
 - `plan-diagnostico-pruebas.md` — method and module order;
 - `registro-bugs.md` — every bug ID, its evidence and its state;
-- `informe-diagnostico-asistencias.md` — report for the first module and the proposed fix batches.
+- `informe-diagnostico-asistencias.md` — report for the first module and the proposed fix batches;
+- `informe-diagnostico-pruebas.md` — consolidated report for modules 1–9b (findings by cause, discarded hypotheses, fix order).
 
 - Every file starts with `@Tags(['diagnostico'])` + `library;` (tag declared in `dart_test.yaml`). Test names carry the bug ID: `'$capa - diagnostico - $metodo - BUG AS-04 - <correct behaviour>'`.
 - They use the same tools as the backend-free suite (doubles, `AdaptadorHttpFalso`, contracts, `integracion/montajeAtenciones.dart`). Exception: the six `diagnostico/{inscripciones,estadisticas,grupos,cursos,categorias,clases}/remoto_diagnostico_test.dart` run against the **real backend** (they reuse the `prepararVm…` helpers from `main_test.dart`); without the backend they fail in `setUpAll` and their red proves nothing.

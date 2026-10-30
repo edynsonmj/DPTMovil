@@ -832,3 +832,29 @@ Resultado:
 | 20 | I-Local (vista) | La pantalla "Instructores" muestra los instructores del backend y no otros | ❌ IT-03 |
 | 21 | I-Remota | Cada instructor trae sus 4 campos y su id no se repite | ✅ |
 | 22 | I-Remota | Un alumno recién registrado no aparece entre los instructores | ✅ |
+
+## Seguimiento en Jira (2026-10-29)
+
+Los 57 hallazgos abiertos están en el backlog del proyecto **SCRUM** (DEPORTE PARA TODOS), como tareas de la Epic [SCRUM-39](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-39) «MP — Corrección de hallazgos del diagnóstico por pruebas». Cada tarea lleva las etiquetas `backlog`, `diagnostico`, el módulo y su ID (más `latente` o `backend` cuando aplica). La prioridad sale de la severidad: M → Medium, B → Low. Al corregir un hallazgo, se cierra también su tarea.
+
+| ID | Jira | ID | Jira | ID | Jira |
+|---|---|---|---|---|---|
+| X-01 | [SCRUM-40](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-40) | AS-01 | [SCRUM-41](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-41) | AS-02 | [SCRUM-42](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-42) |
+| AS-03 | [SCRUM-43](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-43) | AS-06 | [SCRUM-44](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-44) | AS-07 | [SCRUM-45](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-45) |
+| AS-08 | [SCRUM-46](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-46) | AS-12 | [SCRUM-47](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-47) | IN-08 | [SCRUM-48](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-48) |
+| IN-09 | [SCRUM-49](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-49) | IN-10 | [SCRUM-50](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-50) | IN-11 | [SCRUM-51](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-51) |
+| IN-12 | [SCRUM-52](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-52) | IN-13 | [SCRUM-53](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-53) | ES-01 | [SCRUM-54](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-54) |
+| ES-02 | [SCRUM-55](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-55) | ES-03 | [SCRUM-56](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-56) | ES-04 | [SCRUM-57](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-57) |
+| ES-05 | [SCRUM-58](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-58) | GR-01 | [SCRUM-59](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-59) | GR-02 | [SCRUM-60](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-60) |
+| GR-03 | [SCRUM-61](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-61) | GR-04 | [SCRUM-62](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-62) | GR-05 | [SCRUM-63](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-63) |
+| GR-06 | [SCRUM-64](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-64) | CU-01 | [SCRUM-65](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-65) | CU-02 | [SCRUM-66](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-66) |
+| CU-03 | [SCRUM-67](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-67) | CU-04 | [SCRUM-68](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-68) | CU-05 | [SCRUM-69](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-69) |
+| CAT-01 | [SCRUM-70](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-70) | CAT-02 | [SCRUM-71](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-71) | CAT-03 | [SCRUM-72](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-72) |
+| CAT-04 | [SCRUM-73](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-73) | CAT-05 | [SCRUM-74](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-74) | CAT-06 | [SCRUM-75](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-75) |
+| CAT-09 | [SCRUM-76](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-76) | CAT-13 | [SCRUM-77](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-77) | CAT-14 | [SCRUM-78](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-78) |
+| CL-01 | [SCRUM-79](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-79) | CL-03 | [SCRUM-80](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-80) | CL-04 | [SCRUM-81](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-81) |
+| CL-05 | [SCRUM-82](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-82) | HO-01 | [SCRUM-83](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-83) | HO-02 | [SCRUM-84](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-84) |
+| HO-03 | [SCRUM-85](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-85) | AL-01 | [SCRUM-86](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-86) | AL-02 | [SCRUM-87](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-87) |
+| AL-03 | [SCRUM-88](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-88) | AL-04 | [SCRUM-89](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-89) | IT-01 | [SCRUM-90](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-90) |
+| IT-02 | [SCRUM-91](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-91) | IT-03 | [SCRUM-92](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-92) | FA-01 | [SCRUM-93](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-93) |
+| FA-02 | [SCRUM-94](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-94) | FA-03 | [SCRUM-95](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-95) | FA-04 | [SCRUM-96](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-96) |
