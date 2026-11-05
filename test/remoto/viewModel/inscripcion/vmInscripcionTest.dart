@@ -255,12 +255,12 @@ class VmInscripcionTest {
     });
   }
 
-  //IN-08 contra el backend: el error de un desvincular debe nombrar el metodo
-  //que de verdad salio
-  void diagnosticoOrigenDelError(Inscripcionviewmodel Function() crearVm) {
+  //antes diagnostico de IN-08 (corregido 2026-11-05): el error de un
+  //desvincular nombra el metodo que de verdad salio. No cambia datos
+  void prueba6OrigenDelError(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Desvincular";
-    String caso = "BUG IN-08 - el origen del Fallo nombra el metodo PUT";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "el origen del Fallo nombra el metodo PUT";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
       final g = _grupoCreado();
 

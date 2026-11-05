@@ -17,6 +17,5 @@ void main() {
     VmInscripcionTest test = VmInscripcionTest();
     prepararVmInscripcion(test);
     test.diagnosticoMensajeDelRechazo(crearInscripcionViewModel);
-    test.diagnosticoOrigenDelError(crearInscripcionViewModel);
   });
 }

@@ -60,17 +60,6 @@ void main() {
   });
 
   group('Inscripcion del alumno (diagnostico de punta a punta):', () {
-    test('$capa - $tipo - Desvincular - BUG IN-08 - un error lleva como origen el metodo PUT que se envio', () async {
-      adaptador.responder('PUT', '/desvincularInscripcion', 500, 'error interno');
-
-      final resultado = await vm.desvincularInscripcion(inscripcion());
-
-      expect(resultado, isA<Fallo>());
-      //la peticion que salio fue un PUT
-      expect(adaptador.peticionesA('PUT', '/desvincularInscripcion'), hasLength(1));
-      expect((resultado as Fallo).origen, startsWith('PUT '));
-    });
-
     test('$capa - $tipo - Cargar estados - BUG IN-09 - sin red el grupo queda con error, no como "no inscrito"', () async {
       adaptador.fallar(
         'GET',

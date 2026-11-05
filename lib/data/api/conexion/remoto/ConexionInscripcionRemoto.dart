@@ -78,7 +78,9 @@ class Conexioninscripcionremoto implements Conexioninscripcion {
 
   @override
   Future<RespuestaModelo> eliminarInscripcion(Inscripcionmodelo modelo) async {
-    String metodo = "POST";
+    //la peticion es un PUT: el origen de un error debe nombrar el metodo que
+    //salio (antes decia POST, IN-08)
+    String metodo = "PUT";
     String path = "/desvincularInscripcion";
     try {
       final response = await _dio.put(

@@ -289,8 +289,9 @@ probarViewModelInscripcion(){
     test.prueba3DesvincularSinInscripcion(crearInscripcionViewModel);
     test.prueba4CupoLleno(crearInscripcionViewModel);
     test.prueba5Inexistentes(crearInscripcionViewModel);
+    test.prueba6OrigenDelError(crearInscripcionViewModel);
     test.prueba7CargarEstados(crearInscripcionViewModel);
-    //los casos rojos (IN-08, IN-13) van en
+    //el caso rojo (IN-13) va en
     //test/diagnostico/inscripciones/remoto_diagnostico_test.dart
   });
 }

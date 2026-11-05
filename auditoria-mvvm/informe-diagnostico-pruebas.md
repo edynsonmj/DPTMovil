@@ -193,7 +193,7 @@ Contra el backend real, el backend y la app se portan bien en esto:
 | Backend | **CL-01, ES-05, GR-06, IN-13** y el contrato de los 404 | Van al equipo del backend. ES-05 también se puede rodear en la app |
 | Al final | **AS-01, O-01, CAT-12** (roles y autenticación) | Decisión del 2026-10-29 |
 
-Los 57 hallazgos abiertos están en el backlog de Jira como tareas de la Epic **SCRUM-39**, cada una con su lote. La tabla que relaciona cada ID con su tarea está al final de [registro-bugs.md](registro-bugs.md).
+Los 57 hallazgos abiertos están en el backlog de Jira como tareas de la Epic **SCRUMBAN-39**, cada una con su lote. La tabla que relaciona cada ID con su tarea está al final de [registro-bugs.md](registro-bugs.md).
 
 Cada corrección sigue la misma regla: su prueba diagnóstica pasa a verde, se mueve a la suite normal sin el prefijo `BUG` y el registro marca el hallazgo como *corregido*. Así se hizo con CL-06.
 

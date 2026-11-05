@@ -97,6 +97,19 @@ void main() {
       expect(vm.estadoDe(grupo).datos, isFalse);
     });
 
+    //nacio como diagnostico de IN-08: la conexion etiquetaba el error del PUT
+    //como POST
+    test('$capa - $tipo - Desvincular - un error lleva como origen el metodo PUT que se envio', () async {
+      adaptador.responder('PUT', '/desvincularInscripcion', 500, 'error interno');
+
+      final resultado = await vm.desvincularInscripcion(inscripcion());
+
+      expect(resultado, isA<Fallo>());
+      //la peticion que salio fue un PUT
+      expect(adaptador.peticionesA('PUT', '/desvincularInscripcion'), hasLength(1));
+      expect((resultado as Fallo).origen, startsWith('PUT '));
+    });
+
     test('$capa - $tipo - Inscribir - 409 es Fallo con el mensaje del backend y no revalida', () async {
       adaptador.responder('POST', '/inscripcion', 409, {
         'codigoError': 'GC-0012',
