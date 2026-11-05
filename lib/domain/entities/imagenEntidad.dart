@@ -1,7 +1,4 @@
-import 'dart:convert';
 import 'dart:typed_data';
-
-import 'package:dpt_movil/data/models/imagenModelo.dart';
 
 class ImagenEntidad {
   final int? id;
@@ -25,16 +22,6 @@ class ImagenEntidad {
       tipoArchivo: json['tipoArchivo'],
       longitud: json['longitud'],
       datos: json['datos'],
-    );
-  }
-
-  factory ImagenEntidad.fromModelo(ImagenModelo modelo) {
-    return ImagenEntidad(
-      id: modelo.id,
-      nombre: modelo.nombre,
-      tipoArchivo: modelo.tipoArchivo,
-      longitud: modelo.longitud,
-      datos: Base64Decoder().convert(modelo.datosBase64!),
     );
   }
 }

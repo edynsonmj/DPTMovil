@@ -478,7 +478,7 @@ Plan: [plan-diagnostico-categorias.md](plan-diagnostico-categorias.md). Las hip�
 | Nivel | Archivo | Verdes | Rojas |
 |---|---|---|---|
 | U-Repo | `test/unitarias/repositorio/categoriaRepositorio_test.dart` (+5 casos) | 5 | — |
-| U-Repo (diagnóstico) | `test/diagnostico/categorias/repositorio_diagnostico_test.dart` | — | 2 (CAT-13, CAT-14) |
+| U-Repo (diagnóstico) | `test/diagnostico/categorias/repositorio_diagnostico_test.dart` | — | 2 (CAT-13, CAT-14; CAT-14 corregido y movido a la suite unitaria el 2026-11-04) |
 | I-Local: VM → conexiones reales de categorías e imágenes → transporte falso | `test/integracion/categorias_integracion_test.dart` (nuevo; fixtures en `test/contratos/categorias/`) | 5 | — |
 | I-Local (diagnóstico) | `test/diagnostico/categorias/integracion_diagnostico_test.dart` | — | 7 (CAT-01, 02, 03, 04, 05, 06, 09) |
 | I-Remota: VM → backend real | `test/remoto/viewModel/categoria/vmCategoriaDiagnosticoTest.dart` (nuevo, en `main_test.dart`) | 3 (una es la observación CAT-16) | — |
@@ -499,7 +499,7 @@ Resultado:
 | CAT-04 | VM | `CategoriaViewModel` no usa `NotificacionSegura`: una carga que termina después de `dispose` lanza `A CategoriaViewModel was used after being disposed` | `integracion_diagnostico` · CAT-04 (`FlutterError`) | **Prueba.** Esa aserción de Flutter solo salta en modo debug | B | app | **confirmado** |
 | CAT-05 | VM | `cargarCategorias(context)` muestra un error 500 en el `DialogError` **con código 204** (todos los errores llevan 204) | `integracion_diagnostico` · CAT-05 (`Expected: <500>`, `Actual: <204>`) | **Prueba** (`testWidgets`). Solo lo usa `InscripcionesGeneralesView` | B | app | **confirmado** |
 | CAT-01 | Conexión → VM | Insertar con `idImagen` y sin archivo devuelve `Fallo(-1, "Null check operator used on a null value", origen: ViewModel)`: la conexión hace `datos.imagenFile!` y la excepción atraviesa conexión, repositorio y servicio | `integracion_diagnostico` · CAT-01 | **Prueba** con la cadena real. El formulario no llega a este camino (al crear exige imagen nueva) | B | app | **confirmado** (latente) |
-| CAT-14 | Repositorio | `insertarCategoria` acepta `idImagen` como imagen suficiente (no corta con 400), pero arma el modelo **sin** `imagenId`, así que la imagen existente se pierde. Es la otra mitad de CAT-01 | `repositorio_diagnostico` · CAT-14 (`Expected: <9>`, `Actual: <null>`) | **Prueba** | B | app | **confirmado** |
+| CAT-14 | Repositorio | `insertarCategoria` acepta `idImagen` como imagen suficiente (no corta con 400), pero arma el modelo **sin** `imagenId`, así que la imagen existente se pierde. Es la otra mitad de CAT-01 | `repositorio_diagnostico` · CAT-14 (`Expected: <9>`, `Actual: <null>`) | **Prueba** | B | app | **corregido** (2026-11-04): el repositorio arma el modelo con `CategoriaMapper.aModelo`, que lleva el `imagenId` (si hay archivo, la conexión lo reemplaza por el de la imagen subida). La prueba pasó a `test/unitarias/repositorio/categoriaRepositorio_test.dart`. CAT-01 sigue abierto: la conexión real aún hace `imagenFile!` |
 | CAT-02 | Conexión | Un `POST /categoria` con 201 **sin cuerpo** termina en `Fallo(-1, "NoSuchMethodError: The method '[]' was called on null")`, aunque se guardó: `categoriaModelo.fromJson(null)` | `integracion_diagnostico` · CAT-02 | **Prueba.** Hoy el backend responde con cuerpo, así que no se ve en uso real | B | app | **confirmado** (latente) |
 | CAT-06 | Conexión | Una categoría con `titulo: null` en `/categorias2` hace que la pantalla muestre `type 'Null' is not a subtype of type 'String'` en lugar de un error con código: `fromJson` lanza y ni la conexión (solo captura `Exception`) ni el repositorio lo capturan | `integracion_diagnostico` · CAT-06 | **Prueba.** El JSON incompleto lo fabrica la prueba | B | app | **confirmado** (latente) |
 | CAT-13 | Repositorio | `CategoriaRepositorio` no tiene ningún `try`: un `TypeError` de la conexión lo atraviesa al listar, guardar, actualizar y eliminar | `repositorio_diagnostico` · CAT-13 (`Instance of 'TypeError'`) | **Prueba.** CAT-01, CAT-02 y CAT-06 demuestran que la conexión real los deja pasar | B | app | **confirmado** |
@@ -534,7 +534,7 @@ Resultado:
 | 4 | U-Repo | Actualizar con imagen nueva → pasa el archivo y conserva el id | ✅ |
 | 5 | U-Repo | Eliminar → pasa el título tal cual; un 404 pasa sin cambios | ✅ |
 | 6 | U-Repo | La conexión lanza un `TypeError` en los 4 métodos → error devuelto | ❌ CAT-13 |
-| 7 | U-Repo | Guardar con `idImagen` sin archivo → el modelo lleva `imagenId` | ❌ CAT-14 |
+| 7 | U-Repo | Guardar con `idImagen` sin archivo → el modelo lleva `imagenId` | ❌ CAT-14 (corregido 2026-11-04) |
 | 8 | I-Local | Listar 200 → lista, desplegable e `idImagen` | ✅ |
 | 9 | I-Local | Listar sin red → `Código: 503`, lista y desplegable vacíos | ✅ |
 | 10 | I-Local | Crear: imagen → `POST /categoria` con el título recortado y el `imagenId` → recarga | ✅ |

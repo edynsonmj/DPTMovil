@@ -40,16 +40,6 @@ void main() {
         expect(respuesta.error, isNotNull);
       }
     });
-
-    //el repositorio acepta idImagen como imagen suficiente (no corta con 400)
-    //pero arma el modelo sin el: la imagen que ya existe no viaja
-    test('$capa - $tipo - Guardar categoria - BUG CAT-14 - con idImagen y sin archivo el modelo enviado lleva el imagenId', () async {
-      await repositorio.insertarCategoria(
-        CategoriaEntidad(titulo: 'Futbol', descripcion: 'Desc', idImagen: 9),
-      );
-
-      expect(conexion.llamadasGuardar, 1);
-      expect(conexion.ultimaGuardada?.imagenId, 9);
-    });
+    //CAT-14 (corregido) paso a test/unitarias/repositorio/categoriaRepositorio_test.dart
   });
 }

@@ -1,12 +1,10 @@
 //TODO: construir contrato (interface) que sea implementado por un repositorio
-import 'dart:typed_data';
-
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCategoria.dart';
+import 'package:dpt_movil/data/mappers/categoriaMapper.dart';
 import 'package:dpt_movil/data/models/categoriaModelo.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
-import 'package:dpt_movil/domain/entities/imagenEntidad.dart';
 
 class CategoriaRepositorio {
   ConexionCategoria cliente;
@@ -18,31 +16,11 @@ class CategoriaRepositorio {
     RespuestaModelo respuesta = await cliente.encontrarCategorias();
     //transformar datos si el codigo es 200
     if (respuesta.codigoHttp == 200) {
-      //convertir los datos de modelo a entidad para que sean manjados por el front
+      //convertir los datos de modelo a entidad para que sean manejados por el front
       List<categoriaModelo> listaModelo =
           respuesta.datos as List<categoriaModelo>;
-      List<CategoriaEntidad> listaEntidad = [];
-      //convertimos los datos de modelo a entidad
-      for (var item in listaModelo) {
-        CategoriaEntidad entidad = CategoriaEntidad(
-          titulo: item.titulo,
-          descripcion: item.descripcion,
-          imagen:
-              (item.imagen == null)
-                  ? null
-                  : ImagenEntidad(
-                    //si la imagen no es nula se crea el objeto
-                    id: item.imagen!.id,
-                    nombre: item.imagen!.nombre,
-                    tipoArchivo: item.imagen!.tipoArchivo,
-                    longitud: item.imagen!.longitud,
-                    datos: Uint8List(8),
-                  ),
-          idImagen:
-              item.imagenId, //se convierte la imagen a un tipo de dato manejable en el sistema
-        );
-        listaEntidad.add(entidad);
-      }
+      List<CategoriaEntidad> listaEntidad =
+          listaModelo.map(CategoriaMapper.aEntidad).toList();
       return RespuestaModelo(codigoHttp: 200, datos: listaEntidad);
     }
     //si el estado no es 200 solo se envia la respuesta que debe contener el o los errores encontrados con sus codigos
@@ -63,12 +41,8 @@ class CategoriaRepositorio {
         ),
       );
     }
-    categoriaModelo modeloPeticion = categoriaModelo(
-      titulo: entidad.titulo,
-      descripcion: entidad.descripcion,
-      imagenFile: entidad.imagenFile,
-    );
-    CategoriaEntidad entidadRespuesta;
+    //si hay archivo, la conexion lo sube y reemplaza el imagenId
+    categoriaModelo modeloPeticion = CategoriaMapper.aModelo(entidad);
 
     final RespuestaModelo respuesta = await cliente.guardarCategoria(
       modeloPeticion,
@@ -81,14 +55,10 @@ class CategoriaRepositorio {
         respuesta.codigoHttp = 204;
         return respuesta;
       }
-      categoriaModelo modelo = respuesta.datos as categoriaModelo;
-      entidadRespuesta = CategoriaEntidad(
-        titulo: modelo.titulo,
-        descripcion: modelo.descripcion,
-        idImagen: modelo.imagenId,
-      );
       //escribo los datos transformados
-      respuesta.datos = entidadRespuesta;
+      respuesta.datos = CategoriaMapper.aEntidad(
+        respuesta.datos as categoriaModelo,
+      );
     }
     return respuesta;
   }
@@ -99,14 +69,7 @@ class CategoriaRepositorio {
   }
 
   Future<RespuestaModelo> actualizarCategoria(CategoriaEntidad entidad) async {
-    categoriaModelo modeloPeticion = categoriaModelo(
-      titulo: entidad.titulo,
-      descripcion: entidad.descripcion,
-      imagenId: entidad.idImagen,
-    );
-    if (entidad.imagenFile != null) {
-      modeloPeticion.imagenFile = entidad.imagenFile;
-    }
+    categoriaModelo modeloPeticion = CategoriaMapper.aModelo(entidad);
 
     final RespuestaModelo respuesta = await cliente.actualizarCategoria(
       modeloPeticion,
@@ -120,8 +83,9 @@ class CategoriaRepositorio {
         respuesta.codigoHttp = 204;
         return respuesta;
       }
-      categoriaModelo modelo = respuesta.datos as categoriaModelo;
-      respuesta.datos = CategoriaEntidad.fromModelo(modelo);
+      respuesta.datos = CategoriaMapper.aEntidad(
+        respuesta.datos as categoriaModelo,
+      );
     }
     return respuesta;
   }

@@ -15,13 +15,13 @@ flutter pub get
 flutter run                                   # backend at 10.0.2.2:8082 (emulator alias for the host)
 flutter run --dart-define=API_HOST=192.168.1.20   # backend elsewhere
 flutter analyze                               # lints via flutter_lints (analysis_options.yaml)
-flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (243), must be green
+flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (248), must be green
 flutter test test/main_test.dart                              # remote suite (103), needs the backend
-flutter test test/diagnostico                                 # diagnostic suite (77): red ON PURPOSE, one test per known bug
+flutter test test/diagnostico                                 # diagnostic suite (76): red ON PURPOSE, one test per known bug
 flutter test --plain-name "<substring of test name>"
 ```
 
-Plain `flutter test` runs **all three** (423), so it is never all green: the diagnostic suite fails by design (74 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
+Plain `flutter test` runs **all three** (427), so it is never all green: the diagnostic suite fails by design (73 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
 
 Analyzer baseline: 0 errors, 31 warnings (mostly `must_be_immutable`), ~317 infos (new test files only add `file_names` infos, because they follow the project's camelCase file names). New code should not raise the warning count.
 
@@ -105,6 +105,7 @@ config/        configApi, inyeccion (composition root), routes, theme
 
 - `Conexion*` classes speak HTTP and produce `*Modelo` objects (JSON shape, `fromJson`/`toJson`). Interfaces live in `data/api/conexion/interfaces/`, implementations in `remoto/`.
 - `*Repositorio` converts `*Modelo` ⇄ `*Entidad`. **Entities never cross into the connection layer and models never reach views** — this mapping is the repository's whole job.
+- Migrating, module by module: the conversion moves to `data/mappers/<modulo>Mapper.dart` (`aEntidad` / `aModelo`, tested in `unitarias/mapper/`), so entities stop importing models. Done: categoría, imagen. The rest still use `XEntidad.fromModelo` / `XModelo.fromEntidad`.
 - `Servicio*` classes are thin pass-throughs today but are **kept on purpose**: they are the injection point between VMs and repositories. Do not confuse them with the "services" of Flutter's architecture guide (those are our `Conexion*`).
 - ViewModels hold the state, call services, and expose getters + `notifyListeners()`.
 - Image URLs are built by the connection (`urlImagen(id)`) and travel up to the VM; views pass them to `Tarjeta`/`EncabezadoImagen`. Widgets never know the server address.

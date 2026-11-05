@@ -173,7 +173,17 @@ void main() {
       expect(conexion.ultimoTituloEliminado, 'Fútbol & Voleibol');
       expect(respuesta, same(e404));
     });
-    //los casos rojos (CAT-13 y CAT-14) estan en
+
+    //antes CAT-14: el modelo se armaba sin el imagenId de una imagen ya subida
+    test('$capa - $tipo - Guardar categoria - con idImagen y sin archivo el modelo enviado lleva el imagenId', () async {
+      await repositorio.insertarCategoria(
+        CategoriaEntidad(titulo: 'Futbol', descripcion: 'Desc', idImagen: 9),
+      );
+
+      expect(conexion.llamadasGuardar, 1);
+      expect(conexion.ultimaGuardada?.imagenId, 9);
+    });
+    //el caso rojo (CAT-13) esta en
     //test/diagnostico/categorias/repositorio_diagnostico_test.dart
   });
 }

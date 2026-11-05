@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionImagen.dart';
+import 'package:dpt_movil/data/mappers/imagenMapper.dart';
+import 'package:dpt_movil/data/models/imagenModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
-import 'package:dpt_movil/domain/entities/imagenEntidad.dart';
 
 class Imagenrepositorio {
   Conexionimagen conexion;
@@ -14,8 +15,7 @@ class Imagenrepositorio {
       if (respuesta.codigoHttp != 200) {
         return respuesta;
       }
-      ImagenEntidad entidad = ImagenEntidad.fromModelo(respuesta.datos);
-      respuesta.datos = entidad;
+      respuesta.datos = ImagenMapper.aEntidad(respuesta.datos as ImagenModelo);
       return respuesta;
     } on FormatException catch (formatError) {
       return RespuestaModelo.fromFormatException(
