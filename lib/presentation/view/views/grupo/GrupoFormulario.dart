@@ -1,11 +1,10 @@
-import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formGrupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/instructorEntidad.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
@@ -30,12 +29,13 @@ class _GrupoFormularioState extends State<Grupoformulario> {
   late bool _esEdicion;
   late CursoEntidad _curso;
   Grupoentidad? _grupo;
+  //bloquea GUARDAR mientras la peticion esta en vuelo
+  bool _guardando = false;
 
   final _formKey = GlobalKey<FormState>();
   final _cuposController = TextEditingController();
 
   String? _idInstructor;
-  int? _anio;
 
   @override
   void initState() {
@@ -43,11 +43,6 @@ class _GrupoFormularioState extends State<Grupoformulario> {
     _esEdicion = widget.argumentos.esEdicion;
     _curso = widget.argumentos.curso;
     _grupo = widget.argumentos.grupo;
-    //antes se fijaba con setState dentro de build (_infoCurso); la fecha de
-    //creacion se calcula al guardar
-    if (!_esEdicion) {
-      _anio = DateTime.now().year;
-    }
 
     //el vm lo crea la ruta grupoFormulario (route_generator)
     Future.microtask(() {
@@ -171,7 +166,10 @@ class _GrupoFormularioState extends State<Grupoformulario> {
         ),
         ListTile(
           title: Center(child: Text('Identificador', style: Tipografia.h6())),
-          subtitle: Center(child: Text('$_anio.N')),
+          //solo se pinta: el anio que se envia lo fija el vm al guardar
+          subtitle: Center(
+            child: Text('${_grupo?.anio ?? DateTime.now().year}.N'),
+          ),
         ),
       ],
     );
@@ -190,9 +188,7 @@ class _GrupoFormularioState extends State<Grupoformulario> {
   Widget _botonSubmit() {
     return Container(
       child: FilledButton(
-        onPressed: () {
-          _submitForm(context);
-        },
+        onPressed: _guardando ? null : _submitForm,
         child: Text('GUARDAR'),
       ),
     );
@@ -212,69 +208,56 @@ class _GrupoFormularioState extends State<Grupoformulario> {
     );
   }
 
-  Future<void> _submitForm(context) async {
-    if (_idInstructor == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Seleccione a un instructor'),
-          backgroundColor: ColorTheme.error,
-        ),
-      );
-      return;
-    }
-    if (_anio == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No se ha establecido identificador'),
-          backgroundColor: ColorTheme.error,
-        ),
-      );
-      return;
-    }
-    if (_formKey.currentState!.validate()) {
-      Grupoentidad g = Grupoentidad(
-        categoria: _curso.tituloCategoria,
-        curso: _curso.nombreCurso,
-        anio: _anio!,
-        iterable: 0,
-        imagen: _curso.imagen,
-        cupos: int.parse(_cuposController.text),
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _guardando = true;
+    });
+    try {
+      //las reglas (instructor, cupos numericos) y el armado del grupo los
+      //decide el vm propio de la ruta; la vista solo entrega lo que hay en
+      //pantalla. Guardar no recarga ninguna lista: lo hace la del curso al
+      //recibir true
+      final resultado = await context.read<Gruposviewmodel>().registrarGrupo(
+        curso: _curso,
+        cupos: _cuposController.text,
         idInstructor: _idInstructor,
-        fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+        original: _esEdicion ? _grupo : null,
       );
-
-      //vm propio de la ruta: guardar ya no recarga ninguna lista
-      Gruposviewmodel vm = Provider.of<Gruposviewmodel>(context, listen: false);
-
-      RespuestaModelo respuesta = await vm.insertarGrupo(g);
-
-      if (respuesta.codigoHttp == 201) {
-        if (context.mounted) {
-          await showDialog(
-            context: context,
-            builder:
-                (_) => DialogExito(
-                  titulo: 'Curso registrado',
-                  mensaje: 'El curso se ha guardado exitosamente.',
-                ),
-          );
-          Navigator.pop(context, true); // Volver y avisar éxito
-        }
-      } else {
-        if (context.mounted) {
-          await showDialog(
-            context: context,
-            builder:
-                (_) => DialogError(
-                  titulo: 'Error al guardar clase',
-                  mensaje:
-                      respuesta.error?.mensaje ??
-                      'Error desconocido. Código: ${respuesta.codigoHttp}',
-                  codigo: respuesta.codigoHttp,
-                ),
-          );
-        }
+      await _mostrarResultado(resultado);
+    } finally {
+      //en exito se hace pop, el widget ya no esta montado y no hay que tocarlo
+      if (mounted) {
+        setState(() {
+          _guardando = false;
+        });
       }
+    }
+  }
+
+  Future<void> _mostrarResultado(Resultado<Grupoentidad> resultado) async {
+    if (!mounted) return;
+    switch (resultado) {
+      case Exito():
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogExito(
+                titulo: 'Grupo registrado',
+                mensaje: 'El grupo se ha guardado exitosamente.',
+              ),
+        );
+        if (mounted) Navigator.pop(context, true);
+      case Fallo(:final codigo, :final mensaje):
+        await showDialog(
+          context: context,
+          builder:
+              (_) => DialogError(
+                titulo: 'Error al guardar el grupo',
+                mensaje: mensaje,
+                codigo: codigo,
+              ),
+        );
     }
   }
 }

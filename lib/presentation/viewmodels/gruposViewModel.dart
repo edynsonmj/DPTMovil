@@ -1,5 +1,8 @@
+import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
+import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart';
 import 'package:flutter/material.dart';
@@ -134,6 +137,56 @@ class Gruposviewmodel with ChangeNotifier, NotificacionSegura {
       _error = 'Error no controlado: ${e.toString()}';
       notifyListeners();
     }
+  }
+
+  //punto de entrada del formulario: aplica las reglas que antes vivian en la
+  //vista (instructor obligatorio, cupos numericos), arma el grupo del curso y
+  //lo registra. La vista entrega lo que hay en pantalla y recibe exito o
+  //fallo ya resueltos. [hoy] fija el anio y la fecha de creacion; por
+  //defecto el reloj del dispositivo, como antes
+  Future<Resultado<Grupoentidad>> registrarGrupo({
+    required CursoEntidad curso,
+    required String cupos,
+    String? idInstructor,
+    Grupoentidad? original, //null = crear
+    DateTime? hoy,
+  }) async {
+    //no hay operacion de edicion; ninguna pantalla abre el formulario asi,
+    //pero si llega se dice en vez de callar
+    if (original != null) {
+      return Fallo(0, 'La edicion de grupos aun no esta disponible', origen: 'ViewModel');
+    }
+    if (idInstructor == null) {
+      return Fallo(0, 'Seleccione un instructor', origen: 'ViewModel');
+    }
+    //el campo solo admite digitos, pero no limita el largo: int.parse lanzaba
+    //con un numero que no cabe en un int
+    final numeroCupos = int.tryParse(cupos.trim());
+    if (numeroCupos == null) {
+      return Fallo(0, 'Los cupos deben ser un numero valido', origen: 'ViewModel');
+    }
+    final fecha = hoy ?? DateTime.now();
+    final grupo = Grupoentidad(
+      categoria: curso.tituloCategoria,
+      curso: curso.nombreCurso,
+      anio: fecha.year,
+      //el iterable lo asigna el backend
+      iterable: 0,
+      imagen: curso.imagen,
+      cupos: numeroCupos,
+      idInstructor: idInstructor,
+      fechaCreacion: FormatDate.fechaACadena(fecha, '-'),
+    );
+    final respuesta = await insertarGrupo(grupo);
+    if (respuesta.codigoHttp == 201) {
+      return Exito(respuesta.datos is Grupoentidad ? respuesta.datos as Grupoentidad : null);
+    }
+    final error = respuesta.error;
+    return Fallo(
+      respuesta.codigoHttp,
+      error?.mensaje ?? 'Error desconocido. Código: ${respuesta.codigoHttp}',
+      origen: error == null ? null : '${error.metodo} ${error.url}',
+    );
   }
 
   Future<RespuestaModelo> insertarGrupo(Grupoentidad entidad) async {

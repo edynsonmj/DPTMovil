@@ -1,8 +1,10 @@
+import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/instructorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
 import 'package:dpt_movil/data/repositories/instructoresRepositorio.dart';
+import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
@@ -66,6 +68,79 @@ void main() {
       //el formulario tiene su propio vm: la lista la recarga la pantalla
       //del curso al volver, no este insert
       expect(conexion.llamadasGruposDe, 0);
+    });
+
+    //reglas del formulario de alta, que antes vivian en GrupoFormulario
+    group('Registrar grupo:', () {
+      late ConexiongruposFalsa conexion;
+      late Gruposviewmodel vm;
+      final curso = CursoEntidad(
+        nombreCurso: 'Iniciacion',
+        nombreDeporte: 'Futbol',
+        tituloCategoria: 'Deportes',
+        descripcion: 'x',
+        imagen: 7,
+      );
+      //fecha fija: el anio y la fecha de creacion salen de aqui
+      final hoy = DateTime(2026, 3, 9);
+
+      setUp(() {
+        conexion = ConexiongruposFalsa();
+        vm = Gruposviewmodel(Serviciogrupo(Gruporepositorio(conexion: conexion)));
+      });
+
+      test('$capa - $tipo - Registrar grupo - 201 arma el grupo del curso con la fecha dada', () async {
+        final resultado = await vm.registrarGrupo(
+          curso: curso,
+          cupos: ' 25 ',
+          idInstructor: 'ins1',
+          hoy: hoy,
+        );
+
+        expect(resultado, isA<Exito<Grupoentidad>>());
+        final enviado = conexion.ultimoInsertado!;
+        expect(
+          (enviado.cat_titulo, enviado.cur_nombre, enviado.cupos, enviado.idInstructor, enviado.anio, enviado.fechaCreacion),
+          ('Deportes', 'Iniciacion', 25, 'ins1', 2026, '2026-03-09'),
+        );
+      });
+
+      test('$capa - $tipo - Registrar grupo - sin instructor o con cupos que no son un int no envia nada', () async {
+        final sinInstructor = await vm.registrarGrupo(curso: curso, cupos: '25', hoy: hoy);
+        final cuposEnormes = await vm.registrarGrupo(
+          curso: curso,
+          cupos: '99999999999999999999999',
+          idInstructor: 'ins1',
+          hoy: hoy,
+        );
+
+        expect(
+          [sinInstructor, cuposEnormes].map((r) => (r as Fallo).mensaje),
+          ['Seleccione un instructor', 'Los cupos deben ser un numero valido'],
+        );
+        expect(conexion.llamadasInsertar, 0);
+      });
+
+      test('$capa - $tipo - Registrar grupo - un error del backend vuelve como Fallo con su codigo', () async {
+        conexion.respuestaInsertar = RespuestaModelo(
+          codigoHttp: 400,
+          error: ErrorModelo(codigoHttp: 400, mensaje: 'cupos', url: '/grupo', metodo: 'POST'),
+        );
+
+        final resultado = await vm.registrarGrupo(
+          curso: curso,
+          cupos: '25',
+          idInstructor: 'ins1',
+          hoy: hoy,
+        );
+
+        expect(
+          resultado,
+          isA<Fallo<Grupoentidad>>()
+              .having((f) => f.codigo, 'codigo', 400)
+              .having((f) => f.mensaje, 'mensaje', 'cupos'),
+        );
+      });
     });
 
     test('$capa - $tipo - Url de imagen de grupo - la arma la conexion', () {

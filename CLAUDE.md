@@ -15,15 +15,15 @@ flutter pub get
 flutter run                                   # backend at 10.0.2.2:8082 (emulator alias for the host)
 flutter run --dart-define=API_HOST=192.168.1.20   # backend elsewhere
 flutter analyze                               # lints via flutter_lints (analysis_options.yaml)
-flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (284), must be green
+flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (292), must be green
 flutter test test/main_test.dart                              # remote suite (107), needs the backend
 flutter test test/diagnostico                                 # diagnostic suite (72): red ON PURPOSE, one test per known bug
 flutter test --plain-name "<substring of test name>"
 ```
 
-Plain `flutter test` runs **all three** (463), so it is never all green: the diagnostic suite fails by design (68 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
+Plain `flutter test` runs **all three** (471), so it is never all green: the diagnostic suite fails by design (68 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
 
-Analyzer baseline: 0 errors, 31 warnings (mostly `must_be_immutable`), ~317 infos (new test files only add `file_names` infos, because they follow the project's camelCase file names). New code should not raise the warning count.
+Analyzer baseline: 0 errors, 30 warnings (mostly `must_be_immutable`), ~317 infos (new test files only add `file_names` infos, because they follow the project's camelCase file names). New code should not raise the warning count.
 
 ### Tests
 
@@ -138,7 +138,7 @@ Newer VM methods translate that into `Resultado<T>` (`domain/entities/resultado.
 
 ### ViewModel error-handling styles
 
-No ViewModel takes `BuildContext` or calls `showDialog` any more (the last ones, `CategoriaViewModel.cargarCategorias` and `CursosViewModel.listarCursosDe(context, …)`, went on 2026-11-04 with CAT-05 and CU-05). Two return styles remain: older methods return `RespuestaModelo` and the view reads `codigoHttp` (`agregarCurso`, `insertarGrupo`, `registroAlumno`, `login`, `obtenerDeportes`); newer ones return `Resultado` and the view only shows the resolved message. Use `Resultado` for new code, and keep VMs free of `material.dart`: lists for a `DropdownMenu` are exposed as data (`titulos`, `nombresCursos`) and the view builds the entries.
+No ViewModel takes `BuildContext` or calls `showDialog` any more (the last ones, `CategoriaViewModel.cargarCategorias` and `CursosViewModel.listarCursosDe(context, …)`, went on 2026-11-04 with CAT-05 and CU-05). Two return styles remain: older methods return `RespuestaModelo` and the view reads `codigoHttp` (only `registroAlumno` and `login` are still read by a view, deferred with authentication); newer ones return `Resultado` and the view only shows the resolved message. Forms go through one VM entry point that applies the rules and builds the entity (`guardarCategoria`, `guardarCurso`, `registrarGrupo`, `registrarClase`); `agregarCurso`, `insertarGrupo` and `obtenerDeportes` still return `RespuestaModelo` because the remote tests use them to seed data. Use `Resultado` for new code, and keep VMs free of `material.dart`: lists for a `DropdownMenu` are exposed as data (`titulos`, `nombresCursos`) and the view builds the entries.
 
 ### Backend selection
 
