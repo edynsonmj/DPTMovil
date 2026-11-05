@@ -15,13 +15,13 @@ flutter pub get
 flutter run                                   # backend at 10.0.2.2:8082 (emulator alias for the host)
 flutter run --dart-define=API_HOST=192.168.1.20   # backend elsewhere
 flutter analyze                               # lints via flutter_lints (analysis_options.yaml)
-flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (248), must be green
-flutter test test/main_test.dart                              # remote suite (103), needs the backend
-flutter test test/diagnostico                                 # diagnostic suite (76): red ON PURPOSE, one test per known bug
+flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (271), must be green
+flutter test test/main_test.dart                              # remote suite (104), needs the backend
+flutter test test/diagnostico                                 # diagnostic suite (72): red ON PURPOSE, one test per known bug
 flutter test --plain-name "<substring of test name>"
 ```
 
-Plain `flutter test` runs **all three** (427), so it is never all green: the diagnostic suite fails by design (73 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
+Plain `flutter test` runs **all three** (447), so it is never all green: the diagnostic suite fails by design (69 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
 
 Analyzer baseline: 0 errors, 31 warnings (mostly `must_be_immutable`), ~317 infos (new test files only add `file_names` infos, because they follow the project's camelCase file names). New code should not raise the warning count.
 
@@ -73,6 +73,7 @@ Backend behaviours the tests pin down:
 - `DELETE /clase?id=X` answers 200 but does not delete (backend bug CL-01); the test only pins the 200.
 - `POST /claseGrupo` takes `fecha` without a zone as UTC and stores the date in UTC-5: anything sent between 00:00 and 04:59 local landed on the previous day (CL-06). Fixed on the app side: `Clasemodelo.toJson` sends `fecha.toUtc().toIso8601String()` (with `Z`); `vmClaseDiagnosticoTest.prueba3FechaSinCorrimiento` pins 00:00, 04:59, 05:00 and 23:30.
 - Periodo de inscripción (`VmPeriodoInscripcionTest`, its own group per run): `PUT /abrirInscripcionesGrupo` / `cerrarInscripcionesGrupo` take the group key as query parameters; a group is listed by `/gruposInscripcion` while `apertura <= hoy` and (no cierre or `cierre >= hoy`) — the closing day still counts; a future apertura is accepted (scheduled); cierre before apertura → 400 `cierreValido`; unknown group → 404 `GC-0003`. `POST /inscripcion` into a group whose inscriptions are not open → 409 `GC-0012`, so `VmGruposInscripcionTest` opens its group before the enrolment cycle.
+- `POST /grupo` accepts an optional `fechaFinalizacion` (`GrupoDto`); `GrupoModelo.toJson` sends it only when set, so a group without it posts the same body as before (GR-02, fixed; `vmGrupoDiagnosticoTest.prueba7FechaFinalizacion` pins it).
 - `GET /validarInscripcion` takes its data as **query parameters** (since 2026-10-29); a GET body gets 400. The connection sends `queryParameters` (bug IN-07, fixed); `conexionInscripcionRemoto_test.dart` pins it.
 
 #### 3. Diagnostic suite — `test/diagnostico/<modulo>/`
@@ -105,7 +106,7 @@ config/        configApi, inyeccion (composition root), routes, theme
 
 - `Conexion*` classes speak HTTP and produce `*Modelo` objects (JSON shape, `fromJson`/`toJson`). Interfaces live in `data/api/conexion/interfaces/`, implementations in `remoto/`.
 - `*Repositorio` converts `*Modelo` ⇄ `*Entidad`. **Entities never cross into the connection layer and models never reach views** — this mapping is the repository's whole job.
-- Migrating, module by module: the conversion moves to `data/mappers/<modulo>Mapper.dart` (`aEntidad` / `aModelo`, tested in `unitarias/mapper/`), so entities stop importing models. Done: categoría, imagen. The rest still use `XEntidad.fromModelo` / `XModelo.fromEntidad`.
+- The conversion itself lives in `data/mappers/<modulo>Mapper.dart`: static `aEntidad` / `aModelo` (plus `aEntidades` for lists where the repository converts several), only the directions that are used, tested in `unitarias/mapper/`. Entities and models never import each other, so `domain/entities/` has no import from `data/`. A new module gets its mapper; don't add `fromModelo` / `fromEntidad` factories.
 - `Servicio*` classes are thin pass-throughs today but are **kept on purpose**: they are the injection point between VMs and repositories. Do not confuse them with the "services" of Flutter's architecture guide (those are our `Conexion*`).
 - ViewModels hold the state, call services, and expose getters + `notifyListeners()`.
 - Image URLs are built by the connection (`urlImagen(id)`) and travel up to the VM; views pass them to `Tarjeta`/`EncabezadoImagen`. Widgets never know the server address.
@@ -120,7 +121,7 @@ The composition root, read by `main.dart` as `MultiProvider(providers: [...prove
 
 Constructors take their dependencies as **required** parameters (the compiler lists every use). A connection that needs longer timeouts asks per request with `Options(...)` (images 30 s, authentication 1 min).
 
-When adding a module: interface + `remoto/` connection taking `Dio`, repository, service taking the repository, register the service in `proveedoresDatos()` and in the smoke test, VM taking the service, create the VM in its route.
+When adding a module: interface + `remoto/` connection taking `Dio`, mapper in `data/mappers/`, repository, service taking the repository, register the service in `proveedoresDatos()` and in the smoke test, VM taking the service, create the VM in its route.
 
 ### RespuestaModelo and Resultado
 

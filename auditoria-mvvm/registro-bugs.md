@@ -326,9 +326,9 @@ Plan: [plan-diagnostico-grupos.md](plan-diagnostico-grupos.md). **Regla:** solo 
 | Nivel | Archivo | Verdes | Rojas |
 |---|---|---|---|
 | U-Repo | `test/unitarias/repositorio/grupoRepositorio_test.dart` (+5 casos) | 5 | — |
-| U-Repo (diagnóstico) | `test/diagnostico/grupos/repositorio_diagnostico_test.dart` | — | 2 (GR-01, GR-02) |
+| U-Repo (diagnóstico) | `test/diagnostico/grupos/repositorio_diagnostico_test.dart` | — | 2 (GR-01, GR-02; la mitad de GR-02 del repositorio se corrigió y pasó a la suite unitaria el 2026-11-04) |
 | I-Local: VM / repositorio → conexión real → transporte falso | `test/integracion/grupos_integracion_test.dart` (nuevo; los grupos salen del contrato observado `inscripciones/gruposNoEliminados_200.json`) | 5 | — |
-| I-Local (diagnóstico) | `test/diagnostico/grupos/integracion_diagnostico_test.dart` | — | 3 (GR-02, 03, 04) |
+| I-Local (diagnóstico) | `test/diagnostico/grupos/integracion_diagnostico_test.dart` | — | 3 (GR-02, 03, 04; GR-02 corregido y movido a la suite de integración el 2026-11-04) |
 | I-Remota: VM → backend real | `test/remoto/viewModel/grupo/vmGrupoDiagnosticoTest.dart` (nuevo, en `main_test.dart`) | 6 | — |
 | I-Remota (diagnóstico) | `test/diagnostico/grupos/remoto_diagnostico_test.dart` (**necesita el backend**) | — | 3 (GR-03, 05, 06) |
 
@@ -345,7 +345,7 @@ Resultado:
 | GR-06 | Backend | **La lista de alumnos del grupo incluye a un alumno desvinculado.** Después de inscribir a A y B y desvincular a B, `/alumnosGrupo` devuelve los dos, con `eliminadoestado: 0`, aunque `validarInscripcion` dice que B **no** está inscrito (`false`). Esa lista es la que ve la pantalla del grupo y la de la toma de asistencia | `remoto_diagnostico` · GR-06 (`Expected: [A]`, `Actual: [A, B]`); confirmado a mano con `/alumnosGrupo` y `/validarInscripcion` | **Prueba contra el backend real.** **Inferido:** que se le pueda tomar asistencia a un alumno retirado y que cuente en estadísticas; tiene relación con AS-11 | M | backend | **confirmado** |
 | GR-03 | Conexión | `/gruposCurso` concatena categoría y curso en la URL sin codificar. Con `Fútbol & Voleibol` el backend recibe `prmCategoria=Fútbol ` y la lista del curso sale **vacía** aunque el grupo existe | `integracion_diagnostico` · GR-03 (`Actual: 'Fútbol '`); `remoto_diagnostico` · GR-03 (categoría y curso con `&` creados en la corrida → `Actual: []`) | **Prueba** sin backend y contra el backend real | M | app | **confirmado** |
 | GR-05 | Conexiones de la pantalla del grupo | En un grupo cuya categoría o curso llevan `&`, la pantalla del grupo no ve **nada**: el curso da `404 GC-0003` y las clases y los alumnos salen vacíos y **sin error**, aunque el grupo tiene 1 clase y 1 alumno inscrito. `/curso`, `/clasesGrupo`, `/alumnosGrupo` y `/horarios` concatenan la llave igual que GR-03 | `remoto_diagnostico` · GR-05 (`curso: null (Código: 404 …); clases: 0; alumnos: 0`) | **Prueba contra el backend real.** Que el vacío no muestre error se debe a que el backend responde `GC-0002` y la app lo toma por lista vacía | M | app | **confirmado** |
-| GR-02 | Repositorio / modelo | Al crear un grupo se pierde `fechaFinalizacion`: `GrupoModelo.fromEntidad` no la copia y `toJson` no la envía, aunque `GrupoDto` la acepta (antes IN-06, sin prueba) | `repositorio_diagnostico` · GR-02 (`Actual: <null>`); `integracion_diagnostico` · GR-02 (el JSON del `POST /grupo` no la lleva) | **Prueba.** El formulario actual no pide esa fecha, así que hoy solo se pierde si otra pantalla la pone | B | app | **confirmado** |
+| GR-02 | Repositorio / modelo | Al crear un grupo se pierde `fechaFinalizacion`: `GrupoModelo.fromEntidad` no la copia y `toJson` no la envía, aunque `GrupoDto` la acepta (antes IN-06, sin prueba) | `repositorio_diagnostico` · GR-02 (`Actual: <null>`); `integracion_diagnostico` · GR-02 (el JSON del `POST /grupo` no la lleva) | **Prueba.** El formulario actual no pide esa fecha, así que hoy solo se pierde si otra pantalla la pone | B | app | **corregido** (2026-11-04): `GrupoMapper.aModelo` copia todos los campos y `GrupoModelo.toJson` envía `fechaFinalizacion` cuando la hay (opcional en `GrupoDto`; sin fecha el POST no cambia). Las pruebas pasaron a `test/unitarias/repositorio/grupoRepositorio_test.dart` y `test/integracion/grupos_integracion_test.dart`. Verificado contra el backend real: `vmGrupoDiagnosticoTest.prueba7FechaFinalizacion` (suite remota) crea el grupo con 201 y la fecha vuelve en `/gruposCurso` |
 | GR-04 | Conexión | Las listas por curso e instructor solo capturan `Exception`: un grupo sin `cupos` hace que `GrupoModelo.fromJson` lance `type 'Null' is not a subtype of type 'int'`, que atraviesa la conexión y el repositorio. `/gruposNoEliminados` sí lo captura | `integracion_diagnostico` · GR-04 (`lanzo: type 'Null' is not a subtype of type 'int'`) | **Prueba.** El JSON incompleto lo fabrica la prueba: los 55 grupos reales tienen todos sus campos obligatorios | B | app | **confirmado** (latente) |
 | GR-01 | Repositorio | `Gruporepositorio` no tiene `try` en las listas: un `TypeError` de la conexión lo atraviesa (por curso, por instructor y disponibles) | `repositorio_diagnostico` · GR-01 (`Instance of 'TypeError'`) | **Prueba.** El error lo lanza el doble; GR-04 demuestra que la conexión real lo deja pasar | B | app | **confirmado** |
 
@@ -378,7 +378,7 @@ Resultado:
 | 4 | U-Repo | 503 del instructor y 500 de los disponibles → pasan sin cambios (`same`) | ✅ |
 | 5 | U-Repo | Insertar con 400 → pasa sin cambios | ✅ |
 | 6 | U-Repo | La conexión lanza un `TypeError` en las tres listas → error devuelto | ❌ GR-01 |
-| 7 | U-Repo | Insertar con `fechaFinalizacion` → llega al modelo | ❌ GR-02 |
+| 7 | U-Repo | Insertar con `fechaFinalizacion` → llega al modelo | ❌ GR-02 (corregido 2026-11-04) |
 | 8 | I-Local | Grupos de un curso 200: query `prmCategoria`/`prmCurso` exacta; lista con cupos y periodo | ✅ |
 | 9 | I-Local | Grupos de un curso `200 []` → vacía, sin error | ✅ |
 | 10 | I-Local | Grupos del instructor sin red → query con el id; el error contiene 503 | ✅ |
@@ -386,7 +386,7 @@ Resultado:
 | 12 | I-Local | Insertar 400 → llega con su código | ✅ |
 | 13 | I-Local | `Fútbol & Voleibol` / `Nivel 1 + 2` llegan completos a la query | ❌ GR-03 |
 | 14 | I-Local | Grupo sin `cupos` en las listas por curso e instructor → error sin lanzar | ❌ GR-04 |
-| 15 | I-Local | El `POST /grupo` lleva `fechaFinalizacion` | ❌ GR-02 |
+| 15 | I-Local | El `POST /grupo` lleva `fechaFinalizacion` | ❌ GR-02 (corregido 2026-11-04) |
 | 16 | I-Remota | El curso trae su grupo con cupos, instructor, año, iterable y fecha de creación | ✅ |
 | 17 | I-Remota | Segundo grupo del mismo curso → 201 e iterable distinto | ✅ |
 | 18 | I-Remota | Curso sin grupos e instructor inexistente → lista vacía sin error | ✅ |
@@ -580,7 +580,7 @@ Resultado:
 | CL-06 | Conexión / backend | **La clase se guarda un día antes.** La app envía `fecha.toIso8601String()` con la hora local y **sin zona**; el backend la toma como UTC y guarda la fecha en UTC-5. Todo lo enviado entre las 00:00 y las 04:59 queda en el día anterior: una clase del 2026-10-26 a las 00:00 se lista como 2026-10-25. El selector de fecha del formulario (`showDatePicker` en `claseFormulario.dart`) devuelve justamente las **00:00** del día elegido | `remoto_diagnostico` · CL-06 (`enviada 2026-10-26 00:00:00.000`, `Actual: '2026-10-25'`). Confirmado a mano con 4 altas directas: 00:00 y 04:59 → día anterior; 05:00 y 23:30 → mismo día | **Prueba contra el backend real** (corrupción de la fecha guardada). **Inferido del código:** que **toda** clase cuya fecha se elige en el selector quede un día antes. La fecha por defecto (`DateTime.now()`) solo se corre si se registra antes de las 5 a. m. **Inferido:** afecta la fecha de la asistencia y el rango de las estadísticas (relacionado con ES-05) | **A** | app (enviar `yyyy-MM-dd` o la hora con zona) + backend (no suponer UTC) | **corregido** (2026-10-29): `Clasemodelo.toJson` envía el instante con zona (`fecha.toUtc().toIso8601String()`, termina en `Z`), así que el backend ya no supone UTC sobre una hora local. Verificado contra el backend real a las 00:00, 04:59, 05:00 y 23:30: la clase queda en el día elegido. Prueba: `vmClaseDiagnosticoTest.prueba3FechaSinCorrimiento`, ahora en la suite remota (`main_test.dart`). Del lado del backend sigue pendiente no suponer UTC cuando la fecha llega sin zona |
 | CL-01 | Backend | **Eliminar una clase no la quita.** `DELETE /clase?id=` responde 200, el VM muestra éxito y recarga, pero la clase sigue en la pantalla del grupo con `eliminado: 0` | `remoto_diagnostico` · CL-01 (`sigue la clase 307 con eliminado 0`) | **Prueba contra el backend real.** Ya se había visto el 2026-10-21; `VmModuloGrupoTest.prueba6EliminarClase200` solo fija el 200 (señal D4). **Inferido:** que se le pueda tomar asistencia a una clase "eliminada" y que sume en estadísticas | M | backend | **confirmado** |
 | CL-05 | Conexión | Una clase con `fecha: null` hace que la pantalla del grupo muestre `type 'Null' is not a subtype of type 'String'`: `Clasemodelo.fromJson` lanza y ni la conexión (solo captura `Exception`) ni el repositorio (la llamada está fuera de su `try`) lo capturan | `integracion_diagnostico` · CL-05 | **Prueba.** El JSON incompleto lo fabrica la prueba (las clases reales traen fecha) | B | app | **confirmado** (latente) |
-| CL-04 | Repositorio / modelo | `agregarClase` con una entidad sin `fecha` o sin `horas` lanza `Null check operator used on a null value` (`Clasemodelo.fromEntidad` hace `fecha!`, `horas!` y `minutos!`; el repositorio solo captura `Exception`) | `repositorio_diagnostico` · CL-04 | **Prueba.** El formulario valida fecha y horas antes de llamar, así que no se llega desde la pantalla | B | app | **confirmado** (latente) |
+| CL-04 | Repositorio / modelo | `agregarClase` con una entidad sin `fecha` o sin `horas` lanza `Null check operator used on a null value` (`Clasemodelo.fromEntidad` hace `fecha!`, `horas!` y `minutos!`; el repositorio solo captura `Exception`. Desde 2026-11-04 ese código está en `ClaseMapper.aModelo`, sin cambios) | `repositorio_diagnostico` · CL-04 | **Prueba.** El formulario valida fecha y horas antes de llamar, así que no se llega desde la pantalla | B | app | **confirmado** (latente) |
 | CL-03 | Repositorio | Un `TypeError` de la conexión atraviesa el repositorio al listar, agregar y eliminar | `repositorio_diagnostico` · CL-03 (`Instance of 'TypeError'`) | **Prueba.** El error lo lanza el doble; CL-05 demuestra que la conexión real lo deja pasar | B | app | **confirmado** |
 
 `GR-05` suma una prueba en la conexión de clases (`integracion_diagnostico` · GR-05: `/clasesGrupo` recibe `categoria=Fútbol ` y `curso=Nivel 1   2`). No es un hallazgo nuevo.
@@ -634,9 +634,9 @@ Plan: [plan-diagnostico-horarios.md](plan-diagnostico-horarios.md). **Regla:** s
 | Nivel | Archivo | Verdes | Rojas |
 |---|---|---|---|
 | U-Repo | `test/unitarias/repositorio/horarioRepositorio_test.dart` (nuevo) | 3 | — |
-| U-Repo (diagnóstico) | `test/diagnostico/horarios/repositorio_diagnostico_test.dart` | — | 2 (HO-01, HO-02) |
+| U-Repo (diagnóstico) | `test/diagnostico/horarios/repositorio_diagnostico_test.dart` | — | 2 (HO-01, HO-02; la mitad de HO-01 del repositorio se corrigió y pasó a la suite unitaria el 2026-11-04) |
 | I-Local: `Horariosviewmodel` → conexión real → transporte falso | `test/integracion/horarios_integracion_test.dart` (nuevo) | 4 | — |
-| I-Local (diagnóstico) | `test/diagnostico/horarios/integracion_diagnostico_test.dart` | — | 3 (HO-01, HO-03 y GR-05 en `/horarios`) |
+| I-Local (diagnóstico) | `test/diagnostico/horarios/integracion_diagnostico_test.dart` | — | 3 (HO-01, HO-03 y GR-05 en `/horarios`; HO-01 corregido y movido a la suite de integración el 2026-11-04) |
 | I-Remota: VM → backend real | `test/remoto/viewModel/horario/vmHorarioDiagnosticoTest.dart` (nuevo, en `main_test.dart`) | 3 | — |
 
 Resultado:
@@ -649,7 +649,7 @@ Resultado:
 
 | ID | Capa | Síntoma observable (evidencia del rojo) | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
 |---|---|---|---|---|---|---|---|
-| HO-01 | Modelo / repositorio | El `id` del horario se pierde en dos sitios: `HorarioModelo.fromJson` no lo lee y `Horarioentidad.fromModelo` no lo copia. Las tarjetas reciben `[null, null]` en lugar de `[15, 16]` | `integracion_diagnostico` · HO-01 (`Actual: [null, null]`); `repositorio_diagnostico` · HO-01 (`Actual: <null>`) | **Prueba** con el contrato propuesto. **Inferido:** hoy ninguna pantalla usa el id, pero sin él no se puede editar ni eliminar un horario cuando exista esa función | B | app | **confirmado** |
+| HO-01 | Modelo / repositorio | El `id` del horario se pierde en dos sitios: `HorarioModelo.fromJson` no lo lee y `Horarioentidad.fromModelo` no lo copia. Las tarjetas reciben `[null, null]` en lugar de `[15, 16]` | `integracion_diagnostico` · HO-01 (`Actual: [null, null]`); `repositorio_diagnostico` · HO-01 (`Actual: <null>`) | **Prueba** con el contrato propuesto. **Inferido:** hoy ninguna pantalla usa el id, pero sin él no se puede editar ni eliminar un horario cuando exista esa función | B | app | **corregido** (2026-11-04): `HorarioModelo.fromJson` lee el `id` y `HorarioMapper.aEntidad` lo copia. Las pruebas pasaron a `test/unitarias/repositorio/horarioRepositorio_test.dart` y `test/integracion/horarios_integracion_test.dart`. Comprobado solo con el contrato: la BD de pruebas no tiene horarios y el backend no tiene ruta para crearlos |
 | HO-03 | Conexión → VM | Un horario con `dia: null` hace que la tarjeta muestre `type 'Null' is not a subtype of type 'String'` en lugar de un error con código: `fromJson` lanza y ni la conexión, ni el repositorio, ni `listarHorariosGrupo` del VM (los tres solo capturan `Exception`, o dejan la llamada fuera del `try`) lo capturan | `integracion_diagnostico` · HO-03 | **Prueba.** El JSON incompleto lo fabrica la prueba | B | app | **confirmado** (latente) |
 | HO-02 | Repositorio | Un `TypeError` de la conexión atraviesa `obtenerHoariosGrupo`: la llamada a la conexión está fuera de su `try` | `repositorio_diagnostico` · HO-02 (`Instance of 'TypeError'`) | **Prueba.** El error lo lanza el doble; HO-03 demuestra que la conexión real lo deja pasar | B | app | **confirmado** |
 
@@ -677,12 +677,12 @@ Resultado:
 | 2 | U-Repo | Un 503 y el 406 → pasan sin cambios | ✅ |
 | 3 | U-Repo | 200 → la entidad conserva llave, día, horas y escenario | ✅ |
 | 4 | U-Repo | La conexión lanza un `TypeError` → error devuelto | ❌ HO-02 |
-| 5 | U-Repo | El `id` del modelo llega a la entidad | ❌ HO-01 |
+| 5 | U-Repo | El `id` del modelo llega a la entidad | ❌ HO-01 (corregido 2026-11-04) |
 | 6 | I-Local | 200 → query con la llave; la tarjeta recibe sus horarios | ✅ |
 | 7 | I-Local | `200 []` → tarjeta vacía y sin error | ✅ |
 | 8 | I-Local | Dos grupos → una petición por grupo; sin red cada tarjeta muestra `Código: 503` | ✅ |
 | 9 | I-Local | 200 con un objeto → `Código: 406` en la tarjeta | ✅ |
-| 10 | I-Local | El `id` del JSON llega a la tarjeta | ❌ HO-01 |
+| 10 | I-Local | El `id` del JSON llega a la tarjeta | ❌ HO-01 (corregido 2026-11-04) |
 | 11 | I-Local | Horario con `dia: null` → error con formato `Código: …` | ❌ HO-03 |
 | 12 | I-Local | Grupo con `&` → la query de `/horarios` llega completa | ❌ GR-05 |
 | 13 | I-Remota | Grupo nuevo → tarjeta vacía y sin error | ✅ |

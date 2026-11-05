@@ -1,5 +1,6 @@
 import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionGrupos.dart';
+import 'package:dpt_movil/data/mappers/grupoMapper.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
 import 'package:dpt_movil/data/models/periodoInscripcionModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
@@ -19,13 +20,9 @@ class Gruporepositorio {
     if (respuesta.codigoHttp != 200) {
       return respuesta;
     }
-    List<GrupoModelo> listaModelo = respuesta.datos as List<GrupoModelo>;
-    List<Grupoentidad> listEntidad = [];
-    for (GrupoModelo item in listaModelo) {
-      Grupoentidad entidad = Grupoentidad.fromModelo(item);
-      listEntidad.add(entidad);
-    }
-    respuesta.datos = listEntidad;
+    respuesta.datos = GrupoMapper.aEntidades(
+      respuesta.datos as List<GrupoModelo>,
+    );
     return respuesta;
   }
 
@@ -35,13 +32,9 @@ class Gruporepositorio {
     if (respuesta.codigoHttp != 200) {
       return respuesta;
     }
-    List<GrupoModelo> listaModelo = respuesta.datos as List<GrupoModelo>;
-    List<Grupoentidad> listEntidad = [];
-    for (GrupoModelo item in listaModelo) {
-      Grupoentidad entidad = Grupoentidad.fromModelo(item);
-      listEntidad.add(entidad);
-    }
-    respuesta.datos = listEntidad;
+    respuesta.datos = GrupoMapper.aEntidades(
+      respuesta.datos as List<GrupoModelo>,
+    );
     return respuesta;
   }
 
@@ -52,18 +45,14 @@ class Gruporepositorio {
     if (respuesta.codigoHttp != 200) {
       return respuesta;
     }
-    List<GrupoModelo> listaModelo = respuesta.datos as List<GrupoModelo>;
-    List<Grupoentidad> listEntidad = [];
-    for (GrupoModelo item in listaModelo) {
-      Grupoentidad entidad = Grupoentidad.fromModelo(item);
-      listEntidad.add(entidad);
-    }
-    respuesta.datos = listEntidad;
+    respuesta.datos = GrupoMapper.aEntidades(
+      respuesta.datos as List<GrupoModelo>,
+    );
     return respuesta;
   }
 
   Future<RespuestaModelo> insertarGrupo(Grupoentidad entidad) async {
-    GrupoModelo modeloPeticion = GrupoModelo.fromEntidad(entidad);
+    GrupoModelo modeloPeticion = GrupoMapper.aModelo(entidad);
     RespuestaModelo respuesta = await conexion.insertarGrupo(modeloPeticion);
     return respuesta;
   }
@@ -73,9 +62,9 @@ class Gruporepositorio {
     if (respuesta.codigoHttp != 200) {
       return respuesta;
     }
-    List<GrupoModelo> listaModelo = respuesta.datos as List<GrupoModelo>;
-    respuesta.datos =
-        listaModelo.map((item) => Grupoentidad.fromModelo(item)).toList();
+    respuesta.datos = GrupoMapper.aEntidades(
+      respuesta.datos as List<GrupoModelo>,
+    );
     return respuesta;
   }
 
@@ -112,7 +101,7 @@ class Gruporepositorio {
   //abrir y cerrar responden el grupo actualizado: sale como entidad
   RespuestaModelo _aEntidad(RespuestaModelo respuesta) {
     if (respuesta.codigoHttp == 200 && respuesta.datos is GrupoModelo) {
-      respuesta.datos = Grupoentidad.fromModelo(respuesta.datos as GrupoModelo);
+      respuesta.datos = GrupoMapper.aEntidad(respuesta.datos as GrupoModelo);
     }
     return respuesta;
   }

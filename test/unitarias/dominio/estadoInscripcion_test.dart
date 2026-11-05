@@ -1,3 +1,4 @@
+import 'package:dpt_movil/data/mappers/grupoMapper.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +30,7 @@ void main() {
       //gruposNoEliminados_200.json se capturo el 2026-10-29
       final estados =
           (leerContrato('inscripciones', 'gruposNoEliminados_200') as List)
-              .map((json) => Grupoentidad.fromModelo(GrupoModelo.fromJson(json)))
+              .map((json) => GrupoMapper.aEntidad(GrupoModelo.fromJson(json)))
               .map((g) => g.estadoInscripcion(hoy))
               .toList();
 

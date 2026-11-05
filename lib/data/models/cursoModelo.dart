@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
-
 class CursoModelo {
   String nombreCurso;
   String nombreDeporte;
@@ -26,16 +24,6 @@ class CursoModelo {
       tituloCategoria: json['categoriaCurso'],
       descripcion: json['descripcion'],
       imagen: json['idImagen'],
-    );
-  }
-  factory CursoModelo.fromEntidad(CursoEntidad entidad) {
-    return CursoModelo(
-      nombreCurso: entidad.nombreCurso,
-      nombreDeporte: entidad.nombreDeporte,
-      tituloCategoria: entidad.tituloCategoria,
-      descripcion: entidad.descripcion,
-      imagen: entidad.imagen,
-      imagenFile: entidad.imagenFile,
     );
   }
 

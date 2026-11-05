@@ -1,5 +1,3 @@
-import 'package:dpt_movil/data/models/inscripcionModelo.dart';
-
 class Inscripcionentidad {
   DateTime? fechaInscripcion;
 
@@ -24,16 +22,4 @@ class Inscripcionentidad {
     required this.anio,
     required this.iterable,
   });
-
-  factory Inscripcionentidad.fromModelo(Inscripcionmodelo modelo) {
-    return Inscripcionentidad(
-      alumnoId: modelo.alumnoId,
-      categoria: modelo.categoria,
-      curso: modelo.curso,
-      anio: modelo.anio,
-      iterable: modelo.iterable,
-      fechaInscripcion: modelo.fechaInscripcion,
-      fechaDesvinculacion: modelo.fechaDesvinculacion,
-    );
-  }
 }

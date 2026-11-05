@@ -1,4 +1,5 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAutenticacion.dart';
+import 'package:dpt_movil/data/mappers/perfilMapper.dart';
 import 'package:dpt_movil/data/models/perfilModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
@@ -12,20 +13,17 @@ class Autenticacionrepositorio {
     if (respuesta.codigoHttp != 200) {
       return respuesta;
     }
-    PerfilEntidad entidad = PerfilEntidad.fromModelo(respuesta.datos);
-    respuesta.datos = entidad;
+    respuesta.datos = PerfilMapper.aEntidad(respuesta.datos as Perfilmodelo);
     return respuesta;
   }
 
   Future<RespuestaModelo> registro(PerfilEntidad entidad) async {
-    Perfilmodelo modeloPeticion = Perfilmodelo.fromEntidad(entidad);
+    Perfilmodelo modeloPeticion = PerfilMapper.aModelo(entidad);
     RespuestaModelo respuesta = await conexion.registro(modeloPeticion);
     if (respuesta.codigoHttp != 201) {
       return respuesta;
     }
-    Perfilmodelo respuestaModelo = respuesta.datos as Perfilmodelo;
-    PerfilEntidad entidadRespuesta = PerfilEntidad.fromModelo(respuestaModelo);
-    respuesta.datos = entidadRespuesta;
+    respuesta.datos = PerfilMapper.aEntidad(respuesta.datos as Perfilmodelo);
     return respuesta;
   }
 }

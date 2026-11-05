@@ -23,6 +23,7 @@ class HorarioModelo {
 
   factory HorarioModelo.fromJson(dynamic json) {
     return HorarioModelo(
+      id: json['id'],
       categoria: json['categoria'],
       curso: json['curso'],
       anio: json['anio'],

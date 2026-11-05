@@ -1,4 +1,5 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionInscripcion.dart';
+import 'package:dpt_movil/data/mappers/inscripcionMapper.dart';
 import 'package:dpt_movil/data/models/inscripcionModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
@@ -11,7 +12,7 @@ class Inscripcionrepositorio {
     Inscripcionentidad inscripcion,
   ) async {
     try {
-      Inscripcionmodelo modelo = Inscripcionmodelo.fromEntidad(inscripcion);
+      Inscripcionmodelo modelo = InscripcionMapper.aModelo(inscripcion);
       RespuestaModelo respuesta = await conexion.agregarInscripcion(modelo);
       return respuesta;
     } on FormatException catch (formatError) {
@@ -35,7 +36,7 @@ class Inscripcionrepositorio {
     Inscripcionentidad inscripcion,
   ) async {
     try {
-      Inscripcionmodelo modelo = Inscripcionmodelo.fromEntidad(inscripcion);
+      Inscripcionmodelo modelo = InscripcionMapper.aModelo(inscripcion);
       RespuestaModelo respuesta = await conexion.eliminarInscripcion(modelo);
       return respuesta;
     } on FormatException catch (formatError) {
@@ -57,7 +58,7 @@ class Inscripcionrepositorio {
 
   Future<RespuestaModelo> validarInscripcion(Inscripcionentidad entidad) async {
     try {
-      Inscripcionmodelo modelo = Inscripcionmodelo.fromEntidad(entidad);
+      Inscripcionmodelo modelo = InscripcionMapper.aModelo(entidad);
       RespuestaModelo respuesta = await conexion.validarInscripcion(modelo);
       return respuesta;
     } on FormatException catch (formatError) {

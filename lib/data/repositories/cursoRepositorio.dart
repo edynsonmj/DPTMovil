@@ -1,4 +1,5 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionCurso.dart';
+import 'package:dpt_movil/data/mappers/cursoMapper.dart';
 import 'package:dpt_movil/data/models/cursoModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
@@ -17,12 +18,8 @@ class CursoRepositorio {
 
     if (respuesta.codigoHttp == 200) {
       List<CursoModelo> listaModelo = respuesta.datos as List<CursoModelo>;
-      List<CursoEntidad> listaEntidad = [];
-      for (var item in listaModelo) {
-        print('>>> cargarImagen llamada con id: ${item.imagen}');
-        CursoEntidad entidad = CursoEntidad.fromModelo(item);
-        listaEntidad.add(entidad);
-      }
+      List<CursoEntidad> listaEntidad =
+          listaModelo.map(CursoMapper.aEntidad).toList();
       respuesta.datos = listaEntidad;
       return respuesta;
     }
@@ -34,19 +31,15 @@ class CursoRepositorio {
     if (respuesta.codigoHttp != 200) {
       return respuesta;
     }
-    CursoEntidad entidad = CursoEntidad.fromModelo(respuesta.datos);
-    respuesta.datos = entidad;
+    respuesta.datos = CursoMapper.aEntidad(respuesta.datos as CursoModelo);
     return respuesta;
   }
 
   Future<RespuestaModelo> guardaCurso(CursoEntidad entidad) async {
-    CursoModelo modeloPeticion = CursoModelo.fromEntidad(entidad);
+    CursoModelo modeloPeticion = CursoMapper.aModelo(entidad);
     RespuestaModelo respuesta = await cliente.agregarCurso(modeloPeticion);
     if (respuesta.codigoHttp == 201) {
-      CursoEntidad entidadRespuesta = CursoEntidad.fromModelo(
-        respuesta.datos as CursoModelo,
-      );
-      respuesta.datos = entidadRespuesta;
+      respuesta.datos = CursoMapper.aEntidad(respuesta.datos as CursoModelo);
     }
     return respuesta;
   }

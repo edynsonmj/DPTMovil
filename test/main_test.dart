@@ -581,6 +581,7 @@ probarViewModelGrupoDiagnostico(){
     test.prueba4PantallaDelGrupo(crearDetalleGrupoViewModel);
     test.prueba5CuposEnCero(crearGruposViewModel);
     test.prueba6DatosInexistentes(crearGruposViewModel);
+    test.prueba7FechaFinalizacion(crearGruposViewModel);
     //los casos rojos van en test/diagnostico/grupos/remoto_diagnostico_test.dart
   });
 }

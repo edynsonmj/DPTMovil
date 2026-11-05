@@ -1,5 +1,3 @@
-import 'package:dpt_movil/domain/entities/claseEntidad.dart';
-
 class Clasemodelo {
   int? codigo;
   String idGrupoCategoria;
@@ -40,22 +38,6 @@ class Clasemodelo {
       minutos: json['minutos'],
       observacion: json['observacion'],
       eliminado: json['eliminado'],
-    );
-  }
-
-  factory Clasemodelo.fromEntidad(Claseentidad entidad) {
-    return Clasemodelo(
-      idGrupoCategoria: entidad.idGrupoCategoria,
-      idGrupoCurso: entidad.idGrupoCurso,
-      idGrupoAnio: entidad.idGrupoAnio,
-      idGrupoIterable: entidad.idGrupoIterable,
-      idInstructor: entidad.idInstructor,
-      fecha: entidad.fecha!,
-      horas: entidad.horas!,
-      minutos: entidad.minutos!,
-      eliminado: entidad.eliminado,
-      codigo: entidad.codigo,
-      observacion: entidad.observacion,
     );
   }
 

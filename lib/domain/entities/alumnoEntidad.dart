@@ -1,5 +1,3 @@
-import 'package:dpt_movil/data/models/alumnoModelo.dart';
-
 class Alumnoentidad {
   String id;
   String? codigo;
@@ -20,17 +18,4 @@ class Alumnoentidad {
     required this.tipoid,
     this.imagen,
   });
-
-  factory Alumnoentidad.fromModelo(Alumnomodelo modelo) {
-    return Alumnoentidad(
-      id: modelo.id,
-      tipo: modelo.tipo,
-      nombre: modelo.nombre,
-      correo: modelo.correo,
-      sexo: modelo.sexo,
-      tipoid: modelo.tipoid,
-      codigo: modelo.codigo,
-      imagen: modelo.imagen,
-    );
-  }
 }

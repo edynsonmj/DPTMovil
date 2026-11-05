@@ -41,15 +41,7 @@ void main() {
   });
 
   group('Horarios (diagnostico de punta a punta):', () {
-    //HorarioModelo.fromJson no lee el id que manda el backend
-    test('$capa - $tipo - Cargar horarios de - BUG HO-01 - el id del horario llega a la tarjeta', () async {
-      adaptador.responder('GET', '/horarios', 200, leerContrato('horarios', 'horarios_200'));
-      final g = grupo('Categoria Fase 4', 'Curso Categoria Fase 4');
-
-      await vm.cargarHorariosDe([g]);
-
-      expect(vm.horariosDe(g).datos.map((h) => h.id), [15, 16]);
-    });
+    //HO-01 (corregido) paso a test/integracion/horarios_integracion_test.dart
 
     //un horario sin dia: fromJson lanza un TypeError que atraviesa la
     //conexion, el repositorio y listarHorariosGrupo del vm (solo capturan

@@ -1,5 +1,3 @@
-import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
-
 class Perfilmodelo {
   String id;
 
@@ -27,19 +25,6 @@ class Perfilmodelo {
     this.facultad,
     this.tipoAlumno,
   });
-
-  factory Perfilmodelo.fromEntidad(PerfilEntidad entidad) {
-    return Perfilmodelo(
-      id: entidad.id,
-      nombre: entidad.nombre,
-      correo: entidad.correo,
-      tipoId: entidad.tipoId,
-      sexo: entidad.sexo,
-      facultad: entidad.facultad,
-      tipoAlumno: entidad.tipoAlumno,
-      role: entidad.role,
-    );
-  }
 
   factory Perfilmodelo.fromJson(dynamic json) {
     return Perfilmodelo(

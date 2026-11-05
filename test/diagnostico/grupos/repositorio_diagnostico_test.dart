@@ -2,7 +2,6 @@
 library;
 
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
-import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../dobles/conexiongruposFalsa.dart';
@@ -38,24 +37,7 @@ void main() {
         expect(respuesta.error, isNotNull);
       }
     });
-
-    //la entidad trae la fecha de finalizacion y el backend la acepta
-    //(GrupoDto.fechaFinalizacion); el modelo enviado la pierde
-    test('$capa - $tipo - Insertar grupo - BUG GR-02 - la fecha de finalizacion de la entidad llega al modelo', () async {
-      await repositorio.insertarGrupo(
-        Grupoentidad(
-          categoria: 'Deportes',
-          curso: 'Iniciacion',
-          anio: 0,
-          iterable: 0,
-          cupos: 20,
-          fechaCreacion: '2026-10-29',
-          fechaFinalizacion: '2026-12-15',
-          idInstructor: 'ins1',
-        ),
-      );
-
-      expect(conexion.ultimoInsertado?.fechaFinalizacion, '2026-12-15');
-    });
+    //la mitad de GR-02 que tocaba al repositorio (la fecha llega al modelo)
+    //paso a test/unitarias/repositorio/grupoRepositorio_test.dart
   });
 }

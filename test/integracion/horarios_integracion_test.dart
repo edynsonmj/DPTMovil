@@ -92,5 +92,15 @@ void main() {
     });
     //los casos rojos de este montaje estan en
     //test/diagnostico/horarios/integracion_diagnostico_test.dart
+
+    //antes HO-01: el id del horario se perdia en fromJson y en el repositorio
+    test('$capa - $tipo - Cargar horarios de - el id del horario llega a la tarjeta', () async {
+      adaptador.responder('GET', '/horarios', 200, leerContrato('horarios', 'horarios_200'));
+      final g = grupo(1);
+
+      await vm.cargarHorariosDe([g]);
+
+      expect(vm.horariosDe(g).datos.map((h) => h.id), [15, 16]);
+    });
   });
 }

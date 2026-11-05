@@ -1,8 +1,8 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionEstadisticas.dart';
+import 'package:dpt_movil/data/mappers/estadisticaMapper.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/estadisticaModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
-import 'package:dpt_movil/domain/entities/estadistica.dart';
 
 class EstadisticasRespositorio {
   ConexionEstadisticas conexion;
@@ -31,14 +31,9 @@ class EstadisticasRespositorio {
         return respuesta;
       }
       //El servidor ha respondido correctamente, se transforman los datos
-      List<EstadisticaModelo> listaModelo =
-          respuesta.datos as List<EstadisticaModelo>;
-      List<Estadistica> listaEntidad = [];
-      for (var item in listaModelo) {
-        Estadistica entidad = Estadistica.fromModelo(item);
-        listaEntidad.add(entidad);
-      }
-      respuesta.datos = listaEntidad;
+      respuesta.datos = EstadisticaMapper.aEntidades(
+        respuesta.datos as List<EstadisticaModelo>,
+      );
       return respuesta;
     }
     //si el codigo no corresponde, se envia la informacion contenida, esta debe llevar el codigo y la informacion relacionada
@@ -68,14 +63,9 @@ class EstadisticasRespositorio {
         return respuesta;
       }
       //El servidor ha respondido correctamente, se transforman los datos
-      List<EstadisticaModelo> listaModelo =
-          respuesta.datos as List<EstadisticaModelo>;
-      List<Estadistica> listaEntidad = [];
-      for (var item in listaModelo) {
-        Estadistica entidad = Estadistica.fromModelo(item);
-        listaEntidad.add(entidad);
-      }
-      respuesta.datos = listaEntidad;
+      respuesta.datos = EstadisticaMapper.aEntidades(
+        respuesta.datos as List<EstadisticaModelo>,
+      );
       return respuesta;
     }
     //si no son los codigos evaluados se retorna la informacion contenida que debe tener la informacion del error
@@ -104,14 +94,9 @@ class EstadisticasRespositorio {
         return respuesta;
       }
       //El servidor ha respondido correctamente, se transforman los datos
-      List<EstadisticaModelo> listaModelo =
-          respuesta.datos as List<EstadisticaModelo>;
-      List<Estadistica> listaEntidad = [];
-      for (var item in listaModelo) {
-        Estadistica entidad = Estadistica.fromModelo(item);
-        listaEntidad.add(entidad);
-      }
-      respuesta.datos = listaEntidad;
+      respuesta.datos = EstadisticaMapper.aEntidades(
+        respuesta.datos as List<EstadisticaModelo>,
+      );
       return respuesta;
     }
     //si no son los codigos evaluados se retorna la informacion contenida que debe tener la informacion del error

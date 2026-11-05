@@ -1,5 +1,5 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
-import 'package:dpt_movil/data/models/alumnoModelo.dart';
+import 'package:dpt_movil/data/mappers/atencionMapper.dart';
 import 'package:dpt_movil/data/models/atencionModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/atencionEntidad.dart';
@@ -31,12 +31,7 @@ class Atencionesrepositorio {
     try {
       List<Atencionmodelo> listaModelo =
           respuesta.datos as List<Atencionmodelo>;
-      List<Atencionentidad> listaEntidad = [];
-      for (Atencionmodelo item in listaModelo) {
-        Atencionentidad entidad = Atencionentidad.fromModelo(item);
-        listaEntidad.add(entidad);
-      }
-      respuesta.datos = listaEntidad;
+      respuesta.datos = listaModelo.map(AtencionMapper.aEntidad).toList();
       return respuesta;
     } on FormatException catch (formatError) {
       return RespuestaModelo.fromFormatException(
@@ -54,25 +49,8 @@ class Atencionesrepositorio {
     List<Atencionentidad> atenciones,
     int idClase,
   ) async {
-    List<Atencionmodelo> lista = [];
-    for (Atencionentidad atencion in atenciones) {
-      lista.add(
-        Atencionmodelo(
-          alumno: Alumnomodelo(
-            id: atencion.alumno.id,
-            tipo: atencion.alumno.tipo,
-            nombre: atencion.alumno.nombre,
-            correo: atencion.alumno.correo,
-            sexo: atencion.alumno.sexo,
-            tipoid: atencion.alumno.tipoid,
-            codigo: atencion.alumno.codigo,
-            imagen: atencion.alumno.imagen,
-          ),
-          idClase: atencion.idClase,
-          estaAtendido: atencion.estaAtendido,
-        ),
-      );
-    }
+    List<Atencionmodelo> lista =
+        atenciones.map(AtencionMapper.aModelo).toList();
     return await conexion.registrarAtencionesClase(lista, idClase);
   }
 }

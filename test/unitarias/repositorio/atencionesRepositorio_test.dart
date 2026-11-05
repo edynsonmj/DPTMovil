@@ -1,3 +1,4 @@
+import 'package:dpt_movil/data/mappers/atencionMapper.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/atencionesRepositorio.dart';
@@ -125,7 +126,7 @@ void main() {
 
       final respuesta = await repositorio.registrarAtencionesClase(
         atencionesDelContrato('listar_200')
-            .map((m) => Atencionentidad.fromModelo(m))
+            .map(AtencionMapper.aEntidad)
             .toList(),
         210,
       );

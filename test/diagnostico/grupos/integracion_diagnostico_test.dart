@@ -3,7 +3,6 @@ library;
 
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
-import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,26 +67,6 @@ void main() {
         expect(respuesta.codigoHttp, isNot(200));
       }
     });
-
-    //GR-02 de punta a punta: lo que sale por la red
-    test('$capa - $tipo - Insertar grupo - BUG GR-02 - el POST lleva la fecha de finalizacion', () async {
-      adaptador.responder('POST', '/grupo', 201);
-
-      await vm.insertarGrupo(
-        Grupoentidad(
-          categoria: 'Categoria Fase 4',
-          curso: 'Curso Categoria Fase 4',
-          anio: 0,
-          iterable: 0,
-          cupos: 10,
-          idInstructor: '2',
-          fechaCreacion: '2026-10-29',
-          fechaFinalizacion: '2026-12-15',
-        ),
-      );
-
-      final cuerpo = adaptador.peticionesA('POST', '/grupo').single.cuerpo as Map;
-      expect(cuerpo['fechaFinalizacion'], '2026-12-15');
-    });
+    //GR-02 (corregido) paso a test/integracion/grupos_integracion_test.dart
   });
 }

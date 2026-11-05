@@ -99,6 +99,29 @@ void main() {
       expect(cuerpo['idInstructor'], '2');
       expect(cuerpo['imagenGrupo'], 1197);
       expect(cuerpo['fechaCreacion'], '2026-10-29');
+      //sin fecha de finalizacion la clave no viaja
+      expect(cuerpo.containsKey('fechaFinalizacion'), isFalse);
+    });
+
+    //antes GR-02: el POST perdia la fecha de finalizacion
+    test('$capa - $tipo - Insertar grupo - el POST lleva la fecha de finalizacion', () async {
+      adaptador.responder('POST', '/grupo', 201);
+
+      await vm.insertarGrupo(
+        Grupoentidad(
+          categoria: 'Categoria Fase 4',
+          curso: 'Curso Categoria Fase 4',
+          anio: 0,
+          iterable: 0,
+          cupos: 10,
+          idInstructor: '2',
+          fechaCreacion: '2026-10-29',
+          fechaFinalizacion: '2026-12-15',
+        ),
+      );
+
+      final cuerpo = adaptador.peticionesA('POST', '/grupo').single.cuerpo as Map;
+      expect(cuerpo['fechaFinalizacion'], '2026-12-15');
     });
 
     test('$capa - $tipo - Insertar grupo - un 400 del backend llega con su codigo', () async {

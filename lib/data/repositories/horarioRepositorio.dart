@@ -1,7 +1,7 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionHorarios.dart';
+import 'package:dpt_movil/data/mappers/horarioMapper.dart';
 import 'package:dpt_movil/data/models/horarioModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
-import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
 
 class Horariorepositorio {
   Conexionhorarios conexion;
@@ -24,12 +24,7 @@ class Horariorepositorio {
     }
     try {
       List<HorarioModelo> listaModelo = respuesta.datos as List<HorarioModelo>;
-      List<Horarioentidad> listEntidad = [];
-      for (HorarioModelo item in listaModelo) {
-        Horarioentidad entidad = Horarioentidad.fromModelo(item);
-        listEntidad.add(entidad);
-      }
-      respuesta.datos = listEntidad;
+      respuesta.datos = listaModelo.map(HorarioMapper.aEntidad).toList();
       return respuesta;
     } on FormatException catch (formatError) {
       return RespuestaModelo.fromFormatException(

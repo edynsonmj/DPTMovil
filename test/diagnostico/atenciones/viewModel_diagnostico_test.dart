@@ -1,10 +1,10 @@
 @Tags(['diagnostico'])
 library;
 
+import 'package:dpt_movil/data/mappers/atencionMapper.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/atencionesRepositorio.dart';
-import 'package:dpt_movil/domain/entities/atencionEntidad.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
@@ -64,7 +64,7 @@ void main() {
     test('repositorio - $tipo - Registrar atenciones - BUG AS-08 - una atencion de otra clase se rechaza antes de la red', () async {
       final atenciones =
           atencionesDelContrato('listar_200')
-              .map((m) => Atencionentidad.fromModelo(m))
+              .map(AtencionMapper.aEntidad)
               .toList();
       atenciones[1].idClase = 999;
 

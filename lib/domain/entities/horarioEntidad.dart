@@ -1,5 +1,3 @@
-import 'package:dpt_movil/data/models/horarioModelo.dart';
-
 class Horarioentidad {
   int? id;
   String categoria;
@@ -22,17 +20,4 @@ class Horarioentidad {
     required this.horaFin,
     required this.escenario,
   });
-
-  factory Horarioentidad.fromModelo(HorarioModelo modelo) {
-    return Horarioentidad(
-      categoria: modelo.categoria,
-      curso: modelo.curso,
-      anio: modelo.anio,
-      iterable: modelo.iterable,
-      dia: modelo.dia,
-      horaInicio: modelo.horaInicio,
-      horaFin: modelo.horaFin,
-      escenario: modelo.escenario,
-    );
-  }
 }

@@ -1,5 +1,3 @@
-import 'package:dpt_movil/data/models/perfilModelo.dart';
-
 class PerfilEntidad {
   String id;
 
@@ -27,17 +25,4 @@ class PerfilEntidad {
     this.facultad,
     this.tipoAlumno,
   });
-
-  factory PerfilEntidad.fromModelo(Perfilmodelo modelo) {
-    return PerfilEntidad(
-      id: modelo.id,
-      nombre: modelo.nombre,
-      correo: modelo.correo,
-      tipoId: modelo.tipoId,
-      sexo: modelo.sexo,
-      role: modelo.role,
-      facultad: modelo.facultad,
-      tipoAlumno: modelo.tipoAlumno,
-    );
-  }
 }

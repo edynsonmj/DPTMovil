@@ -53,7 +53,8 @@ void main() {
       }
     });
 
-    //Clasemodelo.fromEntidad hace fecha!, horas! y minutos!; agregarClase solo
+    //ClaseMapper.aModelo hace fecha!, horas! y
+    //minutos!; agregarClase solo
     //captura Exception
     test('$capa - $tipo - Agregar clase - BUG CL-04 - una entidad sin fecha u horas devuelve un error, sin lanzar', () async {
       for (final incompleta in [clase(fecha: null), clase(fecha: DateTime(2026, 10, 28), horas: null)]) {

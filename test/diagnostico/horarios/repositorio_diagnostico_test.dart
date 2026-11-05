@@ -1,10 +1,7 @@
 @Tags(['diagnostico'])
 library;
 
-import 'package:dpt_movil/data/models/horarioModelo.dart';
-import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
-import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../dobles/conexionhorariosFalsa.dart';
@@ -34,29 +31,7 @@ void main() {
       expect(respuesta.codigoHttp, isNot(200));
       expect(respuesta.error, isNotNull);
     });
-
-    //Horarioentidad.fromModelo no copia el id
-    test('$capa - $tipo - Listar horarios de grupo - BUG HO-01 - el id del horario llega a la entidad', () async {
-      conexion.respuestaHorarios = RespuestaModelo(
-        codigoHttp: 200,
-        datos: [
-          HorarioModelo(
-            id: 15,
-            categoria: 'Deportes',
-            curso: 'Iniciacion',
-            anio: 2026,
-            iterable: 1,
-            dia: 'Lunes',
-            horaInicio: '08:00',
-            horaFin: '10:00',
-            escenario: 'Coliseo',
-          ),
-        ],
-      );
-
-      final respuesta = await repositorio.obtenerHoariosGrupo('Deportes', 'Iniciacion', 2026, 1);
-
-      expect((respuesta.datos as List<Horarioentidad>).single.id, 15);
-    });
+    //la mitad de HO-01 que tocaba al repositorio (el id llega a la entidad)
+    //paso a test/unitarias/repositorio/horarioRepositorio_test.dart
   });
 }

@@ -1,4 +1,3 @@
-import 'package:dpt_movil/data/models/atencionModelo.dart';
 import 'package:dpt_movil/domain/entities/alumnoEntidad.dart';
 
 class Atencionentidad {
@@ -10,12 +9,4 @@ class Atencionentidad {
     required this.idClase,
     required this.estaAtendido,
   });
-
-  factory Atencionentidad.fromModelo(Atencionmodelo modelo) {
-    return Atencionentidad(
-      alumno: Alumnoentidad.fromModelo(modelo.alumno),
-      idClase: modelo.idClase,
-      estaAtendido: modelo.estaAtendido,
-    );
-  }
 }

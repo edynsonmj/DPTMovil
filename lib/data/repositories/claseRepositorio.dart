@@ -1,4 +1,5 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionClases.dart';
+import 'package:dpt_movil/data/mappers/claseMapper.dart';
 import 'package:dpt_movil/data/models/claseModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
@@ -23,7 +24,7 @@ class Claserepositorio {
 
   Future<RespuestaModelo> agregarClase(Claseentidad entidad) async {
     try {
-      Clasemodelo modelo = Clasemodelo.fromEntidad(entidad);
+      Clasemodelo modelo = ClaseMapper.aModelo(entidad);
       final RespuestaModelo respuesta = await cliente.agregarClaseGrupo(modelo);
       return respuesta;
     } on FormatException catch (formatError) {
@@ -60,12 +61,7 @@ class Claserepositorio {
     }
     try {
       List<Clasemodelo> listaModelo = respuesta.datos as List<Clasemodelo>;
-      List<Claseentidad> listaEntidad = [];
-      for (Clasemodelo item in listaModelo) {
-        Claseentidad entidad = Claseentidad.fromModelo(item);
-        listaEntidad.add(entidad);
-      }
-      respuesta.datos = listaEntidad;
+      respuesta.datos = listaModelo.map(ClaseMapper.aEntidad).toList();
       return respuesta;
     } on FormatException catch (formatError) {
       return RespuestaModelo.fromFormatException(

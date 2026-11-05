@@ -1,4 +1,3 @@
-import 'package:dpt_movil/data/models/grupoModelo.dart';
 import 'package:dpt_movil/domain/entities/estadoInscripcion.dart';
 
 export 'package:dpt_movil/domain/entities/estadoInscripcion.dart';
@@ -61,22 +60,5 @@ class Grupoentidad {
   static DateTime? _soloFecha(String? texto) {
     final fecha = texto == null ? null : DateTime.tryParse(texto);
     return fecha == null ? null : DateTime(fecha.year, fecha.month, fecha.day);
-  }
-
-  factory Grupoentidad.fromModelo(GrupoModelo grupo) {
-    return Grupoentidad(
-      categoria: grupo.cat_titulo,
-      curso: grupo.cur_nombre,
-      anio: grupo.anio,
-      iterable: grupo.iterable,
-      imagen: grupo.imagen,
-      cupos: grupo.cupos,
-      estado: grupo.estado,
-      fechaCreacion: grupo.fechaCreacion,
-      fechaFinalizacion: grupo.fechaFinalizacion,
-      idInstructor: grupo.idInstructor,
-      fechaInscripcionApertura: grupo.fechaInscripcionApertura,
-      fechaInscripcionCierre: grupo.fechaInscripcionCierre,
-    );
   }
 }

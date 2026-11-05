@@ -325,6 +325,28 @@ class VmGrupoDiagnosticoTest {
     });
   }
 
+  //antes GR-02: el POST perdia la fecha de finalizacion. Va despues de los
+  //casos que esperan el curso B sin grupos
+  void prueba7FechaFinalizacion(Gruposviewmodel Function() crearVm) {
+    String metodo = "Insertar grupo";
+    String caso = "la fecha de finalizacion se guarda y vuelve en la lista";
+    test('$capa - $tipo - $metodo - $caso', () async {
+      final fin = FormatDate.fechaACadena(
+        DateTime.now().add(const Duration(days: 60)),
+        '-',
+      );
+      final nuevo = _nuevoGrupo(_cursoB)..fechaFinalizacion = fin;
+
+      final r = await crearVm().insertarGrupo(nuevo);
+      expect(r.codigoHttp, 201, reason: '${r.error?.mensaje}');
+
+      final vm = crearVm();
+      await vm.listarGruposDe(_cursoB.tituloCategoria, _cursoB.nombreCurso);
+      expect(vm.error, isNull);
+      expect(vm.getListaGrupos!.single.fechaFinalizacion, fin);
+    });
+  }
+
   //mismo armado que GrupoFormulario: anio e iterable los calcula el backend
   Grupoentidad _nuevoGrupo(CursoEntidad c, {int cupos = 20}) => Grupoentidad(
     categoria: c.tituloCategoria,

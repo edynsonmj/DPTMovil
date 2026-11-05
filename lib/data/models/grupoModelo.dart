@@ -1,5 +1,3 @@
-import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
-
 class GrupoModelo {
   String cat_titulo;
   String cur_nombre;
@@ -55,19 +53,6 @@ class GrupoModelo {
     );
   }
 
-  factory GrupoModelo.fromEntidad(Grupoentidad entidad) {
-    return GrupoModelo(
-      cat_titulo: entidad.categoria,
-      cur_nombre: entidad.curso,
-      anio: entidad.anio,
-      iterable: entidad.iterable,
-      cupos: entidad.cupos,
-      fechaCreacion: entidad.fechaCreacion,
-      idInstructor: entidad.idInstructor,
-      imagen: entidad.imagen,
-    );
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'categoria': cat_titulo,
@@ -78,6 +63,8 @@ class GrupoModelo {
       'idInstructor': idInstructor,
       'cupos': cupos,
       'fechaCreacion': fechaCreacion,
+      //opcional en GrupoDto: sin fecha el POST queda como antes
+      if (fechaFinalizacion != null) 'fechaFinalizacion': fechaFinalizacion,
     };
   }
 }

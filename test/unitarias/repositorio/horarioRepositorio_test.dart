@@ -69,7 +69,33 @@ void main() {
       expect([h.categoria, h.curso, h.anio, h.iterable], ['Deportes', 'Iniciacion', 2026, 1]);
       expect([h.dia, h.horaInicio, h.horaFin, h.escenario], ['Miércoles', '14:00', '16:00', 'Piscina']);
     });
-    //los casos rojos (HO-01 y HO-02) estan en
+
+    //antes HO-01 (mitad del repositorio): el id no llegaba a la entidad. La
+    //otra mitad (fromJson no lo lee) sigue roja en
+    //test/diagnostico/horarios/integracion_diagnostico_test.dart
+    test('$capa - $tipo - Listar horarios de grupo - el id del horario llega a la entidad', () async {
+      conexion.respuestaHorarios = RespuestaModelo(
+        codigoHttp: 200,
+        datos: [
+          HorarioModelo(
+            id: 15,
+            categoria: 'Deportes',
+            curso: 'Iniciacion',
+            anio: 2026,
+            iterable: 1,
+            dia: 'Lunes',
+            horaInicio: '08:00',
+            horaFin: '10:00',
+            escenario: 'Coliseo',
+          ),
+        ],
+      );
+
+      final respuesta = await repositorio.obtenerHoariosGrupo('Deportes', 'Iniciacion', 2026, 1);
+
+      expect((respuesta.datos as List<Horarioentidad>).single.id, 15);
+    });
+    //el caso rojo (HO-02) esta en
     //test/diagnostico/horarios/repositorio_diagnostico_test.dart
   });
 }

@@ -1,5 +1,3 @@
-import 'package:dpt_movil/data/models/estadisticaModelo.dart';
-
 class Estadistica {
   ///titulo de la estadistica
   String leyenda1;
@@ -29,17 +27,4 @@ class Estadistica {
     required this.minutos,
     required this.duracion,
   });
-
-  factory Estadistica.fromModelo(EstadisticaModelo m) {
-    return Estadistica(
-      leyenda1: m.leyenda1,
-      leyenda2: m.leyenda2,
-      leyenda3: m.leyenda3,
-      leyenda4: m.leyenda4,
-      clases: m.clases,
-      duracion: m.duracion,
-      horas: m.horas,
-      minutos: m.minutos,
-    );
-  }
 }

@@ -271,7 +271,27 @@ void main() {
 
       expect(respuesta, same(e400));
     });
-    //los casos rojos (GR-01 y GR-02) estan en
+
+    //antes GR-02 (mitad del repositorio): el modelo perdia la fecha de
+    //finalizacion. La otra mitad (toJson no la envia) sigue roja en
+    //test/diagnostico/grupos/integracion_diagnostico_test.dart
+    test('$capa - $tipo - Insertar grupo - la fecha de finalizacion de la entidad llega al modelo', () async {
+      await repositorio.insertarGrupo(
+        Grupoentidad(
+          categoria: 'Deportes',
+          curso: 'Iniciacion',
+          anio: 0,
+          iterable: 0,
+          cupos: 20,
+          fechaCreacion: '2026-10-29',
+          fechaFinalizacion: '2026-12-15',
+          idInstructor: 'ins1',
+        ),
+      );
+
+      expect(conexion.ultimoInsertado?.fechaFinalizacion, '2026-12-15');
+    });
+    //el caso rojo (GR-01) esta en
     //test/diagnostico/grupos/repositorio_diagnostico_test.dart
   });
 }
