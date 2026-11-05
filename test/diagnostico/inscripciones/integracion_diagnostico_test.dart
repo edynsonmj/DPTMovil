@@ -1,7 +1,6 @@
 @Tags(['diagnostico'])
 library;
 
-import 'package:dio/dio.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInscripcionRemoto.dart';
 import 'package:dpt_movil/data/repositories/inscripcionRepositorio.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
@@ -60,42 +59,6 @@ void main() {
   });
 
   group('Inscripcion del alumno (diagnostico de punta a punta):', () {
-    test('$capa - $tipo - Cargar estados - BUG IN-09 - sin red el grupo queda con error, no como "no inscrito"', () async {
-      adaptador.fallar(
-        'GET',
-        '/validarInscripcion',
-        DioExceptionType.connectionError,
-      );
-
-      await vm.cargarEstados('104619011001', [grupo]);
-
-      final estado = vm.estadoDe(grupo);
-      expect(estado.cargando, isFalse);
-      //la pantalla pinta "Matricular" con datos == false: sin un error, el
-      //alumno no puede saber que su inscripcion no se pudo consultar
-      expect(estado.error, isNotNull, reason: 'datos: ${estado.datos}');
-    });
-
-    test('$capa - $tipo - Inscribir - BUG IN-10 - si la revalidacion falla tras un 201, el grupo no queda como "no inscrito"', () async {
-      adaptador.responder('POST', '/inscripcion', 201, {'alumnoId': '104619011001'});
-      adaptador.fallar(
-        'GET',
-        '/validarInscripcion',
-        DioExceptionType.connectionError,
-      );
-
-      final resultado = await vm.agregarIncripcion(inscripcion());
-
-      expect(resultado, isA<Exito>(), reason: texto(resultado));
-      final estado = vm.estadoDe(grupo);
-      //el usuario ve "Te has inscrito al grupo" y debajo el boton "Matricular"
-      expect(
-        estado.datos == true || estado.error != null,
-        isTrue,
-        reason: 'datos: ${estado.datos}, error: ${estado.error}',
-      );
-    });
-
     test('$capa - $tipo - Inscribir - BUG IN-11 - una inscripcion con fecha sale con la fecha en ISO 8601', () async {
       adaptador.responder('POST', '/inscripcion', 201, {'alumnoId': '104619011001'});
       adaptador.responder('GET', '/validarInscripcion', 200, true);

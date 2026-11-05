@@ -45,25 +45,41 @@ class Inscripcionviewmodel with ChangeNotifier, NotificacionSegura {
   }
 
   Future<Resultado<void>> agregarIncripcion(Inscripcionentidad entidad) =>
-      _operar(entidad, _servicio.agregarInscripcion, 201);
+      _operar(entidad, _servicio.agregarInscripcion, 201, inscritoTras: true);
 
   Future<Resultado<void>> desvincularInscripcion(Inscripcionentidad entidad) =>
-      _operar(entidad, _servicio.desvincularInscripcion, 200);
+      _operar(
+        entidad,
+        _servicio.desvincularInscripcion,
+        200,
+        inscritoTras: false,
+      );
+
+  //vuelve a consultar un grupo cuya consulta fallo (boton "Reintentar")
+  Future<void> reintentar(Inscripcionentidad entidad) async {
+    _estados[_clave(entidad)] = const EstadoSeccion(false, cargando: true);
+    notifyListeners();
+    await _actualizarEstado(entidad);
+  }
 
   //marca el grupo como procesando, llama al servicio y, si sale bien, vuelve
   //a validar solo ese grupo: el backend dice si quedo inscrito
   Future<Resultado<void>> _operar(
     Inscripcionentidad entidad,
     Future<RespuestaModelo> Function(Inscripcionentidad) operacion,
-    int codigoExito,
-  ) async {
+    int codigoExito, {
+    required bool inscritoTras,
+  }) async {
     final clave = _clave(entidad);
     _procesando.add(clave);
     notifyListeners();
     try {
       RespuestaModelo respuesta = await operacion(entidad);
       if (respuesta.codigoHttp == codigoExito) {
-        await _actualizarEstado(entidad);
+        //la operacion ya se hizo: si la revalidacion falla, el grupo queda
+        //con el resultado que se espera y el error a la vista. Antes quedaba
+        //como "no inscrito" y el boton volvia a Matricular (IN-10)
+        await _actualizarEstado(entidad, siFalla: inscritoTras);
         return Exito();
       }
       return _fallo(respuesta);
@@ -75,23 +91,37 @@ class Inscripcionviewmodel with ChangeNotifier, NotificacionSegura {
     }
   }
 
-  Future<void> _actualizarEstado(Inscripcionentidad entidad) async {
-    final inscrito = await validarInscripcion(entidad);
-    _estados[_clave(entidad)] = EstadoSeccion(inscrito);
+  //[siFalla]: lo que se sabe del grupo si la consulta no se puede hacer
+  Future<void> _actualizarEstado(
+    Inscripcionentidad entidad, {
+    bool siFalla = false,
+  }) async {
+    _estados[_clave(entidad)] = await _consultar(entidad, siFalla);
     notifyListeners();
   }
 
-  Future<bool> validarInscripcion(Inscripcionentidad entidad) async {
+  //una consulta que falla deja el error en el estado del grupo, para que la
+  //pantalla no pinte "Matricular" como si no estuviera inscrito (IN-09)
+  Future<EstadoSeccion<bool>> _consultar(
+    Inscripcionentidad entidad,
+    bool siFalla,
+  ) async {
     try {
-      RespuestaModelo respuesta = await _servicio.validarInscripcion(entidad);
-      if (respuesta.codigoHttp == 200) {
-        return respuesta.datos as bool;
+      final respuesta = await _servicio.validarInscripcion(entidad);
+      if (respuesta.codigoHttp == 200 && respuesta.datos is bool) {
+        return EstadoSeccion(respuesta.datos as bool);
       }
-      return false;
+      return EstadoSeccion(siFalla, error: _fallo(respuesta).mensaje);
     } catch (e) {
-      return false;
+      return EstadoSeccion(siFalla, error: e.toString());
     }
   }
+
+  //consulta directa (si/no) que usan las pruebas remotas para leer lo que
+  //quedo en el backend; un error cuenta como no inscrito. La pantalla usa
+  //estadoDe, que conserva el error
+  Future<bool> validarInscripcion(Inscripcionentidad entidad) async =>
+      (await _consultar(entidad, false)).datos;
 
   String _clave(Inscripcionentidad e) =>
       Grupoentidad.claveDe(e.categoria, e.curso, e.anio, e.iterable);

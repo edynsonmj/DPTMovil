@@ -142,6 +142,29 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
             if (estado.cargando) {
               return Center(child: CircularProgressIndicator());
             }
+            //sin poder consultar no se sabe si esta inscrito: no se ofrece
+            //Matricular ni Quitar matricula, solo volver a consultar (IN-09)
+            if (estado.error != null) {
+              return Positioned(
+                top: 165,
+                child: Column(
+                  children: [
+                    Text(
+                      'No se pudo consultar tu inscripción',
+                      style: Tipografia.cuerpo2(color: ColorTheme.error),
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Reintentar'),
+                      onPressed:
+                          () => context.read<Inscripcionviewmodel>().reintentar(
+                            _inscripcionDe(grupo),
+                          ),
+                    ),
+                  ],
+                ),
+              );
+            }
             final bool inscrito = estado.datos;
             return Positioned(
               top: 165,
@@ -167,19 +190,21 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
 
   Future<void> _matricularODesvincular(Grupoentidad grupo, bool inscrito) async {
     final vm = context.read<Inscripcionviewmodel>();
-    final inscripcion = Inscripcionentidad(
-      alumnoId: widget.alumnoId,
-      categoria: grupo.categoria,
-      curso: grupo.curso,
-      anio: grupo.anio,
-      iterable: grupo.iterable,
-    );
+    final inscripcion = _inscripcionDe(grupo);
     final resultado =
         inscrito
             ? await vm.desvincularInscripcion(inscripcion)
             : await vm.agregarIncripcion(inscripcion);
     await _mostrarResultado(resultado, inscrito: !inscrito);
   }
+
+  Inscripcionentidad _inscripcionDe(Grupoentidad grupo) => Inscripcionentidad(
+    alumnoId: widget.alumnoId,
+    categoria: grupo.categoria,
+    curso: grupo.curso,
+    anio: grupo.anio,
+    iterable: grupo.iterable,
+  );
 
   //sin horarios (o si su peticion fallo) la tarjeta queda sin descripcion
   String _descripcionHorarios(List<Horarioentidad> horarios) {

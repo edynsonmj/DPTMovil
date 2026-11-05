@@ -1,3 +1,4 @@
+import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
 import 'package:dpt_movil/data/models/horarioModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
@@ -169,6 +170,52 @@ void main() {
 
     expect(find.text('Quitar matrícula'), findsOneWidget);
     expect(find.text('Matricular'), findsNothing);
+  });
+
+  //IN-09: sin poder consultar la inscripcion la tarjeta pintaba "Matricular"
+  //como si el alumno no estuviera inscrito
+  testWidgets('$capa - $tipo - Grupos de inscripcion - si no se puede consultar la inscripcion lo dice y deja reintentar', (
+    tester,
+  ) async {
+    conexionInscripcion.respuestaValidar = RespuestaModelo(
+      codigoHttp: 503,
+      error: ErrorModelo(codigoHttp: 503, mensaje: 'No hay conexion', url: '/validarInscripcion', metodo: 'GET'),
+    );
+
+    await montar(tester);
+
+    expect(find.text('Matricular'), findsNothing);
+    expect(find.text('Quitar matrícula'), findsNothing);
+    expect(find.textContaining('No se pudo consultar tu inscripción'), findsOneWidget);
+
+    //vuelve la red: reintentar consulta solo ese grupo y pinta el boton
+    conexionInscripcion.respuestaValidar = RespuestaModelo(codigoHttp: 200, datos: false);
+    await tester.tap(find.text('Reintentar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Matricular'), findsOneWidget);
+    expect(conexionInscripcion.llamadasValidar, 2);
+  });
+
+  //IN-10: tras inscribirse, si la revalidacion fallaba el boton volvia a
+  //"Matricular" aunque el backend ya tenia la inscripcion
+  testWidgets('$capa - $tipo - Grupos de inscripcion - si tras matricular no se puede confirmar no vuelve a Matricular', (
+    tester,
+  ) async {
+    await montar(tester);
+    conexionInscripcion.respuestaValidar = RespuestaModelo(
+      codigoHttp: 503,
+      error: ErrorModelo(codigoHttp: 503, mensaje: 'No hay conexion', url: '/validarInscripcion', metodo: 'GET'),
+    );
+
+    await tester.tap(find.text('Matricular'));
+    await tester.pumpAndSettle();
+    expect(find.text('Te has inscrito al grupo'), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Matricular'), findsNothing);
+    expect(find.textContaining('No se pudo consultar tu inscripción'), findsOneWidget);
   });
 
   testWidgets('$capa - $tipo - Grupos de inscripcion - cada grupo se pide una sola vez', (
