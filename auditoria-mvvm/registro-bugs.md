@@ -833,9 +833,60 @@ Resultado:
 | 21 | I-Remota | Cada instructor trae sus 4 campos y su id no se repite | ✅ |
 | 22 | I-Remota | Un alumno recién registrado no aparece entre los instructores | ✅ |
 
+## Módulo 6b: diagnóstico por pruebas de la escritura de horarios (2026-11-04)
+
+Plan: [plan-diagnostico-horarios-escritura.md](plan-diagnostico-horarios-escritura.md). **Regla:** solo es hallazgo lo que demuestra una prueba **en rojo**. Lo demás va a hipótesis.
+
+**Cambio del backend:** `/v3/api-docs` publica ahora `POST /horario?categoria&curso&anio&iterable`, `PUT /horario?id=` y `DELETE /horario?id=`, con cuerpo `{dia, horaInicio, horaFin, escenario}`. Eso resuelve la parte del backend de **H-07** del módulo 6 (no había forma de registrar horarios). Lo observado a mano está en `test/contratos/horarios/LEEME.md`: el backend valida campos vacíos, formato de hora y rango (400 por campo), responde 404 `GC-0003` a un grupo u horario inexistente, y un horario eliminado deja de listarse. La app sigue sin usar ninguna de las tres rutas.
+
+| Nivel | Archivo | Verdes | Rojas |
+|---|---|---|---|
+| I-Local (vista, diagnóstico): pantalla del grupo con su VM y dobles, con un `NavigatorObserver` | `test/diagnostico/horarios/vista_diagnostico_test.dart` (nuevo) | 1 (control HO-04) | 2 (HO-04, HO-05) |
+| I-Remota: lectura real (`Horariosviewmodel`, `DetalleGrupoViewModel`) con horarios sembrados por `POST`/`PUT`/`DELETE` directos | `test/remoto/viewModel/horario/vmHorarioDiagnosticoTest.dart` (+3 casos, en `main_test.dart`) | 3 | — |
+
+Resultado:
+- Suite sin backend: **271 en verde** (sin cambios).
+- Suite remota: **107 en verde** (antes 104).
+- `test/diagnostico`: 75 pruebas, de ellas 71 rojas, 3 verdes (controles) y 1 omitida; 2 de las rojas son de este módulo.
+- `flutter analyze`: 0 errores y 31 warnings (sin cambios).
+
+### Hallazgos (prueba en rojo)
+
+| ID | Capa | Síntoma observable (evidencia del rojo) | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
+|---|---|---|---|---|---|---|---|
+| HO-04 | Vista | "AGREGAR HORARIO", en la pantalla del grupo, no abre nada (`onPressed: () {}` en `widgetListaHorarios.dart`): no hay formulario, ruta ni método en ninguna capa para crear un horario, aunque el backend ya lo permite | `vista_diagnostico` · HO-04 (`Expected: a value greater than <0>`, `Actual: <0>` pantallas abiertas); su control (pinta los horarios y el botón) está en verde | **Prueba** con la pantalla y su VM reales. **Leído en el código:** tampoco hay forma de editar un horario | M | app | **confirmado** |
+| HO-05 | Vista | El botón de cerrar de la tarjeta de un horario no elimina ni pide confirmación: `MiniTarjeta.iconoAccion` solo hace `print('hola')` | `vista_diagnostico` · HO-05 (`Actual: <0>`) | **Prueba.** `MiniTarjeta` es compartida: el mismo botón muerto aparece donde se use con `existeBotonCierre: true` | M | app | **confirmado** |
+
+### Hipótesis descartadas (su prueba salió verde)
+
+| Hip. | Qué se temía | Prueba en verde |
+|---|---|---|
+| H-10 | Un horario creado en el backend no llega completo a la app | `vmHorarioDiagnosticoTest` · prueba4: id, día, horas y escenario llegan a la tarjeta (`Horariosviewmodel`) y a la pantalla del grupo (`DetalleGrupoViewModel`) |
+| H-11 | Un horario editado se sigue viendo con los datos viejos | prueba5 |
+| H-12 | Un horario eliminado sigue en la lista, como pasa con las clases (CL-01) | prueba6: deja de aparecer |
+
+### Hipótesis sin verificar u observaciones (no son hallazgos)
+
+| Hip. | Capa | Hipótesis / observación | Por qué no es hallazgo |
+|---|---|---|---|
+| H-13 | Backend / cliente | El backend acepta un día que no existe (`Xyz`) y dos horarios idénticos (mismo día y horas) en el mismo grupo | Observado a mano. Qué días son válidos y si se permiten solapes es una regla del cliente |
+| H-14 | Backend → vista | Las horas se devuelven como se enviaron, así que un grupo puede mostrar `08:00 - 10:00` junto a `14:00:00 - 15:30:00` | Observado a mano y fijado en prueba4. Es de presentación; conviene que la app envíe siempre `HH:mm` cuando implemente la creación |
+| H-15 | Conexión → VM | Cuando la app implemente la escritura, los 400 llegan como un objeto por campo (`{"dia": "…"}`); con `fromDioException` el usuario vería el JSON crudo, como en IT-01 | No hay código que lo use todavía; queda para las pruebas de la implementación |
+
+### Escenarios implementados
+
+| # | Nivel | Escenario | Resultado |
+|---|---|---|---|
+| 1 | I-Local (vista) | Control: la pantalla del grupo pinta los dos horarios del contrato y el botón "AGREGAR HORARIO" | ✅ |
+| 2 | I-Local (vista) | Tocar "AGREGAR HORARIO" abre un formulario o un diálogo | ❌ HO-04 |
+| 3 | I-Local (vista) | Tocar cerrar en la tarjeta de un horario pide confirmación | ❌ HO-05 |
+| 4 | I-Remota | Dos horarios creados (`HH:mm` y `HH:mm:ss`) llegan completos a la tarjeta y a la pantalla del grupo | ✅ |
+| 5 | I-Remota | Un horario editado se ve con sus datos nuevos | ✅ |
+| 6 | I-Remota | Un horario eliminado deja de aparecer | ✅ |
+
 ## Seguimiento en Jira (2026-10-29)
 
-Los 57 hallazgos abiertos están en el backlog del proyecto **SCRUM** (DEPORTE PARA TODOS), como tareas de la Epic [SCRUM-39](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-39) «MP — Corrección de hallazgos del diagnóstico por pruebas». Cada tarea lleva las etiquetas `backlog`, `diagnostico`, el módulo y su ID (más `latente` o `backend` cuando aplica). La prioridad sale de la severidad: M → Medium, B → Low. Al corregir un hallazgo, se cierra también su tarea.
+Los 57 hallazgos abiertos del 2026-10-29, más HO-04 y HO-05 (módulo 6b, 2026-11-04), están en el backlog del proyecto **SCRUM** (DEPORTE PARA TODOS), como tareas de la Epic [SCRUM-39](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-39) «MP — Corrección de hallazgos del diagnóstico por pruebas». Cada tarea lleva las etiquetas `backlog`, `diagnostico`, el módulo y su ID (más `latente` o `backend` cuando aplica). La prioridad sale de la severidad: M → Medium, B → Low. Al corregir un hallazgo, se cierra también su tarea.
 
 | ID | Jira | ID | Jira | ID | Jira |
 |---|---|---|---|---|---|
@@ -858,3 +909,4 @@ Los 57 hallazgos abiertos están en el backlog del proyecto **SCRUM** (DEPORTE P
 | AL-03 | [SCRUM-88](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-88) | AL-04 | [SCRUM-89](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-89) | IT-01 | [SCRUM-90](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-90) |
 | IT-02 | [SCRUM-91](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-91) | IT-03 | [SCRUM-92](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-92) | FA-01 | [SCRUM-93](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-93) |
 | FA-02 | [SCRUM-94](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-94) | FA-03 | [SCRUM-95](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-95) | FA-04 | [SCRUM-96](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-96) |
+| HO-04 | [SCRUM-97](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-97) | HO-05 | [SCRUM-98](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUM-98) |  |  |

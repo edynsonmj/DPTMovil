@@ -704,13 +704,15 @@ void prepararVmClaseDiagnostico(VmClaseDiagnosticoTest test) {
     crearVmPeriodo: crearPeriodoInscripcionViewModel,
   );
 }
-//diagnostico del modulo 6 (plan-diagnostico-horarios.md): su propio grupo por
-//corrida; el backend no permite crear horarios
+//diagnostico del modulo 6 (plan-diagnostico-horarios.md y plan-diagnostico-
+//horarios-escritura.md): su propio grupo por corrida; los horarios de las
+//pruebas 4 a 6 se siembran con el Dio porque la app no los crea
 probarViewModelHorarioDiagnostico(){
   group('Horarios remotos (diagnostico):', () {
     VmHorarioDiagnosticoTest test = VmHorarioDiagnosticoTest();
     Dio dio = crearClienteHttp(baseUrlPruebas);
     test.preparar(
+      dio: dio,
       vmCategoria: crearCategoriaViewModel(
         ConexionCategoriaRemota(dio, Conexionimagenremoto(dio)),
       ),
@@ -723,6 +725,9 @@ probarViewModelHorarioDiagnostico(){
     test.prueba1TarjetaSinHorarios(crearHorariosViewModel);
     test.prueba2PantallaSinHorarios(crearDetalleGrupoViewModel);
     test.prueba3GrupoInexistente(crearHorariosViewModel);
+    test.prueba4HorariosCreados(crearHorariosViewModel, crearDetalleGrupoViewModel);
+    test.prueba5HorarioEditado(crearDetalleGrupoViewModel);
+    test.prueba6HorarioEliminado(crearDetalleGrupoViewModel);
   });
 }
 //diagnostico del modulo 9a (plan-diagnostico-alumnos.md): tres grupos y tres

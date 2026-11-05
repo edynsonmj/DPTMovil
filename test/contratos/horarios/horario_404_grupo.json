@@ -1,0 +1,7 @@
+{
+  "codigoError": "GC-0003",
+  "mensaje": "No se encuentra registrado el elemento: No existe el grupo al que se intenta agregar el horario",
+  "codigoHttp": 404,
+  "url": "http://localhost:8082/api/v2/horario",
+  "metodo": "POST"
+}
