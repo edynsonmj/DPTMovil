@@ -18,6 +18,11 @@ class CursosViewModel with ChangeNotifier {
   List<CursoEntidad>? get getListaCursos => _listaCursos;
   List<String> get nombresCursos => _nombres;
 
+  //mientras llega la lista: sin esto la vista no distingue "cargando" de
+  //"la categoria no tiene cursos"
+  bool _cargando = false;
+  bool get cargando => _cargando;
+
   //el servicio sale de la raiz; el vm lo crea cada ruta (route_generator)
   CursosViewModel(this.servicioCurso);
 
@@ -34,6 +39,8 @@ class CursosViewModel with ChangeNotifier {
   //se abrian dos dialogos seguidos, CU-05)
   Future<Resultado<void>> listarCursosDe(CategoriaEntidad categoria) async {
     Resultado<void> resultado = Exito();
+    _cargando = true;
+    notifyListeners();
     try {
       final respuesta = await servicioCurso.listarCursosDe(categoria);
       if (respuesta.codigoHttp == 200 && respuesta.datos is List<CursoEntidad>) {
@@ -45,8 +52,10 @@ class CursosViewModel with ChangeNotifier {
     } catch (e) {
       _establecerCursos([]);
       resultado = Fallo(-1, e.toString(), origen: 'ViewModel');
+    } finally {
+      _cargando = false;
+      notifyListeners();
     }
-    notifyListeners();
     return resultado;
   }
 

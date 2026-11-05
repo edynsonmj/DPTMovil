@@ -146,16 +146,19 @@ class _CursosViewState extends State<CursosView> {
         children: [
           contenidoEstatico,
           if (esCoordinador) ajustes,
-          (viewModel.getListaCursos == null ||
-                  viewModel.getListaCursos!.isEmpty)
-              ? Center(
-                child: Text(
-                  'No hay cursos aun para esta categoria',
-                  style: Tipografia.cuerpo1(color: ColorTheme.error),
-                ),
-              )
-              //elementos de la vista sobre las cuales se puede hacer scroll
-              : componenteLista(viewModel, esCoordinador),
+          if (viewModel.cargando)
+            const Expanded(child: Center(child: CircularProgressIndicator()))
+          else if (viewModel.getListaCursos == null ||
+              viewModel.getListaCursos!.isEmpty)
+            Center(
+              child: Text(
+                'No hay cursos aun para esta categoria',
+                style: Tipografia.cuerpo1(color: ColorTheme.error),
+              ),
+            )
+          //elementos de la vista sobre las cuales se puede hacer scroll
+          else
+            componenteLista(viewModel, esCoordinador),
         ],
       ),
     );

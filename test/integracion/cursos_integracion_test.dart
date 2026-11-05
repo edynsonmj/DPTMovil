@@ -55,6 +55,49 @@ void main() {
     );
   });
 
+  //CursosView por la ruta real (route_generator) con la cadena real del vm
+  //sobre el transporte falso. Termina la transicion sin pumpAndSettle: un
+  //indicador de carga girando no se asienta nunca
+  Future<void> abrirCursos(WidgetTester tester) async {
+    final dio = crearDioFalso(adaptador);
+    final sesion = AutenticacionViewModel(
+      Servicioautenticacion(
+        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+      ),
+      GoogleSignInFalso(),
+    );
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<ServicioCurso>(
+            create: (_) => ServicioCurso(
+              CursoRepositorio(
+                cliente: ConexionCursoRemoto(dio, Conexionimagenremoto(dio)),
+              ),
+            ),
+          ),
+          ChangeNotifierProvider<AutenticacionViewModel>.value(value: sesion),
+        ],
+        child: MaterialApp(
+          onGenerateRoute: generateRoute,
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.pushNamed(
+                context,
+                AppRutas.cursos,
+                arguments: categoria,
+              ),
+              child: const Text('Abrir pantalla'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Abrir pantalla'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+  }
+
   group('Cursos (vm → conexion real → transporte falso):', () {
     test('$capa - $tipo - Listar cursos de - 200 pide la categoria y llena la lista y el desplegable', () async {
       adaptador.responder('GET', '/cursosbycategoria', 200, leerContrato('cursos', 'cursosbycategoria_200'));
@@ -146,41 +189,7 @@ void main() {
     //inconsistentes"). Ruta real de route_generator y cadena real del vm
     testWidgets('$capa - $tipo - Listar cursos de (CursosView) - un 500 abre un solo dialogo con su codigo', (tester) async {
       adaptador.responder('GET', '/cursosbycategoria', 500, 'error interno');
-      final dio = crearDioFalso(adaptador);
-      final sesion = AutenticacionViewModel(
-        Servicioautenticacion(
-          Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
-        ),
-        GoogleSignInFalso(),
-      );
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<ServicioCurso>(
-              create: (_) => ServicioCurso(
-                CursoRepositorio(
-                  cliente: ConexionCursoRemoto(dio, Conexionimagenremoto(dio)),
-                ),
-              ),
-            ),
-            ChangeNotifierProvider<AutenticacionViewModel>.value(value: sesion),
-          ],
-          child: MaterialApp(
-            onGenerateRoute: generateRoute,
-            home: Builder(
-              builder: (context) => TextButton(
-                onPressed: () => Navigator.pushNamed(
-                  context,
-                  AppRutas.cursos,
-                  arguments: categoria,
-                ),
-                child: const Text('Abrir pantalla'),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.tap(find.text('Abrir pantalla'));
+      await abrirCursos(tester);
       await tester.pumpAndSettle();
 
       final dialogos = tester.widgetList<DialogError>(find.byType(DialogError));
@@ -189,6 +198,27 @@ void main() {
         [500],
         reason: 'titulos: ${dialogos.map((d) => d.titulo).toList()}',
       );
+    });
+
+    //mientras la lista no llega la pantalla no debe afirmar que la
+    //categoria no tiene cursos
+    testWidgets('$capa - $tipo - Listar cursos de (CursosView) - mientras carga muestra el indicador y no "no hay cursos"', (tester) async {
+      final retenida = adaptador.retener('GET', '/cursosbycategoria');
+      adaptador.responder('GET', '/cursosbycategoria', 200, []);
+      await abrirCursos(tester);
+
+      final durante = (
+        indicador: find.byType(CircularProgressIndicator).evaluate().length,
+        sinCursos: find.text('No hay cursos aun para esta categoria').evaluate().length,
+      );
+
+      retenida.complete();
+      await tester.pumpAndSettle();
+
+      expect(durante, (indicador: 1, sinCursos: 0));
+      //al llegar la lista vacia el indicador se va y el aviso aparece
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('No hay cursos aun para esta categoria'), findsOneWidget);
     });
   });
 }

@@ -57,7 +57,8 @@ void main() {
         'Iniciacion',
         'Avanzado',
       ]);
-      expect(notificaciones, 1);
+      //una al empezar (cargando) y otra al terminar
+      expect(notificaciones, 2);
     });
 
     test('$capa - $tipo - Agregar curso - 201 devuelve la entidad', () async {
