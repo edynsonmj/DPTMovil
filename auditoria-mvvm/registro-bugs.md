@@ -889,6 +889,88 @@ Resultado:
 | 5 | I-Remota | Un horario editado se ve con sus datos nuevos | ✅ |
 | 6 | I-Remota | Un horario eliminado deja de aparecer | ✅ |
 
+## Módulo 10: diagnóstico por pruebas de la autenticación (2026-11-05)
+
+Plan: [plan-diagnostico-autenticacion.md](plan-diagnostico-autenticacion.md). **Regla:** solo es hallazgo lo que demuestra una prueba **en rojo**. Lo demás va a hipótesis.
+
+**Cambio del backend (2026-11-05):** el backend que corre en `localhost:8082` responde `401` (`WWW-Authenticate: Bearer`, cuerpo vacío) a **toda** ruta sin JWT: `/login`, `/categorias2`, etc. Solo `/v3/api-docs` sigue abierto. `/v3/api-docs` publica `POST /auth/token`, que cambia un Google ID Token por un JWT propio. El repositorio del backend en disco (`BackDeporteParaTodos`, `main`, `fecf216`) **no** tiene esa seguridad, así que el backend en marcha sale de otro código. Por eso no se pudo hacer la parte I-Remota, y los fixtures de `test/contratos/autenticacion/` son los documentados, no observados.
+
+| Nivel | Archivo | Verdes | Rojas |
+|---|---|---|---|
+| U-Conexión: conexión real → transporte falso | `test/unitarias/conexion/conexionAutenticacionRemoto_test.dart` (nuevo) | 5 | — |
+| U-Conexión (diagnóstico) | `test/diagnostico/autenticacion/conexion_diagnostico_test.dart` | — | 5 (AU-01 ×2, AU-02, AU-03 ×2) |
+| U-VM (diagnóstico) | `test/diagnostico/autenticacion/viewModel_diagnostico_test.dart` | — | 1 (AU-04) |
+| U-Vista: `CategoriasView` | `test/unitarias/vista/categoriasView_test.dart` (+1) | 1 | — |
+| I-Local: menú lateral y rutas reales → cadena real → transporte falso (montaje `test/integracion/montajeAutenticacion.dart`) | `test/integracion/autenticacion_integracion_test.dart` (nuevo) | 5 | — |
+| I-Local (diagnóstico) | `test/diagnostico/autenticacion/vista_diagnostico_test.dart` | 1 (control AU-10) | 8 (AU-05 a AU-09, AU-10 ×3) |
+| I-Remota | `test/remoto/viewModel/autenticacion/vmLoginTest.dart` (ya existía) | — | 1 (AU-B01) |
+
+Resultado:
+- Suite sin backend: **308 en verde** (antes 297).
+- Suite remota: **no se pudo correr**. El backend responde `401` a todo; `VmLoginTest.prueba1` da `Expected: <404>`, `Actual: <401>`.
+- `test/diagnostico`: 81 pruebas, de ellas 76 rojas, 4 verdes (controles) y 1 omitida; 14 de las rojas son de este módulo.
+- `flutter analyze`: 0 errores y 30 warnings (sin cambios).
+
+### Hallazgos (prueba en rojo)
+
+| ID | Capa | Síntoma observable (evidencia del rojo) | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
+|---|---|---|---|---|---|---|---|
+| AU-B01 | Backend ↔ app | Por la cadena real de la app, `GET /login` responde **401** en lugar de 404 o 200: el backend exige un JWT (`Authorization: Bearer`) y la app no envía ninguno. Con curl, `/categorias2` y `/instructores` dan lo mismo. **Con este backend nadie puede iniciar sesión ni cargar ninguna pantalla** | `main_test` · `VmLoginTest` prueba1 (`Expected: <404>`, `Actual: <401>`) | **API del backend** (2026-11-05). **Por confirmar:** si es el backend que se va a desplegar o una rama en desarrollo; el repositorio en disco no tiene esta seguridad | A | backend + app (la app tendría que pedir el JWT a `/auth/token` y enviarlo en cada petición) | **confirmado contra el backend**; por decidir con el equipo del backend |
+| AU-09 | Vista / navegación | Al cerrar sesión, el menú hace `pushNamed(categorias)` **encima** de lo que había: la pantalla de inscripciones del coordinador sigue en la pila y "atrás" vuelve a ella sin sesión | `vista_diagnostico` · AU-09 (`Found 1 widget with text "configuracion general"` fuera de pantalla, con `perfilSesion` ya en `null`) | **Prueba** con el menú y las rutas reales. **Inferido:** las acciones de esa pantalla siguen disponibles; las rutas no miran el rol (AU-10) | M | app | **confirmado** |
+| AU-06 | Vista | Un `409` del registro ("El perfil ya existe") **cierra el formulario** con `pop(false)`. El menú cierra la sesión y muestra "Ha fallado el registro, intenta nuevamente": no dice el motivo y el alumno pierde lo que llenó. Lo mismo pasa con cualquier respuesta distinta de 201 | `vista_diagnostico` · AU-06 (`Expected: [1, true]`, `Actual: [0, false]`) | **Prueba** con el 409 documentado | M | app | **confirmado** |
+| AU-05 | Vista | En el registro por correo, al escribir el nombre y elegir después cualquier desplegable, el campo "Nombre completo" **desaparece** y queda un texto fijo: ya no se puede corregir. `onChanged` guarda `_nombre` sin `setState`, y el siguiente `setState` decide que el nombre "vino de Google" | `vista_diagnostico` · AU-05 (`Found 0 widgets with type "TextFormField"`) | **Prueba.** Con Google el nombre ya llega y el campo no se muestra, así que solo afecta al registro por correo | M | app | **confirmado** |
+| AU-08 | Vista | Un login fallido que no sea 404 muestra `Error: <código>`. Con el backend de hoy, todo login muestra **"Error: 401"** | `vista_diagnostico` · AU-08 (`Found 1 widget with text "Error: 401"`) | **Prueba** con el `401` sin cuerpo que responde hoy el backend (AU-B01) | B | app | **confirmado** |
+| AU-10 | Rutas | Las rutas del coordinador no comprueban el rol: con sesión de alumno, de instructor o sin sesión, `AppRutas.InscripcionesGenerales` abre la pantalla. Solo el menú lateral esconde la opción. Es el mismo caso que AS-01 en la ruta `clase` | `vista_diagnostico` · AU-10 ×3; su control (el coordinador la abre) está en verde | **Prueba** que abre la ruta **directamente**: demuestra lo que hace la ruta, no que se pueda llegar a ella. No hay un camino conocido en la interfaz | B | app | **confirmado**; las reglas por rol siguen a la espera del cliente (AS-01) |
+| AU-07 | Vista | GUARDAR no se deshabilita mientras se envía el registro: dos toques mandan **dos** `POST /RegistroPerfilAlumno` | `vista_diagnostico` · AU-07 (`Expected: <1>`, `Actual: <2>`) | **Prueba** con el transporte retenido. **Inferido:** el backend respondería 409 al segundo | B | app | **confirmado** |
+| AU-04 | VM | Si `signOut` de Google lanza (p. ej. un `PlatformException`), `logout` deja escapar la excepción hasta el menú y **no borra la sesión** | `viewModel_diagnostico` · AU-04 (`PlatformException(sign_out_failed)`) | **Prueba.** El fallo lo lanza el doble; no se ha visto en el emulador | B | app | **confirmado** (latente) |
+| AU-01 | Conexión | El correo va sin codificar en `/login?email=$email`: `ana+deporte@…` llega como `ana deporte@…` y `ana&b@…` parte la query en `email=ana`. Mismo caso que GR-05 | `conexion_diagnostico` · AU-01 ×2 | **Prueba.** **Inferido:** ese usuario recibiría 404 y se le pediría registrarse. Los correos institucionales no suelen llevar `+` ni `&` | B | app | **confirmado** (latente) |
+| AU-02 | Modelo | `Perfilmodelo.fromJson` no lee `facultad`: la sesión nunca la conoce | `conexion_diagnostico` · AU-02 (`Actual: <null>`) | **Prueba** con el `PerfilDto` documentado. Hoy nada lee `perfilSesion.facultad` | B | app | **confirmado** (latente) |
+| AU-03 | Conexión | Un perfil con un campo obligatorio nulo, o un 201 sin cuerpo, lanza `TypeError` o `NoSuchMethodError` desde `fromJson`. La conexión solo captura `Exception`, así que el error atraviesa todas las capas hasta el `onTap` del menú. Mismo caso que AL-04 | `conexion_diagnostico` · AU-03 ×2 | **Prueba.** El JSON incompleto lo fabrica la prueba | B | app | **confirmado** (latente) |
+
+### Hipótesis descartadas (su prueba salió verde)
+
+| Hip. | Qué se temía | Prueba en verde |
+|---|---|---|
+| CAT-12 / T-04 | `perfilSesion` cambia sin notificar y la opción del coordinador no aparece al iniciar sesión | `categoriasView_test` · "iniciar sesion de coordinador muestra agregar sin recargar" e `autenticacion_integracion_test` · "Login - 200 …": `login()` notifica, y el menú y la pantalla cambian solos. El `notifyListeners()` a mano del caso viejo (T-04) ya no hace falta, pero se conserva |
+
+### Hipótesis sin verificar u observaciones (no son hallazgos)
+
+| Hip. | Capa | Hipótesis / observación | Por qué no es hallazgo |
+|---|---|---|---|
+| AU-H1 | Seguridad / cliente | El inicio "con correo" no pide ninguna credencial: quien escriba el correo de un coordinador entra con su rol. Que el backend exija ahora un JWT obtenido con Google (AU-B01) apunta a que el equipo del backend lo quiere cerrar | Es de diseño y lo decide el cliente; posible severidad A |
+| AU-H2 | Backend | Si la respuesta 201 del registro no trae `role`, el alumno recién registrado no ve "Inscripciones" en el menú hasta volver a iniciar sesión | `PerfilDto.role` es opcional; no se pudo observar por AU-B01 |
+| AU-H3 | Vista / cliente | El registro solo ofrece CC y TI, aunque el backend acepta CE, PP, PEP y DIE (comentario en la vista). Tampoco ofrece "Contratista" como tipo de alumno, que `AlumnoRequest` sí admite | Regla del cliente: ¿pueden registrarse extranjeros o contratistas? |
+| AU-H4 | VM | Si el login con Google funciona pero el backend falla (que no sea 404), `cuenta` queda asignada: `verificarSesion` no reintenta al volver a categorías | Solo lectura del código; el usuario puede volver a iniciar sesión desde el menú |
+| AU-O1 | Vista | El aviso "Te has registrado exitosamente" espera en cola unos 4 s, detrás de "Valores aceptados", que el registro muestra antes de enviar | Observado en `autenticacion_integracion_test`; es cosmético |
+| AU-O2 | Modelo | `PerfilDto` trae `alumnoCodigo`, `programa` y `dependencia`, que la app no lee | Nada los usa todavía |
+
+### Escenarios implementados
+
+| # | Nivel | Escenario | Resultado |
+|---|---|---|---|
+| 1 | U-Conexión | Login 200 → perfil con su rol; el correo va en la query | ✅ |
+| 2 | U-Conexión | Login 404 → 404 | ✅ |
+| 3 | U-Conexión | Login sin red → 503 sin lanzar | ✅ |
+| 4 | U-Conexión | Registro → cuerpo igual al contrato; 201 → perfil | ✅ |
+| 5 | U-Conexión | Registro 409 → 409 sin lanzar | ✅ |
+| 6 | U-Conexión | Correo con `+` y con `&` llega sin cambios | ❌ AU-01 ×2 |
+| 7 | U-Conexión | La facultad del perfil llega al modelo | ❌ AU-02 |
+| 8 | U-Conexión | Perfil con `tipoId: null` y 201 sin cuerpo → error devuelto, sin lanzar | ❌ AU-03 ×2 |
+| 9 | U-VM | `signOut` de Google falla → la sesión se borra igual, sin lanzar | ❌ AU-04 |
+| 10 | U-Vista | Iniciar sesión de coordinador por el VM muestra "Agregar categoria" sin notificar a mano | ✅ (CAT-12 descartada) |
+| 11 | I-Local | Menú → login 200 → "Email autenticado" y opciones del coordinador | ✅ |
+| 12 | I-Local | Menú → login 404 → abre el registro con el correo y pide las facultades | ✅ |
+| 13 | I-Local | Registro completo → `POST` igual al contrato → se cierra, avisa y deja la sesión del alumno | ✅ |
+| 14 | I-Local | Cancelar el registro → sin sesión ni `POST` | ✅ |
+| 15 | I-Local | Cerrar sesión → borra la sesión, sale de Google y abre categorías | ✅ |
+| 16 | I-Local | Nombre escrito y luego un desplegable → el nombre sigue editable | ❌ AU-05 |
+| 17 | I-Local | Registro 409 → el formulario sigue abierto con el motivo | ❌ AU-06 |
+| 18 | I-Local | Dos toques en GUARDAR → un solo `POST` | ❌ AU-07 |
+| 19 | I-Local | Login 401 → mensaje legible, no `Error: 401` | ❌ AU-08 |
+| 20 | I-Local | Cerrar sesión desde una pantalla del coordinador → esa pantalla no queda en la pila | ❌ AU-09 |
+| 21 | I-Local | `InscripcionesGenerales` por ruta: el coordinador la abre (control); alumno, instructor y sin sesión no | ✅ control · ❌ AU-10 ×3 |
+| 22 | I-Remota | Correo no registrado → 404 | ❌ AU-B01 (`401`) |
+
 ## Seguimiento en Jira (2026-10-29)
 
 Los 57 hallazgos abiertos del 2026-10-29, más HO-04 y HO-05 (módulo 6b, 2026-11-04), están en el backlog del proyecto **SCRUMBAN** (DEPORTE PARA TODOS; la clave era SCRUM hasta el 2026-11-05 y Jira redirige las claves viejas), como tareas de la Epic [SCRUMBAN-39](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-39) «MP — Corrección de hallazgos del diagnóstico por pruebas». Cada tarea lleva las etiquetas `backlog`, `diagnostico`, el módulo y su ID (más `latente` o `backend` cuando aplica). La prioridad sale de la severidad: M → Medium, B → Low. Al corregir un hallazgo, se cierra también su tarea.

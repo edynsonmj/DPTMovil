@@ -10,6 +10,9 @@ class GoogleSignInFalso extends Fake implements GoogleSignIn {
   GoogleSignInAccount? cuenta;
   int llamadasSilencioso = 0;
   int llamadasSalir = 0;
+  //si se fija, signOut lanza este error (p. ej. un PlatformException del
+  //plugin) despues de contar la llamada
+  Object? errorAlSalir;
 
   @override
   Future<GoogleSignInAccount?> signInSilently({
@@ -26,6 +29,7 @@ class GoogleSignInFalso extends Fake implements GoogleSignIn {
   @override
   Future<GoogleSignInAccount?> signOut() async {
     llamadasSalir++;
+    if (errorAlSalir != null) throw errorAlSalir!;
     return null;
   }
 }

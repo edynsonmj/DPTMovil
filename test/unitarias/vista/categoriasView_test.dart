@@ -1,5 +1,6 @@
 import 'package:dpt_movil/config/routes/roles.dart';
 import 'package:dpt_movil/data/models/categoriaModelo.dart';
+import 'package:dpt_movil/data/models/perfilModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
@@ -98,6 +99,38 @@ void main() {
     //perfilSesion es un campo: la vista se entera cuando el vm notifica
     vmSesion.notifyListeners();
     await tester.pumpAndSettle();
+    expect(find.text('Agregar categoria'), findsOneWidget);
+  });
+
+  //CAT-12 / T-04 (descartado 2026-11-05): iniciar sesion por el vm, sin
+  //notificar a mano, basta para que aparezca la opcion del coordinador
+  testWidgets('$capa - $tipo - Categorias - iniciar sesion de coordinador muestra agregar sin recargar', (
+    tester,
+  ) async {
+    final conexion =
+        ConexionautenticacionFalsa()
+          ..respuestaLogin = RespuestaModelo(
+            codigoHttp: 200,
+            datos: Perfilmodelo(
+              id: '1',
+              nombre: 'Ana',
+              correo: 'ana@unicauca.edu.co',
+              tipoId: 'CC',
+              sexo: 'F',
+              role: Roles.coordinador,
+            ),
+          );
+    vmSesion = AutenticacionViewModel(
+      Servicioautenticacion(Autenticacionrepositorio(conexion: conexion)),
+      GoogleSignInFalso(),
+    );
+    await montar(tester);
+    expect(find.text('Agregar categoria'), findsNothing);
+
+    vmSesion.prepararLoginConCorreo('ana@unicauca.edu.co');
+    await vmSesion.login();
+    await tester.pumpAndSettle();
+
     expect(find.text('Agregar categoria'), findsOneWidget);
   });
 }

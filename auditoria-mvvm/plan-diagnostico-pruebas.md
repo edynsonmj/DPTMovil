@@ -341,7 +341,7 @@ Primero lo que la toma de asistencias **necesita** para funcionar; después, lo 
 | 7 | **Categorías** | Catálogo; hallazgos ya hechos (anexo A) | Ejecutar el plan del anexo A. |
 | 8 | **Cursos** | Catálogo; comparte la conexión de imágenes con categorías | Mismas hipótesis CAT-01 y CAT-03. |
 | 9 | **Alumnos, instructores y facultades** | Cobertura casi nula, poco valor directo | Ruta crítica de listar y registrar. |
-| 10 | **Autenticación y roles** (**al final, por decisión del 2026-10-29**) | Se trata después de corregir los demás hallazgos. Recoge lo aplazado: AS-01, AS-01c, O-01 y T-04/CAT-12 | Comprobar el rol en pantallas y rutas (no solo en el menú lateral). O-01 ya está explicado: `cursos.dart:184` solo deja tocar un curso al coordinador. Falta decidir con el cliente si alumno e instructor ven el detalle del curso, y mostrar que la tarjeta no es navegable. Login 404 → registro; ¿`perfilSesion` notifica? (T-04); rol nulo o desconocido; cierre de sesión. |
+| 10 | **Autenticación y roles** (**al final, por decisión del 2026-10-29**; autenticación diagnosticada el 2026-11-05 sin backend: AU-01 a AU-10 y AU-B01, ver [plan-diagnostico-autenticacion.md](plan-diagnostico-autenticacion.md)) | Se trata después de corregir los demás hallazgos. Recoge lo aplazado: AS-01, AS-01c, O-01 y T-04/CAT-12 | Comprobar el rol en pantallas y rutas (no solo en el menú lateral). O-01 ya está explicado: `cursos.dart:184` solo deja tocar un curso al coordinador. Falta decidir con el cliente si alumno e instructor ven el detalle del curso, y mostrar que la tarjeta no es navegable. Login 404 → registro; ¿`perfilSesion` notifica? (T-04); rol nulo o desconocido; cierre de sesión. |
 
 ---
 

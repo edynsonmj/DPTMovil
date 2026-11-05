@@ -15,13 +15,13 @@ flutter pub get
 flutter run                                   # backend at 10.0.2.2:8082 (emulator alias for the host)
 flutter run --dart-define=API_HOST=192.168.1.20   # backend elsewhere
 flutter analyze                               # lints via flutter_lints (analysis_options.yaml)
-flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (297), must be green
+flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (308), must be green
 flutter test test/main_test.dart                              # remote suite (108), needs the backend
-flutter test test/diagnostico                                 # diagnostic suite (68): red ON PURPOSE, one test per known bug
+flutter test test/diagnostico                                 # diagnostic suite (81): red ON PURPOSE, one test per known bug
 flutter test --plain-name "<substring of test name>"
 ```
 
-Plain `flutter test` runs **all three** (473), so it is never all green: the diagnostic suite fails by design (64 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
+Plain `flutter test` runs **all three** (497), so it is never all green: the diagnostic suite fails by design (76 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). A **401** on every route means the running backend requires a JWT (`Authorization: Bearer`, from `POST /auth/token`) that the app does not send — seen on 2026-11-05, bug AU-B01; the remote suite cannot pass against that backend. The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
 
 Analyzer baseline: 0 errors, 30 warnings (mostly `must_be_immutable`), ~317 infos (new test files only add `file_names` infos, because they follow the project's camelCase file names). New code should not raise the warning count.
 
@@ -33,14 +33,14 @@ Three suites with different styles. Test names follow `'$capa - $tipo - $metodo 
 
 Normal Flutter tests: each file has its own `main()` and ends in `_test.dart`.
 
-- `unitarias/conexion/` — the **real** `Conexion*Remoto` on top of `AdaptadorHttpFalso` (see below): exact URI and query, JSON body sent, status codes, `DioException` types. So far atenciones, grupos (periodo de inscripción) and inscripción (`validarInscripcion`), plus the adapter's own smoke test.
+- `unitarias/conexion/` — the **real** `Conexion*Remoto` on top of `AdaptadorHttpFalso` (see below): exact URI and query, JSON body sent, status codes, `DioException` types. So far atenciones, autenticación (login and registro), grupos (periodo de inscripción) and inscripción (`validarInscripcion`), plus the adapter's own smoke test.
 - `unitarias/modelo/` — `fromJson`/`toJson` round trips.
 - `unitarias/dominio/` — rules computed on entities (e.g. `Grupoentidad.estadoInscripcion(hoy)`); they take the date as a parameter, never `DateTime.now()`.
 - `unitarias/repositorio/` — one file per module: modelo → entidad conversion, and error responses pass through unchanged (`same(...)`).
 - `unitarias/viewModel/` — VM state after loads, refresh after writes, `Resultado` returned on failures, no notify after `dispose`.
 - `unitarias/vista/` — widget tests for `CategoriasView`, the grupo screen, clase, grupos de inscripción, grupos asignados, estadísticas and the coordinator's inscripciones screens (`inscripcionesCoordinador_test.dart`, mounted through the real routes with `integracion/montajeInscripciones.dart`). Each mounts the screen under the same providers `route_generator` gives it (plus a global `AutenticacionViewModel` built on doubles).
 - `raiz_composicion_test.dart` — smoke test: mounts `proveedoresDatos()` + `vmsGlobales()` and reads every provider, so a missing registration fails with `ProviderNotFoundException` here instead of at runtime. Update it whenever a service is added to the root.
-- `integracion/` — local end-to-end flows with **no backend**: the real routes of `route_generator` (`onGenerateRoute: generateRoute`) and the real chain of the module under test down to `Conexion*Remoto` + `AdaptadorHttpFalso`; neighbouring modules go in with their doubles. `montajeAtenciones.dart` and `montajeInscripciones.dart` are shared mounts (no `_test` suffix, so they are not run on their own).
+- `integracion/` — local end-to-end flows with **no backend**: the real routes of `route_generator` (`onGenerateRoute: generateRoute`) and the real chain of the module under test down to `Conexion*Remoto` + `AdaptadorHttpFalso`; neighbouring modules go in with their doubles. `montajeAtenciones.dart`, `montajeInscripciones.dart` and `montajeAutenticacion.dart` (side menu + real routes + real auth chain) are shared mounts (no `_test` suffix, so they are not run on their own).
 
 How they are built:
 
