@@ -3,6 +3,8 @@ import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
+import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
@@ -61,11 +63,26 @@ class _CursosViewState extends State<CursosView> {
     //nos aseguramos que se cargue el contexto para eviar errores
     WidgetsBinding.instance.addPostFrameCallback((_) {
       //el vm lo crea la ruta (route_generator); aqui solo se carga
-      context.read<CursosViewModel>().listarCursosDe(
-        context,
-        widget.categoria,
-      );
+      _cargarCursos();
     });
+  }
+
+  //el vm devuelve el resultado ya resuelto; el aviso es decision de la vista
+  Future<void> _cargarCursos() async {
+    final resultado = await context.read<CursosViewModel>().listarCursosDe(
+      widget.categoria,
+    );
+    if (resultado is Fallo<void> && mounted) {
+      showDialog(
+        context: context,
+        builder:
+            (_) => DialogError(
+              titulo: 'No se pudieron cargar los cursos',
+              mensaje: resultado.mensaje,
+              codigo: resultado.codigo,
+            ),
+      );
+    }
   }
 
   @override
@@ -117,10 +134,7 @@ class _CursosViewState extends State<CursosView> {
           ),
         );
         if (respuesta == true && context.mounted) {
-          context.read<CursosViewModel>().listarCursosDe(
-            context,
-            widget.categoria,
-          );
+          _cargarCursos();
         }
       },
       label: Text('AGREGAR CURSO'),
@@ -196,7 +210,10 @@ class _CursosViewState extends State<CursosView> {
       hintText: 'desplazar a',
       textAlign: TextAlign.center,
       width: 155,
-      dropdownMenuEntries: viewModel.getListaEntradas,
+      dropdownMenuEntries: [
+        for (final nombre in viewModel.nombresCursos)
+          DropdownMenuEntry(value: nombre, label: nombre),
+      ],
       onSelected: (seleccion) {
         if (seleccion != null) _moverScrollACurso(seleccion);
       },

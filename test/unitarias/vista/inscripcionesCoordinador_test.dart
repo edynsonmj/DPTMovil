@@ -1,4 +1,7 @@
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
+import 'package:dpt_movil/data/models/errorModelo.dart';
+import 'package:dpt_movil/data/models/respuestaModelo.dart';
+import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -172,6 +175,28 @@ void main() {
       }
 
       expect(ofrecidas, isEmpty);
+    });
+
+    //nacio como diagnostico de CAT-05 (cargarCategorias(context) mostraba
+    //todos los errores con codigo 204). El vm ahora devuelve el Fallo y la
+    //pantalla abre el dialogo con el codigo que llego
+    testWidgets('$capa - $tipo - Generales - un 500 al cargar las categorias se muestra con su codigo', (
+      tester,
+    ) async {
+      app.conexionCategorias.respuestaListar = RespuestaModelo(
+        codigoHttp: 500,
+        error: ErrorModelo(
+          codigoHttp: 500,
+          mensaje: 'error interno',
+          url: '/categorias2',
+          metodo: 'GET',
+        ),
+      );
+
+      await app.abrirGenerales(tester);
+
+      final dialogo = tester.widget<DialogError>(find.byType(DialogError));
+      expect(dialogo.codigo, 500, reason: '${dialogo.titulo}: ${dialogo.mensaje}');
     });
   });
 }

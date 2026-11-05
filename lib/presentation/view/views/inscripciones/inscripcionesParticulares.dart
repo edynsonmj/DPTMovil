@@ -96,8 +96,8 @@ class _InscripcionesParticularesState
   //las categorias salen del vm de categorias (lista ya cargada por la ruta);
   //el filtro lo aplica el vm de periodos sobre los grupos que ya tiene
   Widget filtro() {
-    final entradas = context.select<CategoriaViewModel, List<DropdownMenuEntry>>(
-      (vm) => vm.getListaEntradas,
+    final titulos = context.select<CategoriaViewModel, List<String>>(
+      (vm) => vm.titulos,
     );
     DropdownMenu menu = DropdownMenu(
       hintText: 'Todas',
@@ -105,7 +105,8 @@ class _InscripcionesParticularesState
       textAlign: TextAlign.center,
       dropdownMenuEntries: [
         DropdownMenuEntry(value: null, label: 'Todas'),
-        ...entradas,
+        for (final titulo in titulos)
+          DropdownMenuEntry(value: titulo, label: titulo),
       ],
       onSelected: (seleccion) {
         context.read<PeriodoInscripcionViewModel>().filtrar(seleccion);

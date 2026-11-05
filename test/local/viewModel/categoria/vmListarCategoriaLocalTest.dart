@@ -32,7 +32,7 @@ class VmListarCategoriaLocalTest {
 
       await vm.listarYNotificarCategorias();
       //el filtro de inscripciones no debe quedar con categorias que ya no estan
-      expect(vm.getListaEntradas, isEmpty);
+      expect(vm.titulos, isEmpty);
     });
   }
 

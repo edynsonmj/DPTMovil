@@ -10,8 +10,8 @@ class VmListarCategoriaTest {
   final String tipo = "remoto";
   final String metodo = "Listar categorias";
 
-  //se prueba listarYNotificarCategorias y no cargarCategorias: el segundo pide
-  //un BuildContext y muestra dialogos, no se puede llamar desde un test plano
+  //listarYNotificarCategorias es la unica carga de la lista: la usan
+  //CategoriasView y los dos filtros de inscripciones
   void prueba1codigo200(CategoriaViewModel vm) {
     String caso = "exito 200";
     test('$capa - $tipo - $metodo - $caso', () async {
@@ -51,12 +51,12 @@ class VmListarCategoriaTest {
       await _insertarCategoria(vm);
       await vm.listarYNotificarCategorias();
 
-      //getListaEntradas alimenta el filtro de categoria de las vistas de
+      //titulos alimenta el filtro de categoria de las vistas de
       //inscripciones, se construye a partir de la misma lista
-      expect(vm.getListaEntradas, isNotEmpty);
-      expect(vm.getListaEntradas.length, vm.categorias!.length);
+      expect(vm.titulos, isNotEmpty);
+      expect(vm.titulos.length, vm.categorias!.length);
       expect(
-        vm.getListaEntradas.map((entrada) => entrada.label),
+        vm.titulos,
         containsAll(vm.categorias!.map((categoria) => categoria.titulo)),
       );
     });

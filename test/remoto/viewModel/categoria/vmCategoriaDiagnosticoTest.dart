@@ -63,7 +63,7 @@ class VmCategoriaDiagnosticoTest {
       expect(r, isA<Exito>(), reason: _texto(r));
       //eliminarCategoria refresca la lista del mismo vm
       expect(vm.categorias!.any((c) => c.titulo == titulo), isFalse);
-      expect(vm.getListaEntradas.any((e) => e.value == titulo), isFalse);
+      expect(vm.titulos.contains(titulo), isFalse);
     });
   }
 
@@ -95,7 +95,7 @@ class VmCategoriaDiagnosticoTest {
 
       final eliminar = await crearVm().eliminarCategoria(titulo);
       final vmCursos = crearVmCurso();
-      await vmCursos.listarCursosDe(null, CategoriaEntidad(titulo: titulo, descripcion: 'x'));
+      await vmCursos.listarCursosDe(CategoriaEntidad(titulo: titulo, descripcion: 'x'));
       final recrear = await _crear(crearVm, titulo);
       final vm = crearVm();
       await vm.listarYNotificarCategorias();

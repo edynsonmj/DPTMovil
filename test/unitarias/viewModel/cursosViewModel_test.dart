@@ -5,6 +5,7 @@ import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../dobles/conexionCursoFalsa.dart';
@@ -41,11 +42,10 @@ void main() {
       int notificaciones = 0;
       vm.addListener(() => notificaciones++);
 
-      //camino 200: no abre dialogos, no necesita context
-      await vm.listarCursosDe(
-        null,
+      final resultado = await vm.listarCursosDe(
         CategoriaEntidad(titulo: 'Deportes', descripcion: 'x'),
       );
+      expect(resultado, isA<Exito<void>>());
 
       expect(conexion.ultimaCategoria, 'Deportes');
       expect(vm.getListaCursos?.map((c) => c.nombreCurso), [
@@ -53,7 +53,7 @@ void main() {
         'Avanzado',
       ]);
       //el desplegable de cursos.dart sale de la misma lista
-      expect(vm.getListaEntradas.map((e) => e.value), [
+      expect(vm.nombresCursos, [
         'Iniciacion',
         'Avanzado',
       ]);

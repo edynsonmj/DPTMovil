@@ -41,7 +41,7 @@ void main() {
       expect(vm.error, isNull);
       expect(vm.categorias?.map((c) => c.titulo), ['Futbol']);
       //las entradas del filtro de inscripciones salen de la misma lista
-      expect(vm.getListaEntradas.length, 1);
+      expect(vm.titulos.length, 1);
     });
 
     test('$capa - $tipo - Guardar categoria - 201 refresca la lista', () async {

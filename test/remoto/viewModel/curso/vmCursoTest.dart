@@ -21,8 +21,8 @@ class VmCursoTest {
   late String _deporte;
   late String _nombreCurso;
 
-  //categoria nueva por corrida: listarCursosDe de una categoria sin cursos
-  //responde 406 y el vm abre un dialogo, que sin context revienta
+  //categoria nueva por corrida, con un curso propio, para que la lista del
+  //caso 2 no dependa de lo que ya haya en la BD
   void preparar(
     CategoriaViewModel vmCategoria,
     Deporteviewmodel Function() crearVmDeporte,
@@ -83,8 +83,8 @@ class VmCursoTest {
     test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
 
-      //solo el camino 200 no usa el context: cualquier otro abre un dialogo
-      await vm.listarCursosDe(null, _categoria);
+      //un error deja la lista vacia y vuelve como Fallo: se exige el Exito
+      expect(await vm.listarCursosDe(_categoria), isA<Exito<void>>());
 
       expect(vm.getListaCursos, isNotNull);
       expect(
@@ -97,10 +97,10 @@ class VmCursoTest {
       );
       //el desplegable de cursos.dart sale de la misma lista
       expect(
-        vm.getListaEntradas.map((e) => e.value),
+        vm.nombresCursos,
         contains(_nombreCurso),
       );
-      expect(vm.getListaEntradas.length, vm.getListaCursos!.length);
+      expect(vm.nombresCursos.length, vm.getListaCursos!.length);
     });
   }
 

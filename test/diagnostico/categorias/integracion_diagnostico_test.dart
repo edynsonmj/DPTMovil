@@ -9,9 +9,7 @@ import 'package:dpt_movil/data/repositories/categoriaRepositorio.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../contratos/leerContrato.dart';
@@ -114,28 +112,6 @@ void main() {
         lanzado = e;
       }
       expect(lanzado, isNull, reason: '$lanzado');
-    });
-
-    testWidgets('$capa - $tipo - Cargar categorias (context) - BUG CAT-05 - un 500 se muestra con su codigo', (tester) async {
-      adaptador.responder('GET', '/categorias2', 500, 'error interno');
-      late BuildContext contexto;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (c) {
-              contexto = c;
-              return const Scaffold();
-            },
-          ),
-        ),
-      );
-
-      //Dio corre fuera del reloj falso del test
-      await tester.runAsync(() => vm.cargarCategorias(contexto));
-      await tester.pumpAndSettle();
-
-      final dialogo = tester.widget<DialogError>(find.byType(DialogError));
-      expect(dialogo.codigo, 500, reason: '${dialogo.titulo}: ${dialogo.mensaje}');
     });
 
     //una categoria sin titulo: fromJson lanza un TypeError que atraviesa la

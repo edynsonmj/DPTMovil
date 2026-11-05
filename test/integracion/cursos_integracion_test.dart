@@ -1,16 +1,27 @@
 import 'dart:io';
 
+import 'package:dpt_movil/config/routes/app_rutas.dart';
+import 'package:dpt_movil/config/routes/route_generator.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
+import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
+import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
+import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
+import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../contratos/leerContrato.dart';
 import '../dobles/adaptadorHttpFalso.dart';
+import '../dobles/conexionautenticacionFalsa.dart';
+import '../dobles/googleSignInFalso.dart';
 
 //integracion local del modulo 8 (plan-diagnostico-cursos.md): CursosViewModel
 //con su cadena real hasta ConexionCursoRemoto y Conexionimagenremoto (el alta
@@ -45,11 +56,10 @@ void main() {
   });
 
   group('Cursos (vm → conexion real → transporte falso):', () {
-    //sin error el vm no usa el context (solo lo usa para sus dialogos)
     test('$capa - $tipo - Listar cursos de - 200 pide la categoria y llena la lista y el desplegable', () async {
       adaptador.responder('GET', '/cursosbycategoria', 200, leerContrato('cursos', 'cursosbycategoria_200'));
 
-      await vm.listarCursosDe(null, categoria);
+      expect(await vm.listarCursosDe(categoria), isA<Exito<void>>());
 
       expect(
         adaptador.peticionesA('GET', '/cursosbycategoria').single.uri.queryParameters,
@@ -60,7 +70,7 @@ void main() {
         'Curso 2 Fase 4',
       ]);
       expect(vm.getListaCursos!.first.imagen, 1197);
-      expect(vm.getListaEntradas.map((e) => e.label), [
+      expect(vm.nombresCursos, [
         'Curso Categoria Fase 4',
         'Curso 2 Fase 4',
       ]);
@@ -69,10 +79,10 @@ void main() {
     test('$capa - $tipo - Listar cursos de - 200 [] deja la lista y el desplegable vacios', () async {
       adaptador.responder('GET', '/cursosbycategoria', 200, []);
 
-      await vm.listarCursosDe(null, categoria);
+      await vm.listarCursosDe(categoria);
 
       expect(vm.getListaCursos, isEmpty);
-      expect(vm.getListaEntradas, isEmpty);
+      expect(vm.nombresCursos, isEmpty);
     });
 
     test('$capa - $tipo - Agregar curso - sube la imagen, envia el CursoDto con su id y 201 devuelve la entidad', () async {
@@ -130,5 +140,55 @@ void main() {
     });
     //los casos rojos de este montaje (CU-02 a CU-05) estan en
     //test/diagnostico/cursos/integracion_diagnostico_test.dart
+
+    //nacio como diagnostico de CU-05: listarCursosDe(context) no salia tras
+    //el primer error y abria dos dialogos ("Sin datos" y "datos
+    //inconsistentes"). Ruta real de route_generator y cadena real del vm
+    testWidgets('$capa - $tipo - Listar cursos de (CursosView) - un 500 abre un solo dialogo con su codigo', (tester) async {
+      adaptador.responder('GET', '/cursosbycategoria', 500, 'error interno');
+      final dio = crearDioFalso(adaptador);
+      final sesion = AutenticacionViewModel(
+        Servicioautenticacion(
+          Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+        ),
+        GoogleSignInFalso(),
+      );
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<ServicioCurso>(
+              create: (_) => ServicioCurso(
+                CursoRepositorio(
+                  cliente: ConexionCursoRemoto(dio, Conexionimagenremoto(dio)),
+                ),
+              ),
+            ),
+            ChangeNotifierProvider<AutenticacionViewModel>.value(value: sesion),
+          ],
+          child: MaterialApp(
+            onGenerateRoute: generateRoute,
+            home: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  AppRutas.cursos,
+                  arguments: categoria,
+                ),
+                child: const Text('Abrir pantalla'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Abrir pantalla'));
+      await tester.pumpAndSettle();
+
+      final dialogos = tester.widgetList<DialogError>(find.byType(DialogError));
+      expect(
+        dialogos.map((d) => d.codigo),
+        [500],
+        reason: 'titulos: ${dialogos.map((d) => d.titulo).toList()}',
+      );
+    });
   });
 }

@@ -406,7 +406,7 @@ Plan: [plan-diagnostico-cursos.md](plan-diagnostico-cursos.md). **Regla:** solo 
 | U-Repo | `test/unitarias/repositorio/cursoRepositorio_test.dart` (+4 casos) | 4 | — |
 | U-Repo (diagnóstico) | `test/diagnostico/cursos/repositorio_diagnostico_test.dart` | — | 1 (CU-01) |
 | I-Local: VM / repositorio → conexiones reales de cursos e imágenes → transporte falso | `test/integracion/cursos_integracion_test.dart` (nuevo; fixtures en `test/contratos/cursos/`) | 6 | — |
-| I-Local (diagnóstico) | `test/diagnostico/cursos/integracion_diagnostico_test.dart` | — | 4 (CU-02, 03, 04, 05) |
+| I-Local (diagnóstico) | `test/diagnostico/cursos/integracion_diagnostico_test.dart` | — | 4 (CU-02, 03, 04, 05; CU-05 corregido y movido a la suite de integración el 2026-11-04) |
 | I-Remota: VM → backend real | `test/remoto/viewModel/curso/vmCursoDiagnosticoTest.dart` (nuevo, en `main_test.dart`) | 5 | — |
 | I-Remota (diagnóstico) | `test/diagnostico/cursos/remoto_diagnostico_test.dart` (**necesita el backend**) | — | 1 (CU-02) |
 
@@ -423,7 +423,7 @@ Resultado:
 | ID | Capa | Síntoma observable (evidencia del rojo) | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
 |---|---|---|---|---|---|---|---|
 | CU-02 | Conexión | `/cursosbycategoria` y `/curso` concatenan los títulos en la URL sin codificar. Con `Fútbol & Voleibol` el backend recibe `prmCategoria=Fútbol `, y con `Nivel 1 + 2` recibe `Nivel 1   2`. Contra el backend real, una categoría con `&` y su curso `curso & co …` dan **lista vacía** y **404 GC-0003** | `integracion_diagnostico` · CU-02 (`Actual: ['Fútbol ', 'Fútbol ', 'Nivel 1   2']`); `remoto_diagnostico` · CU-02 (`lista: []; obtener: 404`) | **Prueba** sin backend y contra el backend real. Es la misma causa que GR-05, pero en la conexión de cursos | M | app | **confirmado** |
-| CU-05 | VM | Un error al listar cursos abre **dos** diálogos seguidos: "Sin datos" con el error real y después "datos inconsistentes" (código 406), porque `listarCursosDe` no sale del método tras el primer error | `integracion_diagnostico` · CU-05 (`Found 2 widgets with type "DialogError"`; títulos `[Sin datos, datos inconsistentes]`) | **Prueba** (`testWidgets` con la cadena real y un 500) | B | app | **confirmado** |
+| CU-05 | VM | Un error al listar cursos abre **dos** diálogos seguidos: "Sin datos" con el error real y después "datos inconsistentes" (código 406), porque `listarCursosDe` no sale del método tras el primer error | `integracion_diagnostico` · CU-05 (`Found 2 widgets with type "DialogError"`; títulos `[Sin datos, datos inconsistentes]`) | **Prueba** (`testWidgets` con la cadena real y un 500) | B | app | **corregido** (2026-11-04): `listarCursosDe` ya no recibe `context` ni abre diálogos; ante un error deja la lista vacía y devuelve un solo `Fallo` con el código, y `CursosView` abre un único `DialogError`. La prueba se reescribió sobre la ruta real (`AppRutas.cursos`) y pasó a `test/integracion/cursos_integracion_test.dart` |
 | CU-03 | Conexión → VM | `agregarCurso` sin `imagenFile` lanza `Null check operator used on a null value` (por `curso.imagenFile!`), que atraviesa conexión, repositorio, servicio y VM: el VM no tiene `try` en `agregarCurso` | `integracion_diagnostico` · CU-03 (`lanzo: Null check operator used on a null value`) | **Prueba.** El formulario de alta exige imagen, así que hoy solo se llega llamando al VM sin archivo, por ejemplo desde un futuro modo edición. Es la versión de cursos de CAT-01 | B | app | **confirmado** (latente) |
 | CU-04 | Conexión | Un curso sin `deporte` hace que `CursoModelo.fromJson` lance `type 'Null' is not a subtype of type 'String'`, que atraviesa la conexión y el repositorio, al listar y al obtener | `integracion_diagnostico` · CU-04 | **Prueba.** El JSON incompleto lo fabrica la prueba | B | app | **confirmado** (latente) |
 | CU-01 | Repositorio | `CursoRepositorio` no tiene ningún `try`: un `TypeError` de la conexión lo atraviesa al listar, obtener y guardar | `repositorio_diagnostico` · CU-01 (`Instance of 'TypeError'`) | **Prueba.** El error lo lanza el doble; CU-03 y CU-04 demuestran que la conexión real los deja pasar | B | app | **confirmado** |
@@ -463,7 +463,7 @@ Resultado:
 | 12 | I-Local | Categoría y curso con `&` y `+` llegan completos a la query | ❌ CU-02 |
 | 13 | I-Local | Agregar sin archivo de imagen → error, sin lanzar | ❌ CU-03 |
 | 14 | I-Local | Curso sin `deporte` al listar y obtener → error, sin lanzar | ❌ CU-04 |
-| 15 | I-Local | Listar con 500 → un solo `DialogError` | ❌ CU-05 |
+| 15 | I-Local | Listar con 500 → un solo `DialogError` | ❌ CU-05 (corregido 2026-11-04) |
 | 16 | I-Remota | Agregar → 201 con imagen; aparece en su categoría con deporte, imagen y desplegable; obtener da sus datos | ✅ |
 | 17 | I-Remota | Curso repetido → no se crea | ✅ |
 | 18 | I-Remota | Categoría inexistente, nombre vacío o descripción vacía → no se crea | ✅ |
@@ -480,7 +480,7 @@ Plan: [plan-diagnostico-categorias.md](plan-diagnostico-categorias.md). Las hip�
 | U-Repo | `test/unitarias/repositorio/categoriaRepositorio_test.dart` (+5 casos) | 5 | — |
 | U-Repo (diagnóstico) | `test/diagnostico/categorias/repositorio_diagnostico_test.dart` | — | 2 (CAT-13, CAT-14; CAT-14 corregido y movido a la suite unitaria el 2026-11-04) |
 | I-Local: VM → conexiones reales de categorías e imágenes → transporte falso | `test/integracion/categorias_integracion_test.dart` (nuevo; fixtures en `test/contratos/categorias/`) | 5 | — |
-| I-Local (diagnóstico) | `test/diagnostico/categorias/integracion_diagnostico_test.dart` | — | 7 (CAT-01, 02, 03, 04, 05, 06, 09) |
+| I-Local (diagnóstico) | `test/diagnostico/categorias/integracion_diagnostico_test.dart` | — | 7 (CAT-01, 02, 03, 04, 05, 06, 09; CAT-05 corregido y movido a la suite de vista el 2026-11-04) |
 | I-Remota: VM → backend real | `test/remoto/viewModel/categoria/vmCategoriaDiagnosticoTest.dart` (nuevo, en `main_test.dart`) | 3 (una es la observación CAT-16) | — |
 | I-Remota (diagnóstico) | `test/diagnostico/categorias/remoto_diagnostico_test.dart` (**necesita el backend**) | — | 1 (CAT-03) |
 
@@ -497,7 +497,7 @@ Resultado:
 | CAT-03 | Conexión | **Una categoría con `&` en el título no se puede editar ni eliminar.** `PUT` y `DELETE` concatenan `?titulo=` sin codificar: el backend recibe `titulo=prueba_… Fútbol ` y responde 404 `GC-0003` ("La categoria con el titulo prueba_… Fútbol  no existe") | `integracion_diagnostico` · CAT-03 (`Actual: ['Fútbol ', 'Fútbol ']`); `remoto_diagnostico` · CAT-03 (`editar: Fallo 404 …; eliminar: Fallo 404 …`) | **Prueba** sin backend y contra el backend real. Es la misma causa que GR-03, GR-05 y CU-02 | M | app | **confirmado** |
 | CAT-09 | VM | Dos cargas solapadas de la lista: si la respuesta de la primera llega después de la de la segunda, **pisa** la lista nueva (no hay contador de peticiones, a diferencia de `EstadisticasViewModel`) | `integracion_diagnostico` · CAT-09 (se esperaba `['Nueva']` y queda la lista vieja) | **Prueba.** **Inferido:** que el solape ocurra en uso real, por ejemplo la carga inicial todavía en camino cuando el formulario vuelve y la recarga | B | app | **confirmado** |
 | CAT-04 | VM | `CategoriaViewModel` no usa `NotificacionSegura`: una carga que termina después de `dispose` lanza `A CategoriaViewModel was used after being disposed` | `integracion_diagnostico` · CAT-04 (`FlutterError`) | **Prueba.** Esa aserción de Flutter solo salta en modo debug | B | app | **confirmado** |
-| CAT-05 | VM | `cargarCategorias(context)` muestra un error 500 en el `DialogError` **con código 204** (todos los errores llevan 204) | `integracion_diagnostico` · CAT-05 (`Expected: <500>`, `Actual: <204>`) | **Prueba** (`testWidgets`). Solo lo usa `InscripcionesGeneralesView` | B | app | **confirmado** |
+| CAT-05 | VM | `cargarCategorias(context)` muestra un error 500 en el `DialogError` **con código 204** (todos los errores llevan 204) | `integracion_diagnostico` · CAT-05 (`Expected: <500>`, `Actual: <204>`) | **Prueba** (`testWidgets`). Solo lo usa `InscripcionesGeneralesView` | B | app | **corregido** (2026-11-04): se eliminó `cargarCategorias(context)`; la pantalla carga con `listarYNotificarCategorias()`, que ahora devuelve `Resultado`, y abre el `DialogError` con el código del `Fallo`. Una lista vacía (204) ya no se muestra como error. La prueba se reescribió sobre la ruta real (`AppRutas.InscripcionesGenerales`) y pasó a `test/unitarias/vista/inscripcionesCoordinador_test.dart` |
 | CAT-01 | Conexión → VM | Insertar con `idImagen` y sin archivo devuelve `Fallo(-1, "Null check operator used on a null value", origen: ViewModel)`: la conexión hace `datos.imagenFile!` y la excepción atraviesa conexión, repositorio y servicio | `integracion_diagnostico` · CAT-01 | **Prueba** con la cadena real. El formulario no llega a este camino (al crear exige imagen nueva) | B | app | **confirmado** (latente) |
 | CAT-14 | Repositorio | `insertarCategoria` acepta `idImagen` como imagen suficiente (no corta con 400), pero arma el modelo **sin** `imagenId`, así que la imagen existente se pierde. Es la otra mitad de CAT-01 | `repositorio_diagnostico` · CAT-14 (`Expected: <9>`, `Actual: <null>`) | **Prueba** | B | app | **corregido** (2026-11-04): el repositorio arma el modelo con `CategoriaMapper.aModelo`, que lleva el `imagenId` (si hay archivo, la conexión lo reemplaza por el de la imagen subida). La prueba pasó a `test/unitarias/repositorio/categoriaRepositorio_test.dart`. CAT-01 sigue abierto: la conexión real aún hace `imagenFile!` |
 | CAT-02 | Conexión | Un `POST /categoria` con 201 **sin cuerpo** termina en `Fallo(-1, "NoSuchMethodError: The method '[]' was called on null")`, aunque se guardó: `categoriaModelo.fromJson(null)` | `integracion_diagnostico` · CAT-02 | **Prueba.** Hoy el backend responde con cuerpo, así que no se ve en uso real | B | app | **confirmado** (latente) |
@@ -544,7 +544,7 @@ Resultado:
 | 14 | I-Local | `POST /categoria` 201 sin cuerpo → `Exito` | ❌ CAT-02 |
 | 15 | I-Local | Editar y eliminar `Fútbol & Voleibol` → el título llega completo | ❌ CAT-03 |
 | 16 | I-Local | Respuesta después de `dispose` → no lanza | ❌ CAT-04 |
-| 17 | I-Local | `cargarCategorias(context)` con 500 → el diálogo lleva 500 | ❌ CAT-05 |
+| 17 | I-Local | `cargarCategorias(context)` con 500 → el diálogo lleva 500 | ❌ CAT-05 (corregido 2026-11-04) |
 | 18 | I-Local | Categoría con `titulo: null` → error con formato `Código: …` | ❌ CAT-06 |
 | 19 | I-Local | Respuesta vieja que llega tarde → no pisa la nueva | ❌ CAT-09 |
 | 20 | I-Remota | Título repetido → la segunda no se crea | ✅ |

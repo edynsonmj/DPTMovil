@@ -1,22 +1,22 @@
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
-import 'package:flutter/material.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 
 class CursosViewModel with ChangeNotifier {
   //servicio a usar
   final ServicioCurso servicioCurso;
   //lista de cursos
   List<CursoEntidad>? _listaCursos;
-  //lista entradas para el desplegable
-  List<DropdownMenuEntry> _listaEntradas = [];
+  //nombres para el desplegable "desplazar a". Son datos, no widgets: la
+  //vista arma sus DropdownMenuEntry
+  List<String> _nombres = const [];
   //get para acceder a la lista
   List<CursoEntidad>? get getListaCursos => _listaCursos;
-  //get para acceder a la lista de entradas para el desplegable
-  List<DropdownMenuEntry> get getListaEntradas => _listaEntradas;
+  List<String> get nombresCursos => _nombres;
 
   //el servicio sale de la raiz; el vm lo crea cada ruta (route_generator)
   CursosViewModel(this.servicioCurso);
@@ -29,44 +29,25 @@ class CursosViewModel with ChangeNotifier {
     return respuesta;
   }
 
-  Future<void> listarCursosDe(context, CategoriaEntidad categoria) async {
-    RespuestaModelo? respuesta;
-    _listaCursos = [];
+  //la vista recibe exito o fallo ya resueltos y decide si avisa; el vm no
+  //abre dialogos. Un error deja la lista vacia y devuelve un solo Fallo (antes
+  //se abrian dos dialogos seguidos, CU-05)
+  Future<Resultado<void>> listarCursosDe(CategoriaEntidad categoria) async {
+    Resultado<void> resultado = Exito();
     try {
-      respuesta = await servicioCurso.listarCursosDe(categoria);
-      if (respuesta.codigoHttp != 200) {
-        _mostrarError(context, "Sin datos", respuesta.error);
-      }
-      if (respuesta.datos is List<CursoEntidad>) {
-        _listaCursos = respuesta.datos as List<CursoEntidad>;
+      final respuesta = await servicioCurso.listarCursosDe(categoria);
+      if (respuesta.codigoHttp == 200 && respuesta.datos is List<CursoEntidad>) {
+        _establecerCursos(respuesta.datos as List<CursoEntidad>);
       } else {
-        _mostrarError(
-          context,
-          "datos inconsistentes",
-          ErrorModelo(
-            codigoHttp: 406,
-            mensaje:
-                'no se ha obtenido una lista de tipo entidad para cargar los datos',
-            url: "cursosbycategoria",
-            metodo: "POST",
-          ),
-        );
+        _establecerCursos([]);
+        resultado = _fallo(respuesta);
       }
     } catch (e) {
-      _mostrarError(
-        context,
-        'excepcion no controlada',
-        ErrorModelo(
-          codigoHttp: 0,
-          mensaje: e.toString(),
-          url: 'cursosbycategoria',
-          metodo: 'GET',
-        ),
-      );
-    } finally {
-      _cargarEntradas();
-      notifyListeners();
+      _establecerCursos([]);
+      resultado = Fallo(-1, e.toString(), origen: 'ViewModel');
     }
+    notifyListeners();
+    return resultado;
   }
 
   Future<RespuestaModelo> obtenerCurso(String categoria, String curso) async {
@@ -87,36 +68,21 @@ class CursosViewModel with ChangeNotifier {
     }
   }
 
-  void _cargarEntradas() {
-    if (_listaCursos != null && _listaCursos!.isNotEmpty) {
-      _listaEntradas =
-          _listaCursos!.map((curso) {
-            return DropdownMenuEntry(
-              value: curso.nombreCurso,
-              label: curso.nombreCurso,
-            );
-          }).toList();
-    } else {
-      _listaEntradas = [];
-    }
+  //unico punto donde se escribe la lista: los nombres del desplegable salen
+  //siempre de ella
+  void _establecerCursos(List<CursoEntidad> lista) {
+    _listaCursos = lista;
+    _nombres = [for (final curso in lista) curso.nombreCurso];
   }
 
-  void _mostrarError(context, String titulo, ErrorModelo? error) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return (error != null)
-            ? DialogError(
-              titulo: titulo,
-              mensaje: error.mensaje,
-              codigo: error.codigoHttp,
-            )
-            : DialogError(
-              titulo: 'Error sin informacion',
-              mensaje: "Se desconoce el error",
-              codigo: 0,
-            );
-      },
+  //unico punto donde se lee el ErrorModelo de una carga: la vista recibe
+  //codigo y mensaje ya resueltos
+  Fallo<T> _fallo<T>(RespuestaModelo respuesta) {
+    final error = respuesta.error;
+    return Fallo(
+      respuesta.codigoHttp,
+      error?.mensaje ?? 'Error desconocido. Código: ${respuesta.codigoHttp}',
+      origen: error == null ? null : '${error.metodo} ${error.url}',
     );
   }
 }

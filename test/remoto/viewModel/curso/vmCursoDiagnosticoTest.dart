@@ -13,9 +13,9 @@ import 'package:flutter_test/flutter_test.dart';
 //cursos.md): CursosViewModel con su cadena real. El setUpAll crea por
 //corrida tres categorias: N "prueba_X" (los casos le agregan cursos), V
 //"pruebaV_X" (sin cursos) y E "prueba_X Fútbol & Voleibol" con el curso
-//"curso & co X". listarCursosDe recibe context = null: el vm solo lo usa
-//para sus dialogos de error, asi que un error hace fallar el caso. Los casos
-//dependen del orden
+//"curso & co X". listarCursosDe devuelve un Resultado: los casos exigen el
+//Exito, porque un error tambien deja la lista vacia. Los casos dependen del
+//orden
 class VmCursoDiagnosticoTest {
   final String capa = "viewModel";
   final String tipo = "remoto";
@@ -69,12 +69,12 @@ class VmCursoDiagnosticoTest {
       expect(creado.imagen, isNotNull);
 
       final vm = crearVm();
-      await vm.listarCursosDe(null, _n);
+      expect(await vm.listarCursosDe(_n), isA<Exito<void>>());
       final listado = vm.getListaCursos!.single;
       expect(listado.nombreCurso, 'curso_$_marca');
       expect(listado.nombreDeporte, _deporte);
       expect(listado.imagen, creado.imagen);
-      expect(vm.getListaEntradas.single.label, 'curso_$_marca');
+      expect(vm.nombresCursos.single, 'curso_$_marca');
 
       final RespuestaModelo uno = await crearVm().obtenerCurso(_n.titulo, 'curso_$_marca');
       expect(uno.codigoHttp, 200);
@@ -91,7 +91,7 @@ class VmCursoDiagnosticoTest {
       expect(r.codigoHttp, isNot(201), reason: 'codigo ${r.codigoHttp}');
 
       final vm = crearVm();
-      await vm.listarCursosDe(null, _n);
+      expect(await vm.listarCursosDe(_n), isA<Exito<void>>());
       expect(vm.getListaCursos, hasLength(1));
     });
   }
@@ -126,9 +126,9 @@ class VmCursoDiagnosticoTest {
     String caso = "una categoria sin cursos da lista vacia, sin dialogo de error";
     test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
-      await vm.listarCursosDe(null, _v);
+      expect(await vm.listarCursosDe(_v), isA<Exito<void>>());
       expect(vm.getListaCursos, isEmpty);
-      expect(vm.getListaEntradas, isEmpty);
+      expect(vm.nombresCursos, isEmpty);
     });
   }
 
@@ -149,7 +149,7 @@ class VmCursoDiagnosticoTest {
     String caso = "BUG CU-02 - una categoria y un curso con & se listan y se obtienen";
     test('$capa - diagnostico - $metodo - $caso', () async {
       final vm = crearVm();
-      await vm.listarCursosDe(null, _e);
+      await vm.listarCursosDe(_e);
       final uno = await crearVm().obtenerCurso(_e.titulo, _cursoE.nombreCurso);
 
       final estado =

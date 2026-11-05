@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
+import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
@@ -23,14 +25,25 @@ class _InscripcionesGeneralesState extends State<InscripcionesGeneralesView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      //obtenemos cada vez que se inicialize el widget y asignamos el provider
-      categoriaViewModel =
-          Provider.of<CategoriaViewModel>(context, listen: false);
-      //cargamos las categorias
-      //categoriaViewModel.fetchCategorias();
-      categoriaViewModel.cargarCategorias(context);
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _cargarCategorias());
+  }
+
+  //el vm devuelve el resultado ya resuelto; el aviso es decision de la vista.
+  //Una lista vacia no es un error: el filtro queda sin opciones
+  Future<void> _cargarCategorias() async {
+    final resultado =
+        await context.read<CategoriaViewModel>().listarYNotificarCategorias();
+    if (resultado is Fallo<void> && mounted) {
+      showDialog(
+        context: context,
+        builder:
+            (_) => DialogError(
+              titulo: 'No se pudieron cargar las categorias',
+              mensaje: resultado.mensaje,
+              codigo: resultado.codigo,
+            ),
+      );
+    }
   }
 
   @override
@@ -55,7 +68,10 @@ class _InscripcionesGeneralesState extends State<InscripcionesGeneralesView> {
       hintText: 'sin seleccion',
       helperText: 'seleccion una categoria',
       textAlign: TextAlign.center,
-      dropdownMenuEntries: categoriaViewModel.getListaEntradas,
+      dropdownMenuEntries: [
+        for (final titulo in categoriaViewModel.titulos)
+          DropdownMenuEntry(value: titulo, label: titulo),
+      ],
       onSelected: (seleccion) {
         setState(() {
           _categoriaSeleccionada = seleccion;

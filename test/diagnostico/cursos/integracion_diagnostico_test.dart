@@ -7,9 +7,7 @@ import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
-import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../contratos/leerContrato.dart';
@@ -42,9 +40,7 @@ void main() {
       adaptador.responder('GET', '/cursosbycategoria', 200, []);
       adaptador.responder('GET', '/curso', 200, leerContrato('cursos', 'curso_200'));
 
-      await vm.listarCursosDe(
-        null,
-        CategoriaEntidad(titulo: 'Fútbol & Voleibol', descripcion: 'x'),
+      await vm.listarCursosDe(CategoriaEntidad(titulo: 'Fútbol & Voleibol', descripcion: 'x'),
       );
       await vm.obtenerCurso('Fútbol & Voleibol', 'Nivel 1 + 2');
 
@@ -104,37 +100,6 @@ void main() {
         expect(lanzado, isNull, reason: 'lanzo: $lanzado');
         expect(respuesta.codigoHttp, isNot(200));
       }
-    });
-
-    //un error del backend es un solo problema: un solo dialogo
-    testWidgets('$capa - $tipo - Listar cursos de - BUG CU-05 - un 500 abre un solo dialogo de error', (tester) async {
-      adaptador.responder('GET', '/cursosbycategoria', 500, 'error interno');
-      late BuildContext contexto;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (c) {
-              contexto = c;
-              return const Scaffold();
-            },
-          ),
-        ),
-      );
-
-      //Dio corre fuera del reloj falso del test
-      await tester.runAsync(
-        () => vm.listarCursosDe(
-          contexto,
-          CategoriaEntidad(titulo: 'Categoria Fase 4', descripcion: 'x'),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(
-        find.byType(DialogError),
-        findsOneWidget,
-        reason: 'titulos: ${tester.widgetList<DialogError>(find.byType(DialogError)).map((d) => d.titulo).toList()}',
-      );
     });
   });
 }

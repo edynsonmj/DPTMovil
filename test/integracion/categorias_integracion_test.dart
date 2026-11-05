@@ -52,7 +52,7 @@ void main() {
         'categoria Fase 5',
       ]);
       expect(vm.categorias!.first.idImagen, 1196);
-      expect(vm.getListaEntradas, hasLength(3));
+      expect(vm.titulos, hasLength(3));
     });
 
     test('$capa - $tipo - Listar categorias - sin red deja el 503 en el error y la lista vacia', () async {
@@ -62,7 +62,7 @@ void main() {
 
       expect(vm.error, startsWith('Código: 503'));
       expect(vm.categorias, isEmpty);
-      expect(vm.getListaEntradas, isEmpty);
+      expect(vm.titulos, isEmpty);
     });
 
     test('$capa - $tipo - Guardar categoria - crear sube la imagen, envia el CategoriaDto y refresca la lista', () async {
