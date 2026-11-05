@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
@@ -29,9 +31,51 @@ class CursosViewModel with ChangeNotifier {
   //url de la imagen de un curso: la vista no conoce la direccion del servidor
   String urlImagen(int idImagen) => servicioCurso.urlImagen(idImagen);
 
+  //punto de entrada del formulario: aplica las reglas que antes vivian en la
+  //vista (deporte e imagen obligatorios), arma la entidad y la registra. La
+  //vista entrega lo que hay en pantalla y recibe exito o fallo ya resueltos
+  Future<Resultado<CursoEntidad>> guardarCurso({
+    required String nombre,
+    required String descripcion,
+    required String categoria,
+    String? deporte,
+    File? imagenNueva,
+    CursoEntidad? original, //null = crear
+  }) async {
+    //no hay operacion de edicion en el servicio (VM-e); ninguna pantalla abre
+    //el formulario en modo edicion, pero si llega se dice en vez de callar
+    if (original != null) {
+      return Fallo(0, 'La edicion de cursos aun no esta disponible', origen: 'ViewModel');
+    }
+    if (deporte == null) {
+      return Fallo(0, 'Selecciona un deporte por favor', origen: 'ViewModel');
+    }
+    if (imagenNueva == null) {
+      return Fallo(0, 'Carga una imagen por favor', origen: 'ViewModel');
+    }
+    final entidad = CursoEntidad(
+      nombreCurso: nombre.trim(),
+      nombreDeporte: deporte,
+      tituloCategoria: categoria,
+      descripcion: descripcion.trim(),
+      imagenFile: imagenNueva,
+    );
+    final respuesta = await agregarCurso(entidad);
+    if (respuesta.codigoHttp == 201) {
+      return Exito(respuesta.datos as CursoEntidad?);
+    }
+    return _fallo(respuesta);
+  }
+
+  //la excepcion de una capa de abajo vuelve como respuesta, no se lanza: un
+  //curso sin archivo hacia saltar el imagenFile! de la conexion hasta la vista
+  //(CU-03)
   Future<RespuestaModelo> agregarCurso(CursoEntidad entidad) async {
-    RespuestaModelo respuesta = await servicioCurso.insertarCurso(entidad);
-    return respuesta;
+    try {
+      return await servicioCurso.insertarCurso(entidad);
+    } catch (e) {
+      return RespuestaModelo.fromObjectError(e, 'POST', 'Agregar curso', 'ViewModel');
+    }
   }
 
   //la vista recibe exito o fallo ya resueltos y decide si avisa; el vm no

@@ -15,13 +15,13 @@ flutter pub get
 flutter run                                   # backend at 10.0.2.2:8082 (emulator alias for the host)
 flutter run --dart-define=API_HOST=192.168.1.20   # backend elsewhere
 flutter analyze                               # lints via flutter_lints (analysis_options.yaml)
-flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (274), must be green
+flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (284), must be green
 flutter test test/main_test.dart                              # remote suite (107), needs the backend
-flutter test test/diagnostico                                 # diagnostic suite (73): red ON PURPOSE, one test per known bug
+flutter test test/diagnostico                                 # diagnostic suite (72): red ON PURPOSE, one test per known bug
 flutter test --plain-name "<substring of test name>"
 ```
 
-Plain `flutter test` runs **all three** (454), so it is never all green: the diagnostic suite fails by design (69 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
+Plain `flutter test` runs **all three** (463), so it is never all green: the diagnostic suite fails by design (68 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
 
 Analyzer baseline: 0 errors, 31 warnings (mostly `must_be_immutable`), ~317 infos (new test files only add `file_names` infos, because they follow the project's camelCase file names). New code should not raise the warning count.
 
@@ -44,7 +44,7 @@ Normal Flutter tests: each file has its own `main()` and ends in `_test.dart`.
 
 How they are built:
 
-- **Test doubles live in `test/dobles/`**, written by hand (no `mocktail`), named `<InterfaceName>Falsa` (`ConexionCategoriaFalsa`, `ConexiongruposFalsa`, `ConexionEstadisticasFalsa`, …), plus `GoogleSignInFalso`. They are *programmable*: the test sets `respuestaX` before acting and inspects `ultimoX` / `llamadasX` afterwards. Some accept a hook to delay an answer (`antesDeResponder` in estadísticas, `antesDeRegistrar` in atenciones).
+- **Test doubles live in `test/dobles/`**, written by hand (no `mocktail`), named `<InterfaceName>Falsa` (`ConexionCategoriaFalsa`, `ConexiongruposFalsa`, `ConexionEstadisticasFalsa`, …), plus `GoogleSignInFalso` and `SelectorImagenFalso` (install it with `ImagePickerPlatform.instance = SelectorImagenFalso('assets/images/1.jpg')` so `image_picker` returns that file; `image_picker_platform_interface` is a dev dependency for this). A form that uploads a real file must be submitted inside `tester.runAsync(...)` (tap + a short real delay): file IO does not advance on the fake clock, and the continuation after the request (dialogs, `pop`) also runs in that real zone — see `integracion/formularioCurso_integracion_test.dart`. They are *programmable*: the test sets `respuestaX` before acting and inspects `ultimoX` / `llamadasX` afterwards. Some accept a hook to delay an answer (`antesDeResponder` in estadísticas, `antesDeRegistrar` in atenciones).
 - **A double must reject what the real connection rejects.** A double that accepts inputs the real code crashes on makes tests green for paths that cannot happen in production (e.g. inserting a categoría with no image file: the real connection does `imagenFile!`).
 - **`AdaptadorHttpFalso`** (`test/dobles/adaptadorHttpFalso.dart`) replaces Dio's transport, one level below the connection: `responder(metodo, ruta, codigo, cuerpo)`, `fallar(metodo, ruta, DioExceptionType)`, `retener(metodo, ruta)` → `Completer` to hold an answer, and `peticiones` / `peticionesA(...)` with the URI and decoded JSON body that went out. `crearDioFalso(adaptador)` gives the same `Dio` as the root (timeouts included). A route nobody programmed answers 404, so a forgotten route shows up as a failure.
 - **Contracts in `test/contratos/<modulo>/`**: the JSON the app expects from each endpoint, read with `leerContrato(modulo, nombre)` (path relative to the project root). Doubles and adapter responses take their data from here instead of inventing it, so the data shape is written down once and reviewed with the backend team. `atenciones/` was a proposal until 2026-10-29; it now holds the observed shape of `/asistenciasClase` (see `LEEME.md` there).

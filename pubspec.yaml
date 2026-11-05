@@ -48,6 +48,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  #doble del selector de imagenes en las pruebas de pantalla (ya venia como
+  #dependencia transitiva de image_picker; misma version del lock)
+  image_picker_platform_interface: ^2.10.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

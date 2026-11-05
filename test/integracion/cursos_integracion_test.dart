@@ -220,5 +220,28 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
       expect(find.text('No hay cursos aun para esta categoria'), findsOneWidget);
     });
+
+    //nacio como diagnostico de CU-03: el imagenFile! de la conexion lanzaba y
+    //la excepcion atravesaba repositorio, servicio y vm (agregarCurso no
+    //tenia try). Ahora el vm la devuelve como respuesta
+    test('$capa - $tipo - Agregar curso - sin archivo de imagen devuelve un error, sin lanzar', () async {
+      Object? lanzado;
+      try {
+        final respuesta = await vm.agregarCurso(
+          CursoEntidad(
+            nombreCurso: 'Curso nuevo',
+            nombreDeporte: 'Atletismo',
+            tituloCategoria: 'Categoria Fase 4',
+            descripcion: 'Sin imagen',
+            imagen: 1197,
+          ),
+        );
+        expect(respuesta.codigoHttp, isNot(201));
+      } catch (e) {
+        lanzado = e;
+      }
+      expect(lanzado, isNull, reason: 'lanzo: $lanzado');
+      expect(adaptador.peticiones, isEmpty);
+    });
   });
 }

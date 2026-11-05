@@ -2,15 +2,16 @@ import 'dart:io';
 
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
+import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +29,8 @@ class FormularioCurso extends StatefulWidget {
 
 class _FormularioCursoState extends State<FormularioCurso> {
   String? _deporte;
-  Future<RespuestaModelo>? _futureDeportes;
+  //bloquea GUARDAR mientras la peticion esta en vuelo
+  bool _guardando = false;
 
   //los vms los crea la ruta formularioCurso (route_generator)
   late final CursosViewModel _vmCurso;
@@ -38,7 +40,6 @@ class _FormularioCursoState extends State<FormularioCurso> {
 
   final _formKey = GlobalKey<FormState>();
   final _nombreController = TextEditingController();
-  final _deporteController = TextEditingController();
   final _categoriaController = TextEditingController();
   final _descripcionController = TextEditingController();
 
@@ -46,17 +47,12 @@ class _FormularioCursoState extends State<FormularioCurso> {
   void initState() {
     super.initState();
     _vmCurso = context.read<CursosViewModel>();
-    _futureDeportes = context.read<Deporteviewmodel>().obtenerDeportes();
     _estado = widget.argumentos;
     _esEdicion = widget.argumentos.esEdicion;
     _nombreController.value =
         _estado.curso?.nombreCurso == null
             ? TextEditingValue.empty
             : TextEditingValue(text: _estado.curso!.nombreCurso);
-    _deporteController.value =
-        _estado.curso?.nombreDeporte == null
-            ? TextEditingValue.empty
-            : TextEditingValue(text: _estado.curso!.nombreDeporte);
     _categoriaController.value = TextEditingValue(text: _estado.categoria);
     _descripcionController.value =
         _estado.curso?.descripcion == null
@@ -150,59 +146,27 @@ class _FormularioCursoState extends State<FormularioCurso> {
     );
   }
 
+  //la ruta ya pidio los deportes; aqui solo se pinta su seccion
   Widget _inputComboDeporte() {
-    if (_futureDeportes == null) {
-      return Center(child: CircularProgressIndicator());
-    }
-    return FutureBuilder(
-      future: _futureDeportes,
-      builder: (context, promesa) {
-        if (promesa.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (promesa.hasError) {
-          return Text(
-            'Error: ${promesa.error}',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        } else if (!promesa.hasData) {
-          return Text(
-            'Sin información',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-
-        if (promesa.data!.codigoHttp != 200) {
-          return Text(
-            'No se logró obtener información: ${promesa.data!.codigoHttp} - ${promesa.data!.error?.mensaje}',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-
-        if (promesa.data!.datos is! List) {
-          return Text(
-            'Información en formato erróneo',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-
-        try {
-          List<dynamic> listaDynamic = promesa.data!.datos;
-          List<String> lista = listaDynamic.cast<String>();
-          if (lista.isEmpty) {
-            return Text(
-              '¡No hay deportes aún!',
-              style: Tipografia.cuerpo1(color: ColorTheme.secondaryDark),
-            );
-          }
-          return _mostrarDropdown(lista);
-        } catch (e) {
-          return Text(
-            'Información no compatible en la vista',
-            style: Tipografia.cuerpo1(color: ColorTheme.error),
-          );
-        }
-      },
+    final seccion = context.select<Deporteviewmodel, EstadoSeccion<List<String>>>(
+      (vm) => vm.deportes,
     );
+    if (seccion.cargando) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (seccion.error != null) {
+      return Text(
+        'No se logró obtener los deportes: ${seccion.error}',
+        style: Tipografia.cuerpo1(color: ColorTheme.error),
+      );
+    }
+    if (seccion.datos.isEmpty) {
+      return Text(
+        '¡No hay deportes aún!',
+        style: Tipografia.cuerpo1(color: ColorTheme.secondaryDark),
+      );
+    }
+    return _mostrarDropdown(seccion.datos);
   }
 
   Widget _mostrarDropdown(List<String> lista) {
@@ -276,9 +240,7 @@ class _FormularioCursoState extends State<FormularioCurso> {
   Widget _botonSubmit() {
     return Container(
       child: FilledButton(
-        onPressed: () {
-          _submitForm(context);
-        },
+        onPressed: _guardando ? null : _submitForm,
         child: Text('GUARDAR'),
       ),
     );
@@ -298,58 +260,40 @@ class _FormularioCursoState extends State<FormularioCurso> {
     );
   }
 
-  Future<void> _submitForm(context) async {
-    if (_deporte == null) {
-      showDialog(
-        context: context,
-        builder: (_) {
-          return DialogError(
-            titulo: "Falta informacion",
-            mensaje: "Selecciona un deporte por favor",
-            codigo: 0,
-          );
-        },
-      );
-      return;
-    }
-    if (_imagen == null && _estado.curso?.imagen == null) {
-      showDialog(
-        context: context,
-        builder: (_) {
-          return DialogError(
-            titulo: "Falta informacion",
-            mensaje: "Carga una imagen por favor",
-            codigo: 0,
-          );
-        },
-      );
-      return;
-    }
-    if (_formKey.currentState!.validate()) {
-      CursoEntidad entidad = CursoEntidad(
-        nombreCurso: _nombreController.text,
-        nombreDeporte: _deporte!,
-        tituloCategoria: _categoriaController.text,
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _guardando = true;
+    });
+    try {
+      //las reglas (deporte e imagen obligatorios) y el armado de la entidad
+      //los decide el viewModel; la vista solo entrega lo que hay en pantalla
+      final resultado = await _vmCurso.guardarCurso(
+        nombre: _nombreController.text,
         descripcion: _descripcionController.text,
-        imagen: _estado.curso?.imagen,
+        categoria: _categoriaController.text,
+        deporte: _deporte,
+        imagenNueva: _imagen,
+        original: _esEdicion ? _estado.curso : null,
       );
-      if (_imagen != null) {
-        entidad.imagenFile = _imagen;
-      }
-      _limpiarInputs();
-      if (_esEdicion) {
-        await _manejarEditar(entidad);
-      } else {
-        await _manejarAgregar(entidad);
+      await _mostrarResultado(resultado);
+    } finally {
+      //en exito se hace pop, el widget ya no esta montado y no hay que tocarlo
+      if (mounted) {
+        setState(() {
+          _guardando = false;
+        });
       }
     }
   }
 
-  _manejarAgregar(CursoEntidad entidad) async {
-    RespuestaModelo respuesta = await _vmCurso.agregarCurso(entidad);
-
-    if (respuesta.codigoHttp == 201) {
-      if (context.mounted) {
+  //los campos no se tocan: en exito se cierra la pantalla, y si falla el
+  //usuario conserva lo que escribio y puede reintentar. Antes se limpiaban
+  //antes de enviar
+  Future<void> _mostrarResultado(Resultado<CursoEntidad> resultado) async {
+    if (!mounted) return;
+    switch (resultado) {
+      case Exito():
         await showDialog(
           context: context,
           builder:
@@ -358,34 +302,18 @@ class _FormularioCursoState extends State<FormularioCurso> {
                 mensaje: 'El curso se ha guardado exitosamente.',
               ),
         );
-        Navigator.pop(context, true); // Volver y avisar éxito
-      }
-    } else {
-      if (context.mounted) {
+        //la lista de cursos recarga la suya al recibir true
+        if (mounted) Navigator.pop(context, true);
+      case Fallo(:final codigo, :final mensaje):
         await showDialog(
           context: context,
           builder:
               (_) => DialogError(
-                titulo: 'Error al guardar clase',
-                mensaje:
-                    respuesta.error?.mensaje ??
-                    'Error desconocido. Código: ${respuesta.codigoHttp}',
-                codigo: respuesta.codigoHttp,
+                titulo: 'Error al guardar el curso',
+                mensaje: mensaje,
+                codigo: codigo,
               ),
         );
-      }
     }
-  }
-
-  _manejarEditar(CursoEntidad entidad) {}
-
-  _limpiarInputs() {
-    _categoriaController.clear();
-    _deporteController.clear();
-    _nombreController.clear();
-    _descripcionController.clear();
-    setState(() {
-      _imagen = null;
-    });
   }
 }

@@ -5,7 +5,6 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
-import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,28 +50,6 @@ void main() {
         [lista['prmCategoria'], uno['prmCategoria'], uno['prmCurso']],
         ['Fútbol & Voleibol', 'Fútbol & Voleibol', 'Nivel 1 + 2'],
       );
-    });
-
-    //imagenFile! en la conexion: el TypeError atraviesa conexion,
-    //repositorio, servicio y vm (agregarCurso no tiene try)
-    test('$capa - $tipo - Agregar curso - BUG CU-03 - sin archivo de imagen devuelve un error, sin lanzar', () async {
-      Object? lanzado;
-      try {
-        final respuesta = await vm.agregarCurso(
-          CursoEntidad(
-            nombreCurso: 'Curso nuevo',
-            nombreDeporte: 'Atletismo',
-            tituloCategoria: 'Categoria Fase 4',
-            descripcion: 'Sin imagen',
-            imagen: 1197,
-          ),
-        );
-        expect(respuesta.codigoHttp, isNot(201));
-      } catch (e) {
-        lanzado = e;
-      }
-      expect(lanzado, isNull, reason: 'lanzo: $lanzado');
-      expect(adaptador.peticiones, isEmpty);
     });
 
     //un curso sin "deporte": CursoModelo.fromJson lanza un TypeError y las

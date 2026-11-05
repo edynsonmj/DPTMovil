@@ -212,7 +212,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
                   create: (c) => CursosViewModel(c.read()),
                 ),
                 ChangeNotifierProvider(
-                  create: (c) => Deporteviewmodel(c.read()),
+                  create: (c) => Deporteviewmodel(c.read())..cargar(),
                 ),
               ],
               child: FormularioCurso(argumentos: datos),

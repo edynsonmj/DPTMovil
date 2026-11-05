@@ -34,6 +34,10 @@ class Conexiondeporteremoto implements Conexiondeporte {
       List<String> deportes =
           listaResponse.map((item) => item['nombre'] as String).toList();
       return RespuestaModelo(codigoHttp: 200, datos: deportes);
+    } on DioException catch (dioError) {
+      //un codigo de error del backend llega como DioException (bad response):
+      //se conserva su codigo. Antes caia en Exception y llegaba como 0 (DE-01)
+      return RespuestaModelo.fromDioException(dioError, metodo);
     } on Exception catch (exception) {
       return RespuestaModelo.fromException(exception, metodo, path, capa);
     } catch (exception) {
