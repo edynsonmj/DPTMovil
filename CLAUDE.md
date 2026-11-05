@@ -15,13 +15,13 @@ flutter pub get
 flutter run                                   # backend at 10.0.2.2:8082 (emulator alias for the host)
 flutter run --dart-define=API_HOST=192.168.1.20   # backend elsewhere
 flutter analyze                               # lints via flutter_lints (analysis_options.yaml)
-flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (271), must be green
+flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (273), must be green
 flutter test test/main_test.dart                              # remote suite (107), needs the backend
-flutter test test/diagnostico                                 # diagnostic suite (75): red ON PURPOSE, one test per known bug
+flutter test test/diagnostico                                 # diagnostic suite (73): red ON PURPOSE, one test per known bug
 flutter test --plain-name "<substring of test name>"
 ```
 
-Plain `flutter test` runs **all three** (453), so it is never all green: the diagnostic suite fails by design (71 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
+Plain `flutter test` runs **all three** (453), so it is never all green: the diagnostic suite fails by design (69 red), and without a backend the remote suite fails too. Use the explicit paths above. If every remote case fails at once, check first that the backend on `localhost:8082` is up (a 503 "No hay conexion" means it is still starting). The backend publishes its route list at `http://localhost:8082/v3/api-docs` — check there before writing a test against an endpoint.
 
 Analyzer baseline: 0 errors, 31 warnings (mostly `must_be_immutable`), ~317 infos (new test files only add `file_names` infos, because they follow the project's camelCase file names). New code should not raise the warning count.
 
@@ -136,9 +136,9 @@ Newer VM methods translate that into `Resultado<T>` (`domain/entities/resultado.
 - Route VMs mix in `NotificacionSegura`, so a response that arrives after the route was popped doesn't call `notifyListeners` on a disposed notifier.
 - Load once — in the route's `create` (`..cargar(...)`) or in the screen's `initState` — never through a `FutureBuilder` created in `build`. Examples: `DetalleGrupoViewModel` (grupo screen), per-grupo maps in `Horariosviewmodel`/`Inscripcionviewmodel`, `EstadisticasViewModel.cargar(inicio, fin)` with a request counter that drops stale responses.
 
-### Two ViewModel error-handling styles
+### ViewModel error-handling styles
 
-Older methods take `BuildContext` and call `showDialog(... DialogError/DialogExito ...)` themselves (e.g. `CategoriaViewModel.cargarCategorias`, `CursosViewModel.listarCursosDe`). Newer ones return `RespuestaModelo` or `Resultado` and let the view decide. Prefer the returning style for new code — a method that takes `context` and calls `Navigator`/`showDialog` can't be driven from a plain `test()`. Match the surrounding method when editing an existing view.
+No ViewModel takes `BuildContext` or calls `showDialog` any more (the last ones, `CategoriaViewModel.cargarCategorias` and `CursosViewModel.listarCursosDe(context, …)`, went on 2026-11-04 with CAT-05 and CU-05). Two return styles remain: older methods return `RespuestaModelo` and the view reads `codigoHttp` (`agregarCurso`, `insertarGrupo`, `registroAlumno`, `login`, `obtenerDeportes`); newer ones return `Resultado` and the view only shows the resolved message. Use `Resultado` for new code, and keep VMs free of `material.dart`: lists for a `DropdownMenu` are exposed as data (`titulos`, `nombresCursos`) and the view builds the entries.
 
 ### Backend selection
 
