@@ -15,7 +15,7 @@ flutter pub get
 flutter run                                   # backend at 10.0.2.2:8082 (emulator alias for the host)
 flutter run --dart-define=API_HOST=192.168.1.20   # backend elsewhere
 flutter analyze                               # lints via flutter_lints (analysis_options.yaml)
-flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (366), must be green
+flutter test test/unitarias test/raiz_composicion_test.dart test/integracion   # backend-free suite (384), must be green
 flutter test test/main_test.dart                              # remote suite (108), needs the backend
 flutter test test/diagnostico                                 # diagnostic suite (78): red ON PURPOSE, one test per known bug
 flutter test --plain-name "<substring of test name>"
@@ -77,6 +77,7 @@ Backend behaviours the tests pin down:
 - Periodo de inscripción (`VmPeriodoInscripcionTest`, its own group per run; new routes since 2026-11-05): `PATCH /grupo/periodo` takes `{fechaApertura?, fechaCierre, grupos:[{categoria, curso, anio, iterable}]}` and answers 200 with the list of groups; the cierre is mandatory and must be today or later, cierre before apertura → 422 `GC-0015`, unknown group → 404 `GC-0003`, and it does not reopen a group closed by hand. `PATCH /grupo/inscripciones?...&cerradas=true|false` closes or reopens by hand (`inscripcionesCerradasManual`), leaving the dates alone. `POST /grupo` requires `fechaIncripcionCierre` (422 `GC-0015`); with no apertura the group is open at once, and the closing day still counts. `POST /inscripcion` into a group with closed inscriptions → 422, not 409.
 - `POST /grupo` accepts an optional `fechaFinalizacion` (`GrupoDto`); `GrupoModelo.toJson` sends it only when set, so a group without it posts the same body as before (GR-02, fixed; `vmGrupoDiagnosticoTest.prueba7FechaFinalizacion` pins it).
 - Registro (`POST /RegistroPerfilAlumno`, since 2026-11-02): what it requires depends on `tipoAlumno` — Estudiante: `alumnoCodigo` + `facultad` + `programa`; Docente: `facultad` + `programa`; Administrativo/Contratista: `dependencia`. Missing data → 422 `GC-0029` with the reason in `mensaje`; the programa must belong to the facultad. `GET /programas?facultad=` answers `[{nombre, facultad}]`, or 200 with a `GC-0002` object for a facultad with none (the connection turns it into `[]`). Faculty and programme names currently come back double-encoded from the test DB (`IngenierÃ­a`): the app shows them as they come and sends them back unchanged, so validation still matches.
+- Lista de espera (since 2026-11-05): `POST /inscripcion` into a full group answers **201** with `estado: EN_ESPERA`, not 409. `GET /validarInscripcion` only counts `INSCRITO`, so the waitlist comes from `GET /inscripcion/misCursos` (role Alumno, active inscriptions only). `PUT /desvincularInscripcion` also leaves the list. `Inscripcionviewmodel.enEspera(grupo)` exposes it, and `agregarIncripcion` returns `Exito<bool>` (true = waitlisted).
 - `GET /validarInscripcion` takes its data as **query parameters** (since 2026-10-29); a GET body gets 400. The connection sends `queryParameters` (bug IN-07, fixed); `conexionInscripcionRemoto_test.dart` pins it.
 
 #### 3. Diagnostic suite — `test/diagnostico/<modulo>/`
@@ -129,6 +130,8 @@ When adding a module: interface + `remoto/` connection taking `Dio`, mapper in `
 ### RespuestaModelo and Resultado
 
 Every async method in the data and domain layers returns `Future<RespuestaModelo>` (`lib/data/models/respuestaModelo.dart`): `{ codigoHttp, datos, error }`. **Errors are not thrown across layers — they are returned.** Failures come back through the named factories `RespuestaModelo.fromResponse`, `.fromDioException`, `.fromFormatException`, `.fromException`, `.fromObjectError` (the last three take `(exception, metodo, url, capa)`). Do not let exceptions escape a layer.
+
+`fromDioException` turns a rejection into the text to show: the backend's `mensaje`, not the whole JSON (IN-16); a per-field 400 stays JSON because `DialogError` lists each field; an empty body is explained by its code (401 and 403, IN-17). `GC-xxxx` codes do not reach `ErrorModelo`.
 
 Newer VM methods translate that into `Resultado<T>` (`domain/entities/resultado.dart`: `Exito` / `Fallo(codigo, mensaje, origen:)`), so the view gets a resolved message and never reads `ErrorModelo`.
 

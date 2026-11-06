@@ -200,6 +200,7 @@ probarViewModelEstadisticas(){
     test.prueba6DosAsistencias(crearEstadisticasViewModel);
     //los casos rojos van en
     //test/diagnostico/estadisticas/remoto_diagnostico_test.dart
+    test.pruebaSesionVencida(crearEstadisticasViewModel);
   });
 }
 //datos de apoyo del diagnostico de estadisticas; tambien lo usa
@@ -294,6 +295,8 @@ probarViewModelInscripcion(){
     test.prueba6OrigenDelError(crearInscripcionViewModel);
     test.prueba7CargarEstados(crearInscripcionViewModel);
     test.prueba8MensajeDelRechazo(crearInscripcionViewModel);
+    test.prueba9RechazoLegible(crearInscripcionViewModel);
+    test.prueba10SesionVencida(crearInscripcionViewModel);
     //el caso rojo (IN-13) va en
     //test/diagnostico/inscripciones/remoto_diagnostico_test.dart
   });

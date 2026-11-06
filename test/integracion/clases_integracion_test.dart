@@ -167,6 +167,19 @@ void main() {
       expect(fallo.mensaje, 'Respuesta inesperada del servidor. Código: 202');
     });
 
+    //nacio como diagnostico de IN-16 en clases
+    test('$capa - $tipo - Registrar clase - un rechazo da el motivo, no el JSON de la respuesta', () async {
+      adaptador.responder('POST', '/claseGrupo', 422, {
+        'codigoError': 'GC-0021',
+        'mensaje': 'La clase no tiene horario ese dia',
+        'codigoHttp': 422,
+      });
+
+      final resultado = await formulario().registrarClase(fecha: DateTime(2026, 10, 28), horasTexto: '2');
+
+      expect((resultado as Fallo).mensaje, 'La clase no tiene horario ese dia');
+    });
+
     test('$capa - $tipo - Registrar clase - un 400 del backend es Fallo con su codigo y sin red es 503', () async {
       adaptador.responder('POST', '/claseGrupo', 400, {'fecha': 'no puede ser futura'});
       final r400 = await formulario().registrarClase(fecha: DateTime(2026, 10, 28), horasTexto: '2');

@@ -138,7 +138,7 @@ class VmCursoDiagnosticoTest {
     test('$capa - $tipo - $metodo - $caso', () async {
       final r = await crearVm().obtenerCurso(_n.titulo, 'noexiste_$_marca');
       expect(r.codigoHttp, 404);
-      expect(r.error?.mensaje, contains('GC-0003'));
+      expect(r.error?.mensaje, contains('No se encuentra registrado'));
     });
   }
 

@@ -88,7 +88,7 @@ void main() {
 
       expect(resultado, isA<Fallo>());
       expect((resultado as Fallo).codigo, 400);
-      expect(resultado.mensaje, 'el grupo no tiene cupos');
+      expect((resultado as Fallo).mensaje, 'el grupo no tiene cupos');
       //un fallo no revalida ni deja el boton deshabilitado
       expect(conexion.llamadasValidar, 0);
       expect(vm.procesando(grupo), isFalse);

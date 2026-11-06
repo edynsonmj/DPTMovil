@@ -185,28 +185,27 @@ class AutenticacionViewModel with ChangeNotifier {
     }
   }
 
-  //mensaje legible de un registro rechazado. El backend responde 422
-  //{codigoError, mensaje} si faltan datos del tipo de vinculo, 400 con un
-  //mensaje por campo si falla la validacion, 409 si la identificacion ya existe
+  //mensaje legible de un registro rechazado. El backend responde 422 con un
+  //motivo si faltan datos del tipo de vinculo (llega como texto), 400 con un
+  //mensaje por campo si falla la validacion (llega como JSON), 409 si la
+  //identificacion ya existe
   String mensajeErrorRegistro(RespuestaModelo respuesta) {
     final texto = respuesta.error?.mensaje;
     if (texto != null && texto.isNotEmpty) {
       try {
         final cuerpo = jsonDecode(texto);
         if (cuerpo is Map) {
-          final mensaje = cuerpo['mensaje'];
-          if (mensaje is String && mensaje.isNotEmpty) {
-            //"Los datos enviados no son validos, <motivo>": se deja el motivo
-            final coma = mensaje.indexOf(', ');
-            return coma >= 0 && mensaje.startsWith('Los datos enviados')
-                ? mensaje.substring(coma + 2)
-                : mensaje;
-          }
           final campos = cuerpo.values.whereType<String>().toList();
           if (campos.isNotEmpty) return campos.join('\n');
         }
       } on FormatException {
-        //no es JSON: se usa el mensaje por codigo
+        if (respuesta.codigoHttp == 400 || respuesta.codigoHttp == 422) {
+          //"Los datos enviados no son validos, <motivo>": se deja el motivo
+          final coma = texto.indexOf(', ');
+          return coma >= 0 && texto.startsWith('Los datos enviados')
+              ? texto.substring(coma + 2)
+              : texto;
+        }
       }
     }
     switch (respuesta.codigoHttp) {

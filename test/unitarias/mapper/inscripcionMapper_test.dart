@@ -1,4 +1,5 @@
 import 'package:dpt_movil/data/mappers/inscripcionMapper.dart';
+import 'package:dpt_movil/data/models/inscripcionResumenModelo.dart';
 import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,6 +9,18 @@ void main() {
   const String tipo = "unitaria";
 
   group('Inscripciones (mapper):', () {
+    test('$capa - $tipo - aResumenes - copia el grupo y distingue la lista de espera', () {
+      final resumenes = InscripcionMapper.aResumenes([
+        Inscripcionresumenmodelo(categoria: 'c', curso: 'd', anio: 2026, iterable: 1, estado: 'EN_ESPERA'),
+        Inscripcionresumenmodelo(categoria: 'c', curso: 'e', anio: 2026, iterable: 2, estado: 'INSCRITO'),
+      ]);
+
+      expect(resumenes.first.curso, 'd');
+      expect(resumenes.first.iterable, 1);
+      expect(resumenes.first.enEspera, isTrue);
+      expect(resumenes.last.enEspera, isFalse);
+    });
+
     test('$capa - $tipo - aModelo - copia los campos y las fechas', () {
       final inscripcion = DateTime(2026, 10, 29);
       final desvinculacion = DateTime(2026, 11, 4);

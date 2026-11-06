@@ -180,7 +180,7 @@ void main() {
       });
       final ausente = await vm.obtenerCurso('Categoria Fase 4', 'No existe');
       expect(ausente.codigoHttp, 404);
-      expect(ausente.error?.mensaje, contains('GC-0003'));
+      expect(ausente.error?.mensaje, 'No se encuentra registrado el elemento: null');
     });
     //los casos rojos de este montaje (CU-02 a CU-05) estan en
     //test/diagnostico/cursos/integracion_diagnostico_test.dart

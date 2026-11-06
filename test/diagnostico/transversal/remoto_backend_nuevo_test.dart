@@ -17,7 +17,6 @@ import '../../main_test.dart'
     show
         baseUrlPruebas,
         crearAtencionViewModel,
-        crearCategoriaViewModelRemoto,
         crearClasesViewModel,
         crearDetalleGrupoViewModel,
         crearHorariosViewModel,
@@ -121,15 +120,6 @@ void main() {
       expect(r, isA<Exito>(), reason: texto(r));
     });
 
-    test('$capa - $tipo - Registrar clase - BUG IN-16 - un rechazo da el motivo, no el JSON de la respuesta', () async {
-      final g = await grupoVacio();
-
-      final r = await vmClaseDe(g).registrarClase(fecha: ayer, horasTexto: '2');
-
-      expect(r, isA<Fallo>(), reason: texto(r));
-      expect((r as Fallo).mensaje, isNot(contains('codigoError')));
-    });
-
     //con horarios el grupo funciona; solo falla la lista vacia
     test('$capa - $tipo - Horarios - BUG BK-05 - un grupo sin horarios queda vacio y sin error', () async {
       final g = await grupoVacio();
@@ -139,20 +129,6 @@ void main() {
 
       expect(vm.horariosDe(g).error, isNull);
       expect(vm.horariosDe(g).datos, isEmpty);
-    });
-
-    //todo responde 401 sin JWT y la app abre en categorias, con o sin sesion
-    test('$capa - $tipo - Categorias - BUG BK-10 - sin sesion la pantalla inicial pide iniciar sesion', () async {
-      almacenPruebas.token = null;
-      final vm = crearCategoriaViewModelRemoto();
-
-      await vm.listarYNotificarCategorias();
-
-      expect(
-        vm.error,
-        matches(RegExp('sesi[oó]n', caseSensitive: false)),
-        reason: 'error: ${vm.error}',
-      );
     });
 
     //el menu ofrece "Continuar con correo", que llama GET /login sin JWT.

@@ -1,6 +1,7 @@
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionInscripcion.dart';
 import 'package:dpt_movil/data/mappers/inscripcionMapper.dart';
 import 'package:dpt_movil/data/models/inscripcionModelo.dart';
+import 'package:dpt_movil/data/models/inscripcionResumenModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
 
@@ -100,6 +101,25 @@ class Inscripcionrepositorio {
         error,
         'GET',
         'ValidarInscripcion',
+        'repositorio',
+      );
+    }
+  }
+
+  Future<RespuestaModelo> obtenerMisCursos() async {
+    try {
+      RespuestaModelo respuesta = await conexion.obtenerMisCursos();
+      if (respuesta.codigoHttp == 200) {
+        respuesta.datos = InscripcionMapper.aResumenes(
+          respuesta.datos as List<Inscripcionresumenmodelo>,
+        );
+      }
+      return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'GET',
+        'ObtenerMisCursos',
         'repositorio',
       );
     }

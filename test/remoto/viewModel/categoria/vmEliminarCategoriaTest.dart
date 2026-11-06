@@ -53,7 +53,7 @@ class VmEliminarCategoriaTest {
       //el backend responde 404 GC-0003 al no encontrar el titulo
       expect(resultado, isA<Fallo>());
       expect((resultado as Fallo).codigo, 404);
-      expect(resultado.mensaje, contains('GC-0003'));
+      expect(resultado.mensaje, contains('No se encuentra registrado'));
       //un fallo no refresca: la lista sigue siendo la misma instancia
       expect(identical(vm.categorias, categoriasAntes), isTrue);
     });

@@ -122,6 +122,17 @@ void main() {
       expect(vm.grupos.error, contains('Código: 406'));
       expect(vm.puedeExportar, isFalse);
     });
+
+    //nacio como diagnostico de ES-07
+    test('$capa - $tipo - Cargar - un 401 sin cuerpo deja un mensaje en la seccion', () async {
+      responderContrato();
+      adaptador.responder('GET', rutas[0], 401, '');
+
+      await vm.cargar('2026-01-01', '2026-10-29');
+
+      expect(vm.categorias.error, startsWith('Código: 401'));
+      expect(vm.categorias.error, contains('sesión'));
+    });
     //los casos rojos de este montaje (ES-02 a ES-04) estan en
     //test/diagnostico/estadisticas/integracion_diagnostico_test.dart
   });

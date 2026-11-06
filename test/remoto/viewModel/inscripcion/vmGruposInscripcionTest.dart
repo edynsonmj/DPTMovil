@@ -164,7 +164,7 @@ class VmGruposInscripcionTest {
       expect(inscribir, isA<Fallo>());
       final fallo = inscribir as Fallo;
       expect(fallo.codigo, 409);
-      expect(fallo.mensaje, contains('GC-0012'));
+      expect(fallo.mensaje, contains('cerradas'));
       expect(await vm.validarInscripcion(_inscripcion()), isFalse);
     });
   }

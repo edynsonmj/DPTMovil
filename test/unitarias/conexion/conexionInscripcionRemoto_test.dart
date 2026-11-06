@@ -1,7 +1,9 @@
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInscripcionRemoto.dart';
 import 'package:dpt_movil/data/models/inscripcionModelo.dart';
+import 'package:dpt_movil/data/models/inscripcionResumenModelo.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../contratos/leerContrato.dart';
 import '../../dobles/adaptadorHttpFalso.dart';
 
 //la conexion real de inscripciones sobre el transporte falso. Cubre IN-07:
@@ -71,6 +73,30 @@ void main() {
 
       expect(respuesta.codigoHttp, isNot(200));
       expect(respuesta.error, isNotNull);
+    });
+
+    //nacio del diagnostico de BK-06: un grupo sin cupos tambien responde 201
+    test('$capa - $tipo - Agregar inscripcion - devuelve el estado que da el backend', () async {
+      adaptador.responder('POST', '/inscripcion', 201, leerContrato('inscripciones', 'inscripcion_201_en_espera'));
+
+      final respuesta = await conexion.agregarInscripcion(inscripcion);
+
+      expect(respuesta.codigoHttp, 201);
+      expect(respuesta.datos, 'EN_ESPERA');
+    });
+
+    test('$capa - $tipo - Mis cursos - convierte la lista y una respuesta sin lista es 406', () async {
+      adaptador.responder('GET', '/inscripcion/misCursos', 200, leerContrato('inscripciones', 'misCursos_200_en_espera'));
+
+      final respuesta = await conexion.obtenerMisCursos();
+
+      expect(respuesta.codigoHttp, 200);
+      final curso = (respuesta.datos as List<Inscripcionresumenmodelo>).single;
+      expect(curso.curso, 'Natación nivel 1');
+      expect(curso.estado, 'EN_ESPERA');
+
+      adaptador.responder('GET', '/inscripcion/misCursos', 200, {'codigoError': 'GC-0002'});
+      expect((await conexion.obtenerMisCursos()).codigoHttp, 406);
     });
 
     //nacio como diagnostico de IN-12: un 2xx distinto del esperado con cuerpo

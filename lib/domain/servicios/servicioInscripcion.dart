@@ -19,4 +19,8 @@ class Servicioinscripcion {
   Future<RespuestaModelo> desvincularInscripcion(Inscripcionentidad entidad) {
     return repositorio.eliminarInscripcion(entidad);
   }
+
+  Future<RespuestaModelo> obtenerMisCursos() {
+    return repositorio.obtenerMisCursos();
+  }
 }

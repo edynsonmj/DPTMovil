@@ -22,7 +22,6 @@ void main() {
     VmEstadisticasAsistenciaTest test = VmEstadisticasAsistenciaTest();
     prepararVmEstadisticasAsistencia(test);
     test.diagnosticoMinutosAcumulados(crearEstadisticasViewModel);
-    test.diagnosticoSesionVencida(crearEstadisticasViewModel);
     test.diagnosticoRegistroDesdeLaApp(
       () => Conexionatencionesremoto(crearDioPruebas(baseUrlPruebas)),
     );

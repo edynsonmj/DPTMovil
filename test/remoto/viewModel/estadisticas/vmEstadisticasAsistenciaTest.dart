@@ -314,12 +314,12 @@ class VmEstadisticasAsistenciaTest {
     });
   }
 
-  //ES-07: el 401 no trae cuerpo; es la misma causa de IN-17. La app no renueva
+  //antes diagnostico de ES-07: el 401 no trae cuerpo. La app no renueva
   //el token mientras esta abierta
-  void diagnosticoSesionVencida(EstadisticasViewModel Function() crearVm) {
+  void pruebaSesionVencida(EstadisticasViewModel Function() crearVm) {
     String metodo = "Estadisticas generales";
-    String caso = "BUG ES-07 - con el token vencido la seccion dice que paso";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "con el token vencido la seccion dice que paso";
+    test('$capa - $tipo - $metodo - $caso', () async {
       addTearDown(actuarComoCoordinador);
       almacenPruebas.token = firmarJwtPrueba(
         correo: 'coordinador@prueba.test',

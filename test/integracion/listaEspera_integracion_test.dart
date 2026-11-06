@@ -1,6 +1,4 @@
-@Tags(['diagnostico'])
-library;
-
+import 'package:dio/dio.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInscripcionRemoto.dart';
@@ -15,6 +13,7 @@ import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
 import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:dpt_movil/presentation/view/views/grupos/GruposInscripcion.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
+import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
@@ -23,18 +22,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import '../../contratos/leerContrato.dart';
-import '../../dobles/adaptadorHttpFalso.dart';
-import '../../dobles/conexionautenticacionFalsa.dart';
-import '../../dobles/googleSignInFalso.dart';
+import '../contratos/leerContrato.dart';
+import '../dobles/adaptadorHttpFalso.dart';
+import '../dobles/conexionautenticacionFalsa.dart';
+import '../dobles/googleSignInFalso.dart';
 
-//diagnostico de la pantalla del alumno frente al backend nuevo: la pantalla
-//real con su cadena real hasta las conexiones y el transporte falso debajo,
-//con las respuestas observadas el 2026-11-05 (test/contratos/inscripciones).
-//Afirman el comportamiento CORRECTO y salen rojas mientras el bug exista
+//la lista de espera en la pantalla del alumno: la pantalla real con su cadena
+//real hasta las conexiones y el transporte falso debajo, con las respuestas
+//observadas el 2026-11-05. Nacio del diagnostico de BK-06 e IN-15
 void main() {
-  const String capa = "vista";
-  const String tipo = "diagnostico";
+  const String capa = "integracion";
+  const String tipo = "local";
   const String modulo = 'inscripciones';
 
   late AdaptadorHttpFalso adaptador;
@@ -49,7 +47,8 @@ void main() {
             leerContrato(modulo, 'gruposInscripcion_200'),
           )
           ..responder('GET', '/horarios', 200, [])
-          ..responder('GET', '/validarInscripcion', 200, false);
+          ..responder('GET', '/validarInscripcion', 200, false)
+          ..responder('GET', '/inscripcion/misCursos', 200, []);
   });
 
   Future<void> montar(WidgetTester tester) async {
@@ -102,16 +101,16 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  group('Pantalla de inscripcion frente al backend nuevo (diagnostico):', () {
-    testWidgets('$capa - $tipo - Matricular - control BK-06 - con estado INSCRITO dice que se inscribio', (
-      tester,
-    ) async {
-      adaptador.responder(
-        'POST',
-        '/inscripcion',
-        201,
-        leerContrato(modulo, 'inscripcion_201_inscrito'),
-      );
+  void estaEnLaLista() => adaptador.responder(
+    'GET',
+    '/inscripcion/misCursos',
+    200,
+    leerContrato(modulo, 'misCursos_200_en_espera'),
+  );
+
+  group('Lista de espera (pantalla → conexiones reales → transporte falso):', () {
+    testWidgets('$capa - $tipo - Matricular - con estado INSCRITO dice que se inscribio', (tester) async {
+      adaptador.responder('POST', '/inscripcion', 201, leerContrato(modulo, 'inscripcion_201_inscrito'));
       await montar(tester);
 
       await tester.tap(find.text('Matricular'));
@@ -120,66 +119,99 @@ void main() {
       expect(find.text('Te has inscrito al grupo'), findsOneWidget);
     });
 
-    testWidgets('$capa - $tipo - Matricular - BUG BK-06 - con estado EN_ESPERA avisa de la lista de espera', (
-      tester,
-    ) async {
-      adaptador.responder(
-        'POST',
-        '/inscripcion',
-        201,
-        leerContrato(modulo, 'inscripcion_201_en_espera'),
-      );
+    testWidgets('$capa - $tipo - Matricular - con estado EN_ESPERA avisa de la lista de espera y la tarjeta lo muestra', (tester) async {
+      adaptador.responder('POST', '/inscripcion', 201, leerContrato(modulo, 'inscripcion_201_en_espera'));
       await montar(tester);
 
       await tester.tap(find.text('Matricular'));
       await tester.pumpAndSettle();
 
       expect(find.text('Te has inscrito al grupo'), findsNothing);
-      expect(find.textContaining('lista de espera'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(DialogExito),
+          matching: find.textContaining('lista de espera'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('En lista de espera'), findsOneWidget);
+      expect(find.text('Matricular'), findsNothing);
+      //validar responderia false: no se pregunta
+      expect(adaptador.peticionesA('GET', '/validarInscripcion'), hasLength(1));
     });
 
-    //validarInscripcion solo cuenta INSCRITO: en lista de espera responde
-    //false para siempre. /inscripcion/misCursos si trae el estado y
-    //desvincular funciona, pero la tarjeta no ofrece salir de la lista
-    testWidgets('$capa - $tipo - Tarjeta - BUG IN-15 - un alumno en lista de espera no ve Matricular y puede salir', (
-      tester,
-    ) async {
-      adaptador.responder(
-        'GET',
-        '/inscripcion/misCursos',
-        200,
-        leerContrato(modulo, 'misCursos_200_en_espera'),
-      );
+    testWidgets('$capa - $tipo - Tarjeta - un alumno en lista de espera no ve Matricular y puede salir', (tester) async {
+      estaEnLaLista();
 
       await montar(tester);
 
       expect(find.text('Matricular'), findsNothing);
       expect(find.textContaining('lista de espera'), findsOneWidget);
+      expect(find.text('Salir de la lista'), findsOneWidget);
     });
 
-    testWidgets('$capa - $tipo - Matricular - BUG IN-16 - el dialogo de un rechazo da el motivo sin la respuesta cruda', (
-      tester,
-    ) async {
-      adaptador.responder(
-        'POST',
-        '/inscripcion',
-        422,
-        leerContrato(modulo, 'inscripcion_422_limite'),
-      );
+    testWidgets('$capa - $tipo - Tarjeta - salir de la lista desvincula y vuelve a Matricular', (tester) async {
+      estaEnLaLista();
+      adaptador.responder('PUT', '/desvincularInscripcion', 200, leerContrato(modulo, 'inscripcion_201_en_espera'));
+      await montar(tester);
+
+      await tester.tap(find.text('Salir de la lista'));
+      await tester.pumpAndSettle();
+
+      expect(adaptador.peticionesA('PUT', '/desvincularInscripcion'), hasLength(1));
+      expect(find.text('Saliste de la lista de espera'), findsOneWidget);
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('En lista de espera'), findsNothing);
+      expect(find.text('Matricular'), findsOneWidget);
+    });
+
+    testWidgets('$capa - $tipo - Tarjeta - si falla la consulta de la lista no ofrece Matricular y reintentar la recupera', (tester) async {
+      adaptador.responder('GET', '/inscripcion/misCursos', 500, 'fallo interno');
+      await montar(tester);
+
+      expect(find.text('Matricular'), findsNothing);
+      expect(find.text('Reintentar'), findsOneWidget);
+
+      estaEnLaLista();
+      await tester.tap(find.text('Reintentar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('En lista de espera'), findsOneWidget);
+    });
+
+    testWidgets('$capa - $tipo - Tarjeta - un alumno inscrito no depende de la lista', (tester) async {
+      adaptador
+        ..responder('GET', '/validarInscripcion', 200, true)
+        ..fallar('GET', '/inscripcion/misCursos', DioExceptionType.connectionError);
+
+      await montar(tester);
+
+      expect(find.text('Quitar matrícula'), findsOneWidget);
+      expect(find.text('Reintentar'), findsNothing);
+    });
+
+    //nacieron del diagnostico de IN-16 e IN-17
+    testWidgets('$capa - $tipo - Matricular - el dialogo de un rechazo da el motivo sin la respuesta cruda', (tester) async {
+      adaptador.responder('POST', '/inscripcion', 422, leerContrato(modulo, 'inscripcion_422_limite'));
       await montar(tester);
 
       await tester.tap(find.text('Matricular'));
       await tester.pumpAndSettle();
 
       expect(find.byType(DialogError), findsOneWidget);
-      //hoy DialogError lista cada clave: codigoError, codigoHttp, url y metodo
+      expect(find.textContaining('maximo de 3 cursos activos'), findsOneWidget);
       expect(find.textContaining('codigoError'), findsNothing);
       expect(find.textContaining('http://'), findsNothing);
     });
 
-    testWidgets('$capa - $tipo - Matricular - BUG IN-17 - un 401 sin cuerpo no abre un dialogo en blanco', (
-      tester,
-    ) async {
+    testWidgets('$capa - $tipo - Matricular - un 401 sin cuerpo no abre un dialogo en blanco', (tester) async {
       adaptador.responder('POST', '/inscripcion', 401, '');
       await montar(tester);
 
@@ -187,7 +219,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final dialogo = tester.widget<DialogError>(find.byType(DialogError));
-      expect(dialogo.mensaje.trim(), isNotEmpty);
+      expect(dialogo.mensaje, contains('sesión'));
     });
   });
 }

@@ -1,4 +1,7 @@
 class Inscripcionentidad {
+  //estado que da el backend a una inscripcion en un grupo sin cupos
+  static const String estadoEnEspera = 'EN_ESPERA';
+
   DateTime? fechaInscripcion;
 
   DateTime? fechaDesvinculacion;

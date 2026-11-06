@@ -117,16 +117,5 @@ void main() {
       expect(grafica.first.leyenda, 'Tres clases de 1 h 30');
       expect(grafica.first.indice2, 4.5);
     });
-
-    //ES-07 contra el backend real en remoto_diagnostico_test.dart
-    test('$capa - $tipo - Cargar - BUG ES-07 - un 401 sin cuerpo deja un mensaje en la seccion', () async {
-      adaptador.responder('GET', '/estadisticas/categorias', 401, '');
-
-      await vm.cargar('2026-01-01', '2026-11-05');
-
-      final error = vm.categorias.error;
-      expect(error, startsWith('Código: 401'));
-      expect(error!.replaceFirst('Código: 401 -', '').trim(), isNotEmpty);
-    });
   });
 }

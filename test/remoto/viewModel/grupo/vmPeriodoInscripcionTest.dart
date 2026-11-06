@@ -190,7 +190,7 @@ class VmPeriodoInscripcionTest {
       expect(resultado, isA<Fallo>());
       final fallo = resultado as Fallo;
       expect(fallo.codigo, 422);
-      expect(fallo.mensaje, contains('GC-0015'));
+      expect(fallo.mensaje, contains('Las fechas del grupo no son validas'));
       //sigue programado como lo dejo el caso anterior
       expect(await _estadoEnBackend(vm), EstadoInscripcion.programada);
     });
@@ -254,7 +254,7 @@ class VmPeriodoInscripcionTest {
       expect(resultado, isA<Fallo>());
       final fallo = resultado as Fallo;
       expect(fallo.codigo, 404);
-      expect(fallo.mensaje, contains('GC-0003'));
+      expect(fallo.mensaje, contains('no existe el grupo'));
     });
   }
 

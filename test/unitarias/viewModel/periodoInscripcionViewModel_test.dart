@@ -156,7 +156,7 @@ void main() {
       expect(resultado, isA<Fallo>());
       final fallo = resultado as Fallo;
       expect(fallo.codigo, 422);
-      expect(fallo.mensaje, contains('GC-0015'));
+      expect(fallo.mensaje, contains('Las fechas del grupo no son validas'));
       expect(fallo.origen, 'PATCH /grupo/periodo');
       expect(vm.grupos.datos, same(antes));
     });

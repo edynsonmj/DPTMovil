@@ -65,6 +65,15 @@ void main() {
       expect(vm.titulos, isEmpty);
     });
 
+    //nacio como diagnostico de BK-10: sin sesion todo responde 401 sin cuerpo
+    test('$capa - $tipo - Listar categorias - un 401 sin cuerpo pide iniciar sesion', () async {
+      adaptador.responder('GET', '/categorias2', 401, '');
+
+      await vm.listarYNotificarCategorias();
+
+      expect(vm.error, contains('sesión'));
+    });
+
     test('$capa - $tipo - Guardar categoria - crear sube la imagen, envia el CategoriaDto y refresca la lista', () async {
       adaptador.responder('POST', '/imagenMultipart', 201, leerContrato('categorias', 'imagenMultipart_201'));
       adaptador.responder('POST', '/categoria', 201, leerContrato('categorias', 'categoria_201'));
@@ -118,7 +127,7 @@ void main() {
       final fallo = await vm.eliminarCategoria('No existe');
       expect(fallo, isA<Fallo>());
       expect((fallo as Fallo).codigo, 404);
-      expect(fallo.mensaje, contains('GC-0003'));
+      expect(fallo.mensaje, 'No se encuentra registrado el elemento');
     });
     //los casos rojos de este montaje (CAT-01 a CAT-09) estan en
     //test/diagnostico/categorias/integracion_diagnostico_test.dart

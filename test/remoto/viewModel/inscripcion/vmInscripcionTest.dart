@@ -11,7 +11,6 @@ import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
-import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
@@ -194,7 +193,7 @@ class VmInscripcionTest {
 
   //antes diagnostico de IN-13 (2026-10-29: 404 con el cuerpo vacio). El backend
   //nuevo responde 404 GC-0003 con cuerpo; este caso quedo en verde sin tocar la
-  //app. Que el mensaje sea el JSON entero es IN-16
+  //app
   void prueba8MensajeDelRechazo(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Desvincular";
     String caso = "el rechazo trae un mensaje que la pantalla pueda mostrar";
@@ -249,31 +248,6 @@ class VmInscripcionTest {
     });
   }
 
-  //BK-06: el 201 trae estado EN_ESPERA en el cuerpo y la conexion lo descarta
-  void diagnosticoListaDeEspera(
-    Inscripcionviewmodel Function() crearVm,
-    Servicioinscripcion Function() crearServicio,
-  ) {
-    String metodo = "Inscribir";
-    String caso = "BUG BK-06 - en un grupo lleno la respuesta dice que quedo EN_ESPERA";
-    test('$capa - diagnostico - $metodo - $caso', () async {
-      final grupo = _grupoUno();
-      await _comoAlumno(_alumnoA);
-      final primero = await crearVm().agregarIncripcion(_inscripcion(_alumnoA, grupo));
-      expect(primero, isA<Exito>(), reason: _texto(primero));
-
-      await _comoAlumno(_alumnoB);
-      final respuesta = await crearServicio().agregarInscripcion(
-        _inscripcion(_alumnoB, grupo),
-      );
-
-      expect(respuesta.codigoHttp, 201);
-      await Future.delayed(_pasaElSegundo);
-      expect(await crearVm().validarInscripcion(_inscripcion(_alumnoB, grupo)), isFalse);
-      expect('${respuesta.datos}', contains('EN_ESPERA'));
-    });
-  }
-
   //IN-14: inscribir() reactiva por existsById sin mirar si la fila ya esta
   //activa. Con el grupo lleno entra por la rama de lista de espera y pisa el
   //estado INSCRITO. Con BK-09 el alumno ve Matricular justo despues de
@@ -324,11 +298,11 @@ class VmInscripcionTest {
     });
   }
 
-  //IN-16: fromDioException pone la respuesta entera como mensaje (como IT-01)
-  void diagnosticoRechazoLegible(Inscripcionviewmodel Function() crearVm) {
+  //antes diagnostico de IN-16: fromDioException ponia la respuesta entera
+  void prueba9RechazoLegible(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscribir";
-    String caso = "BUG IN-16 - un grupo cerrado da el motivo, no el JSON de la respuesta";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "un grupo cerrado da el motivo, no el JSON de la respuesta";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final g = _grupoCreado();
       Future<void> cerrar(bool cerradas) async {
         actuarComoCoordinador();
@@ -360,12 +334,12 @@ class VmInscripcionTest {
     });
   }
 
-  //IN-17: 401 con cuerpo vacio; es el mismo sintoma de IN-13 en otra respuesta.
-  //La app no renueva el token mientras esta abierta
-  void diagnosticoSesionVencida(Inscripcionviewmodel Function() crearVm) {
+  //antes diagnostico de IN-17: el 401 llega sin cuerpo. La app no renueva el
+  //token mientras esta abierta
+  void prueba10SesionVencida(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscribir";
-    String caso = "BUG IN-17 - con el token vencido el Fallo trae un mensaje";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "con el token vencido el Fallo trae un mensaje";
+    test('$capa - $tipo - $metodo - $caso', () async {
       addTearDown(actuarComoCoordinador);
       almacenPruebas.token = firmarJwtPrueba(
         correo: 'alumno@prueba.test',
@@ -423,21 +397,35 @@ class VmInscripcionTest {
     }
   }
 
-  //H-07: cupo
+  //H-07: cupo. Antes del backend nuevo era un 409; ahora un grupo sin cupos
+  //responde 201 con estado EN_ESPERA (nacio del diagnostico de BK-06 e IN-15)
   void prueba4CupoLleno(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscribir";
-    String caso = "en un grupo sin cupos es Fallo 409";
+    String caso = "en un grupo sin cupos queda en lista de espera, la pantalla lo sabe y puede salir";
     test('$capa - $tipo - $metodo - $caso', () async {
-      final vm = crearVm();
       final grupo = _grupoUno();
+      await _comoAlumno(_alumnoA);
+      final primero = await crearVm().agregarIncripcion(_inscripcion(_alumnoA, grupo));
+      expect(primero, isA<Exito<bool>>(), reason: _texto(primero));
+      expect((primero as Exito<bool>).datos, isFalse);
 
-      final primero = await vm.agregarIncripcion(_inscripcion(_alumnoA, grupo));
-      expect(primero, isA<Exito>(), reason: _texto(primero));
-
+      await _comoAlumno(_alumnoB);
+      final vm = crearVm();
       final segundo = await vm.agregarIncripcion(_inscripcion(_alumnoB, grupo));
-      expect(segundo, isA<Fallo>(), reason: _texto(segundo));
-      expect((segundo as Fallo).codigo, 409);
-      expect(await vm.validarInscripcion(_inscripcion(_alumnoB, grupo)), isFalse);
+      expect(segundo, isA<Exito<bool>>(), reason: _texto(segundo));
+      expect((segundo as Exito<bool>).datos, isTrue);
+      expect(vm.enEspera(grupo), isTrue);
+
+      //una pantalla recien abierta lo lee de /inscripcion/misCursos
+      final abierta = crearVm();
+      await abierta.cargarEstados(_alumnoB, [grupo]);
+      expect(abierta.estadoDe(grupo).error, isNull);
+      expect(abierta.enEspera(grupo), isTrue);
+      expect(abierta.estadoDe(grupo).datos, isFalse);
+
+      final salida = await abierta.desvincularInscripcion(_inscripcion(_alumnoB, grupo));
+      expect(salida, isA<Exito>(), reason: _texto(salida));
+      expect(abierta.enEspera(grupo), isFalse);
     });
   }
 
@@ -499,6 +487,8 @@ class VmInscripcionTest {
     String metodo = "Cargar estados";
     String caso = "pinta inscrito donde el backend dice que lo esta";
     test('$capa - $tipo - $metodo - $caso', () async {
+      //BK-09: la inscripcion de A puede ser de hace menos de un segundo
+      await Future.delayed(_pasaElSegundo);
       final vm = crearVm();
 
       await vm.cargarEstados(_alumnoA, [_grupoCreado(), _grupoUno()]);

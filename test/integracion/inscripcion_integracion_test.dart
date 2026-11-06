@@ -160,7 +160,7 @@ void main() {
       expect(resultado, isA<Fallo>());
       final fallo = resultado as Fallo;
       expect(fallo.codigo, 409);
-      expect(fallo.mensaje, contains('GC-0012'));
+      expect(fallo.mensaje, 'El grupo no tiene inscripciones abiertas');
       expect(adaptador.peticionesA('GET', '/validarInscripcion'), isEmpty);
       expect(vm.procesando(grupo), isFalse);
     });

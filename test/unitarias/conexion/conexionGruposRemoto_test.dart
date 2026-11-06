@@ -109,7 +109,7 @@ void main() {
       );
 
       expect(respuesta.codigoHttp, 422);
-      expect(respuesta.error?.mensaje, contains('GC-0015'));
+      expect(respuesta.error?.mensaje, contains('Las fechas del grupo no son validas'));
       expect(respuesta.error?.metodo, 'PATCH');
     });
 
@@ -119,7 +119,7 @@ void main() {
       final respuesta = await abrir(PeriodoInscripcionModelo(cierre: '2026-11-30'));
 
       expect(respuesta.codigoHttp, 404);
-      expect(respuesta.error?.mensaje, contains('GC-0003'));
+      expect(respuesta.error?.mensaje, leerContrato('inscripciones', 'grupo_404')['mensaje']);
     });
 
     test('$capa - $tipo - Aplicar periodo - un 200 que no es una lista se devuelve como error, sin lanzar', () async {

@@ -139,6 +139,9 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
             final procesando = context.select<Inscripcionviewmodel, bool>(
               (vm) => vm.procesando(grupo),
             );
+            final enEspera = context.select<Inscripcionviewmodel, bool>(
+              (vm) => vm.enEspera(grupo),
+            );
             if (estado.cargando) {
               return Center(child: CircularProgressIndicator());
             }
@@ -165,6 +168,9 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
                 ),
               );
             }
+            if (enEspera) {
+              return _tarjetaEnEspera(grupo, procesando);
+            }
             final bool inscrito = estado.datos;
             return Positioned(
               top: 165,
@@ -188,6 +194,37 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
     );
   }
 
+  //quien esta en la lista no puede volver a matricularse: solo salir (IN-15)
+  Widget _tarjetaEnEspera(Grupoentidad grupo, bool procesando) {
+    return Positioned(
+      top: 165,
+      child: Column(
+        children: [
+          Text(
+            'En lista de espera',
+            style: Tipografia.cuerpo2(color: ColorTheme.secondary),
+          ),
+          FilledButton.icon(
+            label: const Text('Salir de la lista'),
+            icon: const Icon(Icons.cancel),
+            style: FilledButton.styleFrom(backgroundColor: ColorTheme.error),
+            onPressed: procesando ? null : () => _salirDeLaLista(grupo),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _salirDeLaLista(Grupoentidad grupo) async {
+    final resultado = await context
+        .read<Inscripcionviewmodel>()
+        .desvincularInscripcion(_inscripcionDe(grupo));
+    await _mostrarResultado(
+      resultado,
+      mensajeExito: 'Saliste de la lista de espera',
+    );
+  }
+
   Future<void> _matricularODesvincular(Grupoentidad grupo, bool inscrito) async {
     final vm = context.read<Inscripcionviewmodel>();
     final inscripcion = _inscripcionDe(grupo);
@@ -195,7 +232,13 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
         inscrito
             ? await vm.desvincularInscripcion(inscripcion)
             : await vm.agregarIncripcion(inscripcion);
-    await _mostrarResultado(resultado, inscrito: !inscrito);
+    await _mostrarResultado(
+      resultado,
+      mensajeExito:
+          inscrito
+              ? 'Se quito tu matricula del grupo'
+              : 'Te has inscrito al grupo',
+    );
   }
 
   Inscripcionentidad _inscripcionDe(Grupoentidad grupo) => Inscripcionentidad(
@@ -220,21 +263,22 @@ class _GrupoInscripcionState extends State<Gruposinscripcion> {
   //el vm ya interpreto la respuesta: la vista solo decide que mostrar, y
   //espera el dialogo para no usar un context que ya no sirve
   Future<void> _mostrarResultado(
-    Resultado<void> resultado, {
-    required bool inscrito,
+    Resultado<bool> resultado, {
+    required String mensajeExito,
   }) async {
     if (!mounted) return;
     switch (resultado) {
-      case Exito():
+      case Exito(:final datos):
         await showDialog(
           context: context,
           builder:
               (_) => DialogExito(
                 titulo: "Operacion exitosa",
+                //datos: el alumno quedo en lista de espera (BK-06)
                 mensaje:
-                    inscrito
-                        ? "Te has inscrito al grupo"
-                        : "Se quito tu matricula del grupo",
+                    datos == true
+                        ? "El grupo no tiene cupos: quedaste en la lista de espera"
+                        : mensajeExito,
               ),
         );
       case Fallo(:final codigo, :final mensaje):

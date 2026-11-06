@@ -109,7 +109,7 @@ void main() {
     await tocar(tester, find.text('Confirmar'));
 
     expect(find.text('Error en las inscripciones del grupo'), findsOneWidget);
-    expect(find.textContaining('GC-0015'), findsWidgets);
+    expect(find.textContaining('Las fechas del grupo no son validas'), findsWidgets);
     await tocar(tester, find.text('Cerrar').last);
     expect(chipDe(tituloSinPeriodo, 'Sin abrir'), findsOneWidget);
   });

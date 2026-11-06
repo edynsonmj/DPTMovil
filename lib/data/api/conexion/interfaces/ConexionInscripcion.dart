@@ -5,4 +5,5 @@ abstract class Conexioninscripcion {
   Future<RespuestaModelo> agregarInscripcion(Inscripcionmodelo inscripcion);
   Future<RespuestaModelo> validarInscripcion(Inscripcionmodelo inscripcion);
   Future<RespuestaModelo> eliminarInscripcion(Inscripcionmodelo inscripcion);
+  Future<RespuestaModelo> obtenerMisCursos();
 }
