@@ -43,6 +43,8 @@ void main() {
           sexo: 'F',
           facultad: 'Ingenieria',
           tipoAlumno: 'Estudiante',
+          alumnoCodigo: '104619021',
+          programa: 'Ingenieria de Sistemas',
         ),
       );
 
@@ -54,6 +56,9 @@ void main() {
         'sexo': 'F',
         'facultad': 'Ingenieria',
         'tipoAlumno': 'Estudiante',
+        'alumnoCodigo': '104619021',
+        'programa': 'Ingenieria de Sistemas',
+        'dependencia': null,
         'role': null,
       });
     });

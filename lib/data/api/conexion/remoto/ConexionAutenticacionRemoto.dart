@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAutenticacion.dart';
 import 'package:dpt_movil/data/models/perfilModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
+import 'package:dpt_movil/data/models/tokenModelo.dart';
 
 class Conexionautenticacionremoto implements Conexionautenticacion {
   //el Dio compartido llega desde la raiz de composicion
@@ -57,7 +58,7 @@ class Conexionautenticacionremoto implements Conexionautenticacion {
         ),
       );
       if (response.statusCode != 201) {
-        RespuestaModelo.fromResponse(response, metodo);
+        return RespuestaModelo.fromResponse(response, metodo);
       }
       Perfilmodelo respuesta = Perfilmodelo.fromJson(response.data);
       return RespuestaModelo(
@@ -71,6 +72,39 @@ class Conexionautenticacionremoto implements Conexionautenticacion {
       return RespuestaModelo.fromFormatException(exception, metodo, path, capa);
     } on Exception catch (exception) {
       return RespuestaModelo.fromException(exception, metodo, path, capa);
+    }
+  }
+
+  @override
+  Future<RespuestaModelo> intercambiarToken(String idTokenGoogle) async {
+    String metodo = "POST";
+    String path = "/auth/token";
+    String capa = "Conexion";
+    try {
+      //el ID Token de Google va en la cabecera; InterceptorToken no la pisa
+      final response = await _dio.post(
+        path,
+        options: _opcionesAutenticacion.copyWith(
+          headers: {'Authorization': 'Bearer $idTokenGoogle'},
+        ),
+      );
+      if (response.statusCode != 200) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      return RespuestaModelo(
+        codigoHttp: 200,
+        datos: Tokenmodelo.fromJson(response.data),
+      );
+    } on DioException catch (dioExc) {
+      return RespuestaModelo.fromDioException(dioExc, metodo);
+    } on FormatException catch (exception) {
+      return RespuestaModelo.fromFormatException(exception, metodo, path, capa);
+    } on Exception catch (exception) {
+      return RespuestaModelo.fromException(exception, metodo, path, capa);
+    } catch (error) {
+      //un cuerpo sin token o sin perfil hace fallar fromJson con un Error
+      //(no una Exception): se devuelve en lugar de dejarlo escapar (AU-03)
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 }

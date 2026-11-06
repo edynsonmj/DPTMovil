@@ -41,7 +41,20 @@ void main() {
       ]);
     });
 
-    test('$capa - $tipo - Estado inscripcion - sin apertura nunca se abrio', () {
+    test('$capa - $tipo - Estado inscripcion - sin apertura y con cierre esta abierta, como en el backend', () {
+      final cierre = hoy.add(const Duration(days: 5)).toIso8601String().substring(0, 10);
+
+      expect(grupo(null, cierre).estadoInscripcion(hoy), EstadoInscripcion.abierta);
+    });
+
+    test('$capa - $tipo - Estado inscripcion - el cierre manual manda sobre las fechas', () {
+      final cierre = hoy.add(const Duration(days: 5)).toIso8601String().substring(0, 10);
+      final g = grupo(null, cierre)..inscripcionesCerradasManual = true;
+
+      expect(g.estadoInscripcion(hoy), EstadoInscripcion.cerrada);
+    });
+
+    test('$capa - $tipo - Estado inscripcion - sin ninguna fecha no tiene periodo', () {
       expect(grupo(null, null).estadoInscripcion(hoy), EstadoInscripcion.sinPeriodo);
       expect(
         grupo('no-es-fecha', null).estadoInscripcion(hoy),

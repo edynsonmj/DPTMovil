@@ -1,3 +1,4 @@
+import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/grupoModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
@@ -37,8 +38,8 @@ void main() {
     error: ErrorModelo(
       codigoHttp: codigo,
       mensaje: mensaje,
-      url: '/abrirInscripcionesGrupo',
-      metodo: 'PUT',
+      url: '/grupo/periodo',
+      metodo: 'PATCH',
     ),
   );
 
@@ -55,8 +56,7 @@ void main() {
     );
   });
 
-  //el grupo cerrado del contrato (prueba_.../2), el que abren y cierran
-  //abrir_200.json y cerrar_200.json
+  //el grupo cerrado del contrato (prueba_.../2), el que abre abrir_200.json
   Grupoentidad grupoCerrado() => vm.grupos.datos[2];
 
   group('Periodo de inscripcion (vm con doble):', () {
@@ -127,8 +127,8 @@ void main() {
         codigoHttp: 200,
         datos: GrupoModelo.fromJson({
           ...leerContrato('inscripciones', 'gruposNoEliminados_200')[0],
-          'fechaInscripcionApertura': '2026-10-28',
-          'fechaIncripcionCierre': '2026-10-28',
+          //el cierre manual no toca las fechas: manda sobre ellas
+          'inscripcionesCerradasManual': true,
         }),
       );
 
@@ -143,8 +143,8 @@ void main() {
       await vm.cargar();
       final antes = vm.grupos.datos;
       conexion.respuestaAbrir = error(
-        400,
-        '{"cierreValido":"la fecha de cierre no puede ser anterior a la fecha de apertura ni a la fecha actual"}',
+        422,
+        '{"codigoError":"GC-0015","mensaje":"Las fechas del grupo no son validas"}',
       );
 
       final resultado = await vm.abrir(
@@ -155,9 +155,9 @@ void main() {
 
       expect(resultado, isA<Fallo>());
       final fallo = resultado as Fallo;
-      expect(fallo.codigo, 400);
-      expect(fallo.mensaje, contains('cierreValido'));
-      expect(fallo.origen, 'PUT /abrirInscripcionesGrupo');
+      expect(fallo.codigo, 422);
+      expect(fallo.mensaje, contains('GC-0015'));
+      expect(fallo.origen, 'PATCH /grupo/periodo');
       expect(vm.grupos.datos, same(antes));
     });
 
@@ -171,6 +171,25 @@ void main() {
       expect((resultado as Fallo).codigo, 404);
     });
 
+    test('$capa - $tipo - Abrir inscripciones - sin cierre no llama al backend', () async {
+      await vm.cargar();
+
+      final resultado = await vm.abrir(grupoCerrado());
+
+      expect(resultado, isA<Fallo>());
+      expect((resultado as Fallo).mensaje, contains('fecha de cierre'));
+      expect(conexion.llamadasAbrir, 0);
+    });
+
+    test('$capa - $tipo - Abrir inscripciones - sin apertura abre desde hoy', () async {
+      await vm.cargar();
+      conexion.respuestaAbrir = RespuestaModelo(codigoHttp: 200, datos: delContrato('abrir_200'));
+
+      await vm.abrir(grupoCerrado(), cierre: DateTime(2026, 11, 30));
+
+      expect(conexion.ultimoPeriodo?.apertura, FormatDate.fechaACadena(hoy, '-'));
+    });
+
     test('$capa - $tipo - Abrir inscripciones - mientras esta en camino el grupo no admite otra operacion', () async {
       await vm.cargar();
       conexion.respuestaAbrir = RespuestaModelo(
@@ -179,7 +198,7 @@ void main() {
       );
       final grupo = grupoCerrado();
 
-      final primera = vm.abrir(grupo);
+      final primera = vm.abrir(grupo, cierre: DateTime(2026, 11, 30));
       //la marca se pone antes de esperar al backend
       expect(vm.procesando(grupo), isTrue);
       final segunda = await vm.cerrar(grupo);

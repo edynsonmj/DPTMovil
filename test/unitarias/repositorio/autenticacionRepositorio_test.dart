@@ -1,10 +1,12 @@
 import 'package:dpt_movil/data/models/perfilModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
+import 'package:dpt_movil/data/models/tokenModelo.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../dobles/conexionautenticacionFalsa.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //el repositorio ya recibe su conexion por constructor: se prueba con el
 //doble y sin backend. Su constructor no cambia en la fase 2, asi que estos
@@ -15,10 +17,12 @@ void main() {
 
   late ConexionautenticacionFalsa conexion;
   late Autenticacionrepositorio repositorio;
+  late AlmacenToken almacen;
 
   setUp(() {
     conexion = ConexionautenticacionFalsa();
-    repositorio = Autenticacionrepositorio(conexion: conexion);
+    almacen = AlmacenToken();
+    repositorio = Autenticacionrepositorio(conexion: conexion, almacenToken: almacen);
   });
 
   Perfilmodelo perfil({String? role}) => Perfilmodelo(
@@ -84,6 +88,39 @@ void main() {
       expect(respuesta.codigoHttp, 201);
       expect(respuesta.datos, isA<PerfilEntidad>());
       expect((respuesta.datos as PerfilEntidad).role, 'Alumno');
+    });
+  
+    test('$capa - $tipo - Iniciar sesion con Google - 200 guarda el JWT y devuelve la entidad', () async {
+      conexion.respuestaToken = RespuestaModelo(
+        codigoHttp: 200,
+        datos: Tokenmodelo(token: 'jwt-del-sistema', perfil: perfil(role: 'Coordinador')),
+      );
+
+      final respuesta = await repositorio.iniciarSesionConGoogle('id-token-de-google');
+
+      expect(conexion.ultimoIdToken, 'id-token-de-google');
+      expect(almacen.token, 'jwt-del-sistema');
+      //ni el modelo ni el token salen de la capa de datos
+      expect(respuesta.datos, isA<PerfilEntidad>());
+      expect((respuesta.datos as PerfilEntidad).role, 'Coordinador');
+    });
+
+    test('$capa - $tipo - Iniciar sesion con Google - un 404 pasa sin cambios y no guarda token', () async {
+      final noRegistrado = RespuestaModelo(codigoHttp: 404);
+      conexion.respuestaToken = noRegistrado;
+
+      final respuesta = await repositorio.iniciarSesionConGoogle('t');
+
+      expect(respuesta, same(noRegistrado));
+      expect(almacen.hayToken, isFalse);
+    });
+
+    test('$capa - $tipo - Cerrar sesion - borra el JWT', () async {
+      almacen.token = 'jwt-del-sistema';
+
+      repositorio.cerrarSesion();
+
+      expect(almacen.hayToken, isFalse);
     });
   });
 }

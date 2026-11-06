@@ -19,6 +19,7 @@ import '../../dobles/conexionautenticacionFalsa.dart';
 import '../../dobles/conexiongruposFalsa.dart';
 import '../../dobles/conexionhorariosFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //widget test de la pantalla Grupos asignados del instructor (fase 6c): se
 //monta con los vms que crea la ruta gruposAsignados, armados con dobles
@@ -74,7 +75,7 @@ void main() {
                 (_) => AutenticacionViewModel(
                   Servicioautenticacion(
                     Autenticacionrepositorio(
-                      conexion: ConexionautenticacionFalsa(),
+                      conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken(),
                     ),
                   ),
                   GoogleSignInFalso(),

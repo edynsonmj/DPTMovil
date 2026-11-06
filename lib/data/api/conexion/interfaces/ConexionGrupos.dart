@@ -18,8 +18,8 @@ abstract class Conexiongrupos {
   //coordinador para abrir o cerrar inscripciones
   Future<RespuestaModelo> obtenerGruposNoEliminados();
 
-  //abre (o programa, con una apertura futura) las inscripciones de un
-  //grupo; responde el grupo con su periodo actualizado
+  //aplica un periodo (con apertura futura queda programado); responde el
+  //grupo actualizado. No reabre un grupo cerrado a mano
   Future<RespuestaModelo> abrirInscripciones(
     String categoria,
     String curso,
@@ -28,8 +28,17 @@ abstract class Conexiongrupos {
     PeriodoInscripcionModelo periodo,
   );
 
-  //cierra las inscripciones de un grupo desde hoy; responde el grupo
+  //cierra a mano las inscripciones de un grupo, sin tocar sus fechas;
+  //responde el grupo
   Future<RespuestaModelo> cerrarInscripciones(
+    String categoria,
+    String curso,
+    int anio,
+    int iterable,
+  );
+
+  //quita el cierre manual; 422 si la fecha de cierre ya paso
+  Future<RespuestaModelo> reabrirInscripciones(
     String categoria,
     String curso,
     int anio,

@@ -11,4 +11,8 @@ class Serviciofacultades {
   Future<RespuestaModelo> listarFacultades() async {
     return await repositorio.listarFacultades();
   }
+
+  Future<RespuestaModelo> listarProgramas(String facultad) async {
+    return await repositorio.listarProgramas(facultad);
+  }
 }

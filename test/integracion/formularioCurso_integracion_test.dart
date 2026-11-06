@@ -23,6 +23,7 @@ import '../dobles/adaptadorHttpFalso.dart';
 import '../dobles/conexionautenticacionFalsa.dart';
 import '../dobles/googleSignInFalso.dart';
 import '../dobles/selectorImagenFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //formulario de alta de curso de punta a punta sin backend: la ruta real
 //(AppRutas.formularioCurso) con las cadenas reales de cursos (con imagen) y
@@ -51,7 +52,7 @@ void main() {
     final dio = crearDioFalso(adaptador);
     final sesion = AutenticacionViewModel(
       Servicioautenticacion(
-        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
       ),
       GoogleSignInFalso(),
     );

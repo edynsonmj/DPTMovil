@@ -18,6 +18,7 @@ import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
 
 //diagnostico del modulo 9a contra el backend real (plan-diagnostico-
 //alumnos.md): la seccion de alumnos de DetalleGrupoViewModel con su cadena
@@ -80,6 +81,8 @@ class VmAlumnoDiagnosticoTest {
             cupos: 20,
             idInstructor: vmInstructores.instructores.first.id,
             fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+            fechaInscripcionCierre: cierreInscripcionPruebas(),
+            fechaInscripcionApertura: aperturaFuturaPruebas(),
           ),
         );
         expect(r.codigoHttp, 201);
@@ -94,7 +97,7 @@ class VmAlumnoDiagnosticoTest {
       );
       expect(_grupos, hasLength(3));
       for (final g in _grupos) {
-        expect(await crearVmPeriodo().abrir(g), isA<Exito>());
+        await abrirInscripcionesPruebas(g);
       }
 
       final vmFacultades = crearVmFacultades();
@@ -117,7 +120,7 @@ class VmAlumnoDiagnosticoTest {
           facultad: vmFacultades.facultades.first,
           tipoAlumno: tipoAlumno,
         );
-        final r = await servicioAutenticacion.registro(perfil);
+        final r = await servicioAutenticacion.registro(await completarRegistro(perfil));
         expect(r.codigoHttp, 201, reason: 'no se registro $id ($tipoId, $tipoAlumno)');
         _alumnos.add(perfil);
       }

@@ -5,6 +5,7 @@ import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
 import 'package:dpt_movil/presentation/view/widgets/bar.dart';
 import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
+import 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,9 +27,20 @@ class _AutenticacionState extends State<Autenticacionview> {
   String? _sexo;
   String? _tipoAlumno;
   String? _facultad;
+  String? _programa;
+  bool _enviando = false;
   final _formKey = GlobalKey<FormState>();
   final _controllerId = TextEditingController();
   final _controllerNombre = TextEditingController();
+  final _controllerCodigo = TextEditingController();
+  final _controllerDependencia = TextEditingController();
+
+  //datos que pide el backend segun el tipo de vinculo
+  bool get _pideFacultadYPrograma =>
+      _tipoAlumno == 'Estudiante' || _tipoAlumno == 'Docente';
+  bool get _pideCodigo => _tipoAlumno == 'Estudiante';
+  bool get _pideDependencia =>
+      _tipoAlumno == 'Administrativo' || _tipoAlumno == 'Contratista';
   late AutenticacionViewModel _vmAut;
 
   @override
@@ -56,6 +68,8 @@ class _AutenticacionState extends State<Autenticacionview> {
   void dispose() {
     _controllerId.dispose();
     _controllerNombre.dispose();
+    _controllerCodigo.dispose();
+    _controllerDependencia.dispose();
     super.dispose();
   }
 
@@ -85,7 +99,10 @@ class _AutenticacionState extends State<Autenticacionview> {
               _inputTipoID(),
               _inputSexo(),
               _inputTipoAlumno(),
-              _inputFacultad(),
+              if (_pideCodigo) _inputCodigo(),
+              if (_pideFacultadYPrograma) _inputFacultad(),
+              if (_pideFacultadYPrograma && _facultad != null) _inputPrograma(),
+              if (_pideDependencia) _inputDependencia(),
               _acciones(),
             ],
           ),
@@ -131,21 +148,104 @@ class _AutenticacionState extends State<Autenticacionview> {
       width: double.infinity,
       menuHeight: 300,
       dropdownMenuEntries: entradas,
+      initialSelection: _facultad,
       onSelected: (seleccion) {
+        if (seleccion == null || seleccion == _facultad) return;
         setState(() {
           _facultad = seleccion;
+          _programa = null;
+        });
+        context.read<Facultadesviewmodel>().listarProgramas(seleccion);
+      },
+    );
+    return Padding(padding: EdgeInsets.symmetric(vertical: 15), child: menu);
+  }
+
+  Widget _inputPrograma() {
+    final estado = context
+        .select<Facultadesviewmodel, EstadoSeccion<List<String>>>(
+          (vm) => vm.programas,
+        );
+    if (estado.cargando) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 15),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    String? aviso = estado.error;
+    if (aviso == null && estado.datos.isEmpty) {
+      aviso = 'La facultad no tiene programas registrados';
+    }
+    if (aviso != null) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 15),
+        child: Text(aviso, style: Tipografia.cuerpo1(color: ColorTheme.error)),
+      );
+    }
+    DropdownMenu menu = DropdownMenu(
+      //clave por facultad: al cambiarla el desplegable empieza vacio
+      key: ValueKey('programas-$_facultad'),
+      hintText: 'Programa',
+      helperText: 'Selecciona tu programa academico',
+      textAlign: TextAlign.center,
+      width: double.infinity,
+      menuHeight: 300,
+      dropdownMenuEntries: [
+        for (final programa in estado.datos)
+          DropdownMenuEntry(value: programa, label: programa),
+      ],
+      onSelected: (seleccion) {
+        setState(() {
+          _programa = seleccion;
         });
       },
     );
     return Padding(padding: EdgeInsets.symmetric(vertical: 15), child: menu);
   }
 
+  Widget _inputCodigo() {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 15),
+      child: TextFormField(
+        controller: _controllerCodigo,
+        maxLines: 1,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: InputDecoration(label: Text('Codigo institucional')),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Ingrese su codigo institucional';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _inputDependencia() {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 15),
+      child: TextFormField(
+        controller: _controllerDependencia,
+        maxLines: 1,
+        decoration: InputDecoration(label: Text('Dependencia')),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Ingrese la dependencia en la que trabaja';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
   Widget _inputTipoAlumno() {
     List<DropdownMenuEntry> entradas = [
-      //ALM_TIPO IN('Estudiante','Administrativo','Docente')
+      //ALM_TIPO IN('Estudiante','Docente','Administrativo','Contratista')
       DropdownMenuEntry(value: 'Estudiante', label: 'Estudiante'),
-      DropdownMenuEntry(value: 'Administrativo', label: 'Administrativo'),
       DropdownMenuEntry(value: 'Docente', label: 'Docente'),
+      DropdownMenuEntry(value: 'Administrativo', label: 'Administrativo'),
+      DropdownMenuEntry(value: 'Contratista', label: 'Contratista'),
     ];
     DropdownMenu menu = DropdownMenu(
       hintText: 'Rol universitario',
@@ -310,17 +410,26 @@ class _AutenticacionState extends State<Autenticacionview> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Selecciona administrativo, docente o estudiante segun tu rol en la universidad",
+            "Selecciona estudiante, docente, administrativo o contratista segun tu vinculo con la universidad",
           ),
           backgroundColor: ColorTheme.error,
         ),
       );
       return;
     }
-    if (_facultad == null) {
+    if (_pideFacultadYPrograma && _facultad == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Selecciona la facultad a la que perteneces por favor"),
+          backgroundColor: ColorTheme.error,
+        ),
+      );
+      return;
+    }
+    if (_pideFacultadYPrograma && _programa == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Selecciona tu programa academico por favor"),
           backgroundColor: ColorTheme.error,
         ),
       );
@@ -333,8 +442,13 @@ class _AutenticacionState extends State<Autenticacionview> {
         correo: _correo!,
         tipoId: _tipoId!,
         sexo: _sexo!,
-        facultad: _facultad,
         tipoAlumno: _tipoAlumno,
+        //solo los datos del tipo de vinculo elegido
+        facultad: _pideFacultadYPrograma ? _facultad : null,
+        programa: _pideFacultadYPrograma ? _programa : null,
+        alumnoCodigo: _pideCodigo ? _controllerCodigo.text.trim() : null,
+        dependencia:
+            _pideDependencia ? _controllerDependencia.text.trim() : null,
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -342,23 +456,36 @@ class _AutenticacionState extends State<Autenticacionview> {
           backgroundColor: ColorTheme.primary,
         ),
       );
+      setState(() => _enviando = true);
       RespuestaModelo respuesta = await _vmAut.registroAlumno(perfil);
       if (!context.mounted) {
         return;
       }
+      setState(() => _enviando = false);
       if (respuesta.codigoHttp == 201) {
         Navigator.pop(context, true);
-      } else {
-        Navigator.pop(context, false);
+        return;
       }
+      //se queda en el formulario para corregir lo que el backend rechazo
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(_vmAut.mensajeErrorRegistro(respuesta)),
+            backgroundColor: ColorTheme.error,
+          ),
+        );
     }
   }
 
   Widget _botonSubmit() {
     return FilledButton(
-      onPressed: () {
-        _submitForm(context);
-      },
+      onPressed:
+          _enviando
+              ? null
+              : () {
+                _submitForm(context);
+              },
       child: Text('GUARDAR'),
     );
   }

@@ -40,6 +40,7 @@ import '../../dobles/conexionautenticacionFalsa.dart';
 import '../../dobles/conexionclasesFalsa.dart';
 import '../../dobles/conexionhorariosFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //pruebas de diagnostico (fase 4) de las pantallas del flujo de asistencia:
 //afirman el comportamiento CORRECTO y se espera que salgan rojas mientras el
@@ -72,7 +73,7 @@ void main() {
   setUp(() {
     vmSesion = AutenticacionViewModel(
       Servicioautenticacion(
-        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
       ),
       GoogleSignInFalso(),
     );

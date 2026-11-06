@@ -5,6 +5,7 @@ import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../jwtPruebas.dart';
 
 //cubre guardarCategoria, el metodo que usa CategoriaFormulario: las reglas que
 //antes estaban en la vista (imagen obligatoria, crear o actualizar, que campos
@@ -165,7 +166,7 @@ class VmGuardarFormularioCategoriaTest {
       expect(url, contains('idImagen=${existente.idImagen}'));
 
       //la url debe servir la imagen real, no solo tener buena forma
-      Response<List<int>> respuesta = await Dio().get<List<int>>(
+      Response<List<int>> respuesta = await crearDioPruebas(url).get<List<int>>(
         url,
         options: Options(responseType: ResponseType.bytes),
       );

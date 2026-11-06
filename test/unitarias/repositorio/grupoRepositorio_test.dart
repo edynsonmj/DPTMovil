@@ -155,16 +155,48 @@ void main() {
       );
     });
 
-    test('$capa - $tipo - Abrir inscripciones - sin fechas no las inventa', () async {
+    test('$capa - $tipo - Abrir inscripciones - sin apertura no la inventa', () async {
       conexion.respuestaAbrir = RespuestaModelo(
         codigoHttp: 200,
-        datos: conPeriodo('2026-10-29', null),
+        datos: conPeriodo('2026-10-29', '2026-12-20'),
       );
 
-      await repositorio.abrirInscripciones(grupo);
+      await repositorio.abrirInscripciones(grupo, cierre: DateTime(2026, 12, 20));
 
       expect(conexion.ultimoPeriodo?.apertura, isNull);
-      expect(conexion.ultimoPeriodo?.cierre, isNull);
+      expect(conexion.ultimoPeriodo?.cierre, '2026-12-20');
+      expect(conexion.llamadasReabrir, 0);
+    });
+
+    test('$capa - $tipo - Abrir inscripciones - un grupo cerrado a mano se reabre despues del periodo', () async {
+      conexion.respuestaAbrir = RespuestaModelo(
+        codigoHttp: 200,
+        datos: conPeriodo('2026-10-29', '2026-12-20'),
+      );
+      conexion.respuestaReabrir = RespuestaModelo(
+        codigoHttp: 200,
+        datos: conPeriodo('2026-10-29', '2026-12-20'),
+      );
+      grupo.inscripcionesCerradasManual = true;
+
+      final respuesta = await repositorio.abrirInscripciones(grupo, cierre: DateTime(2026, 12, 20));
+      grupo.inscripcionesCerradasManual = false;
+
+      expect(conexion.llamadasAbrir, 1);
+      expect(conexion.llamadasReabrir, 1);
+      expect(respuesta.datos, isA<Grupoentidad>());
+    });
+
+    test('$capa - $tipo - Abrir inscripciones - si el periodo falla no intenta reabrir', () async {
+      final error = RespuestaModelo(codigoHttp: 422);
+      conexion.respuestaAbrir = error;
+      grupo.inscripcionesCerradasManual = true;
+
+      final respuesta = await repositorio.abrirInscripciones(grupo, cierre: DateTime(2026, 12, 20));
+      grupo.inscripcionesCerradasManual = false;
+
+      expect(respuesta, same(error));
+      expect(conexion.llamadasReabrir, 0);
     });
 
     test('$capa - $tipo - Cerrar inscripciones - devuelve el grupo como entidad', () async {
@@ -190,7 +222,10 @@ void main() {
       conexion.respuestaCerrar = error404;
       conexion.respuestaNoEliminados = error503;
 
-      expect(await repositorio.abrirInscripciones(grupo), same(error400));
+      expect(
+        await repositorio.abrirInscripciones(grupo, cierre: DateTime(2026, 12, 20)),
+        same(error400),
+      );
       expect(await repositorio.cerrarInscripciones(grupo), same(error404));
       expect(await repositorio.listarGruposNoEliminados(), same(error503));
     });

@@ -1,3 +1,4 @@
+import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,16 +52,18 @@ void main() {
     tester,
   ) async {
     app.adaptador.responder(
-      'PUT',
-      '/abrirInscripcionesGrupo',
+      'PATCH',
+      '/grupo/periodo',
       200,
-      grupoAbiertoHoy(),
+      [grupoAbiertoHoy()],
     );
     await app.abrirParticulares(tester);
     expect(chipDe(tituloSinPeriodo, 'Sin abrir'), findsOneWidget);
 
     await tocar(tester, find.text(tituloSinPeriodo));
     await tocar(tester, find.widgetWithText(OutlinedButton, 'Abrir'));
+    //el selector pide el cierre, obligatorio: se acepta el dia que propone
+    await tocar(tester, find.text('OK'));
     await tocar(tester, find.text('Confirmar'));
 
     expect(find.text('Operacion exitosa'), findsOneWidget);
@@ -69,18 +72,22 @@ void main() {
     //una carga y una apertura: tras abrir no se recarga la lista
     expect(
       app.adaptador.peticiones.map((p) => '${p.metodo} ${p.ruta}'),
-      ['GET /gruposNoEliminados', 'PUT /abrirInscripcionesGrupo'],
+      ['GET /gruposNoEliminados', 'PATCH /grupo/periodo'],
     );
-    final enviada =
-        app.adaptador.peticionesA('PUT', '/abrirInscripcionesGrupo').single;
-    expect(enviada.uri.queryParameters, {
-      'categoria': 'Categoria Fase 4',
-      'curso': 'Curso Categoria Fase 4',
-      'anio': '2026',
-      'iterable': '2',
+    final enviada = app.adaptador.peticionesA('PATCH', '/grupo/periodo').single;
+    final hoy = FormatDate.fechaACadena(DateTime.now(), '-');
+    expect(enviada.cuerpo, {
+      'fechaApertura': hoy,
+      'fechaCierre': hoy,
+      'grupos': [
+        {
+          'categoria': 'Categoria Fase 4',
+          'curso': 'Curso Categoria Fase 4',
+          'anio': 2026,
+          'iterable': 2,
+        },
+      ],
     });
-    //abrir desde hoy sin limite: no se envian fechas
-    expect(enviada.cuerpo, isEmpty);
     expect(chipDe(tituloSinPeriodo, 'Abiertas'), findsOneWidget);
   });
 
@@ -88,20 +95,21 @@ void main() {
     tester,
   ) async {
     app.adaptador.responder(
-      'PUT',
-      '/abrirInscripcionesGrupo',
-      400,
-      leerContrato('inscripciones', 'abrir_400_cierre'),
+      'PATCH',
+      '/grupo/periodo',
+      422,
+      leerContrato('inscripciones', 'periodo_422_cierre'),
     );
     await app.abrirParticulares(tester);
 
     await tocar(tester, find.text(tituloSinPeriodo));
     await tocar(tester, find.widgetWithText(OutlinedButton, 'Abrir'));
+    //el selector pide el cierre, obligatorio: se acepta el dia que propone
+    await tocar(tester, find.text('OK'));
     await tocar(tester, find.text('Confirmar'));
 
     expect(find.text('Error en las inscripciones del grupo'), findsOneWidget);
-    //DialogError desglosa el json del backend: clave y mensaje
-    expect(find.textContaining('cierreValido'), findsOneWidget);
+    expect(find.textContaining('GC-0015'), findsWidgets);
     await tocar(tester, find.text('Cerrar').last);
     expect(chipDe(tituloSinPeriodo, 'Sin abrir'), findsOneWidget);
   });

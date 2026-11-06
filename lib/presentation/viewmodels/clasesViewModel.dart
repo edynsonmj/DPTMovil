@@ -35,8 +35,9 @@ class Clasesviewmodel with ChangeNotifier {
 
   //punto de entrada del formulario: valida, arma la clase con el grupo que se
   //fijo en inicializarGrupo y la registra. La vista solo entrega lo que hay en
-  //pantalla y recibe exito o fallo ya resueltos
-  Future<Resultado<void>> registrarClase({
+  //pantalla y recibe exito o fallo ya resueltos. El Exito dice si la clase es
+  //nueva: con false ya existia en esa fecha y las horas enviadas no se guardaron
+  Future<Resultado<bool>> registrarClase({
     DateTime? fecha,
     required String horasTexto,
   }) async {
@@ -73,7 +74,10 @@ class Clasesviewmodel with ChangeNotifier {
       final respuesta = await _servicioClase.guardarClaseGrupo(entidad);
       //no refresca: la pantalla del grupo recarga sus clases al volver
       if (respuesta.codigoHttp == 201) {
-        return Exito();
+        return Exito(true);
+      }
+      if (respuesta.codigoHttp == 200) {
+        return Exito(false);
       }
       return _fallo(respuesta);
     } catch (e) {

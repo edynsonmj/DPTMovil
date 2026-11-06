@@ -148,6 +148,8 @@ class Gruposviewmodel with ChangeNotifier, NotificacionSegura {
     required CursoEntidad curso,
     required String cupos,
     String? idInstructor,
+    DateTime? aperturaInscripcion,
+    DateTime? cierreInscripcion,
     Grupoentidad? original, //null = crear
     DateTime? hoy,
   }) async {
@@ -165,6 +167,18 @@ class Gruposviewmodel with ChangeNotifier, NotificacionSegura {
     if (numeroCupos == null) {
       return Fallo(0, 'Los cupos deben ser un numero valido', origen: 'ViewModel');
     }
+    //POST /grupo responde 422 GC-0015 sin cierre o con el cierre antes de la
+    //apertura
+    if (cierreInscripcion == null) {
+      return Fallo(0, 'Seleccione la fecha de cierre de inscripciones', origen: 'ViewModel');
+    }
+    if (aperturaInscripcion != null && cierreInscripcion.isBefore(aperturaInscripcion)) {
+      return Fallo(
+        0,
+        'La fecha de cierre no puede ser anterior a la de apertura',
+        origen: 'ViewModel',
+      );
+    }
     final fecha = hoy ?? DateTime.now();
     final grupo = Grupoentidad(
       categoria: curso.tituloCategoria,
@@ -176,6 +190,11 @@ class Gruposviewmodel with ChangeNotifier, NotificacionSegura {
       cupos: numeroCupos,
       idInstructor: idInstructor,
       fechaCreacion: FormatDate.fechaACadena(fecha, '-'),
+      fechaInscripcionApertura:
+          aperturaInscripcion == null
+              ? null
+              : FormatDate.fechaACadena(aperturaInscripcion, '-'),
+      fechaInscripcionCierre: FormatDate.fechaACadena(cierreInscripcion, '-'),
     );
     final respuesta = await insertarGrupo(grupo);
     if (respuesta.codigoHttp == 201) {

@@ -68,20 +68,29 @@ class PeriodoInscripcionViewModel with ChangeNotifier, NotificacionSegura {
     notifyListeners();
   }
 
-  //abre desde hoy (sin fechas) o programa (apertura futura); sin cierre las
-  //inscripciones quedan abiertas sin limite
+  //abre desde hoy (sin apertura) o programa (apertura futura). El backend
+  //exige el cierre: sin el no sale la peticion
   Future<Resultado<Grupoentidad>> abrir(
     Grupoentidad grupo, {
     DateTime? apertura,
     DateTime? cierre,
-  }) => _operar(
-    grupo,
-    () => _servicio.abrirInscripciones(
+  }) async {
+    if (cierre == null) {
+      return Fallo(
+        0,
+        'Seleccione la fecha de cierre de las inscripciones',
+        origen: 'ViewModel',
+      );
+    }
+    return _operar(
       grupo,
-      apertura: apertura,
-      cierre: cierre,
-    ),
-  );
+      () => _servicio.abrirInscripciones(
+        grupo,
+        apertura: apertura ?? _hoy(),
+        cierre: cierre,
+      ),
+    );
+  }
 
   Future<Resultado<Grupoentidad>> cerrar(Grupoentidad grupo) =>
       _operar(grupo, () => _servicio.cerrarInscripciones(grupo));

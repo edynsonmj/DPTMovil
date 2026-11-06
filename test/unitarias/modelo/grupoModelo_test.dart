@@ -39,30 +39,52 @@ void main() {
       expect(sinPeriodo.fechaInscripcionCierre, isNull);
     });
 
-    test('$capa - $tipo - GrupoModelo - crear un grupo no envia el periodo', () {
-      //POST /grupo no cambia: el periodo se fija aparte con abrir/cerrar
+    test('$capa - $tipo - GrupoModelo - crear un grupo envia el periodo con la clave real del backend', () {
+      //el backend nuevo exige el cierre en POST /grupo (GC-0015)
       final json =
           GrupoModelo.fromJson(leerContrato('inscripciones', 'abrir_200')).toJson();
+
+      expect(json['fechaInscripcionApertura'], '2026-10-29');
+      expect(json[GrupoModelo.claveCierreInscripcion], '2026-11-30');
+    });
+
+    test('$capa - $tipo - GrupoModelo - sin periodo no envia las fechas', () {
+      final datos = Map<String, dynamic>.from(leerContrato('inscripciones', 'abrir_200'))
+        ..remove('fechaInscripcionApertura')
+        ..remove(GrupoModelo.claveCierreInscripcion);
+
+      final json = GrupoModelo.fromJson(datos).toJson();
 
       expect(json.containsKey('fechaInscripcionApertura'), isFalse);
       expect(json.containsKey(GrupoModelo.claveCierreInscripcion), isFalse);
     });
 
-    test('$capa - $tipo - PeriodoInscripcionModelo - envia solo las fechas definidas', () {
+    test('$capa - $tipo - PeriodoInscripcionModelo - arma el cuerpo de PATCH /grupo/periodo', () {
+      const clave = {'categoria': 'c', 'curso': 'k', 'anio': 2026, 'iterable': 2};
+      Map<String, dynamic> cuerpo(PeriodoInscripcionModelo p) =>
+          p.toJson(categoria: 'c', curso: 'k', anio: 2026, iterable: 2);
+
       expect(
-        PeriodoInscripcionModelo(apertura: '2026-12-01', cierre: '2026-12-20')
-            .toJson(),
+        cuerpo(PeriodoInscripcionModelo(apertura: '2026-12-01', cierre: '2026-12-20')),
         {
-          'fechaInscripcionApertura': '2026-12-01',
-          'fechaIncripcionCierre': '2026-12-20',
+          'fechaApertura': '2026-12-01',
+          'fechaCierre': '2026-12-20',
+          'grupos': [clave],
         },
       );
-      expect(
-        PeriodoInscripcionModelo(cierre: '2026-12-20').toJson(),
-        {'fechaIncripcionCierre': '2026-12-20'},
-      );
-      //sin fechas el cuerpo es {}: el backend abre desde hoy y sin limite
-      expect(PeriodoInscripcionModelo().toJson(), isEmpty);
+      //sin apertura no se envia: el grupo conserva la suya
+      expect(cuerpo(PeriodoInscripcionModelo(cierre: '2026-12-20')), {
+        'fechaCierre': '2026-12-20',
+        'grupos': [clave],
+      });
+    });
+
+    test('$capa - $tipo - GrupoModelo - lee el cierre manual y no lo envia', () {
+      final modelo = GrupoModelo.fromJson(leerContrato('inscripciones', 'cerrarManual_200'));
+
+      expect(modelo.inscripcionesCerradasManual, isTrue);
+      //solo de salida en el backend
+      expect(modelo.toJson().containsKey('inscripcionesCerradasManual'), isFalse);
     });
   });
 }

@@ -20,6 +20,5 @@ void main() {
     prepararVmGrupoDiagnostico(test);
     test.diagnosticoGruposConAmpersand(crearGruposViewModel);
     test.diagnosticoPantallaConAmpersand(crearDetalleGrupoViewModel);
-    test.diagnosticoAlumnoDesvinculado(crearDetalleGrupoViewModel);
   });
 }

@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import '../../dobles/conexionEstadisticasFalsa.dart';
 import '../../dobles/conexionautenticacionFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //widget test de la pantalla de estadisticas (fase 7c): se monta con el vm
 //que crea la ruta estadisticasGenerales y el doble de la conexion. El rango
@@ -68,7 +69,7 @@ void main() {
                 (_) => AutenticacionViewModel(
                   Servicioautenticacion(
                     Autenticacionrepositorio(
-                      conexion: ConexionautenticacionFalsa(),
+                      conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken(),
                     ),
                   ),
                   GoogleSignInFalso(),

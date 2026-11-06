@@ -25,23 +25,51 @@ class CategoriasView extends StatefulWidget {
 
 class _CategoriasViewState extends State<CategoriasView> {
   late CategoriaViewModel categoriaViewModel;
+  AutenticacionViewModel? _sesion;
+  //perfil con el que se cargo la lista: si cambia (inicio o cierre de
+  //sesion) cambia el JWT y la lista se pide de nuevo
+  Object? _perfilCargado;
+  bool _cargaInicialHecha = false;
+
   //Definimos el estado al iniciar la vista
   @override
   void initState() {
     super.initState();
     //cargamos las categorias
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       categoriaViewModel = Provider.of<CategoriaViewModel>(
         context,
         listen: false,
       );
-      AutenticacionViewModel autenticacionViewModel =
-          Provider.of<AutenticacionViewModel>(context, listen: false);
-      autenticacionViewModel.verificarSesion();
+      final sesion = Provider.of<AutenticacionViewModel>(
+        context,
+        listen: false,
+      );
+      _sesion = sesion..addListener(_alCambiarSesion);
+      //el backend exige el JWT en /categorias2: la lista se pide despues de
+      //recuperar la sesion de Google, no a la vez (salia sin token → 401)
+      await sesion.verificarSesion();
+      if (!mounted) return;
+      _perfilCargado = sesion.perfilSesion;
+      _cargaInicialHecha = true;
       //la carga no muestra dialogos: el error queda en el vm y se pinta en
       //listaCategorias
       categoriaViewModel.listarYNotificarCategorias();
     });
+  }
+
+  //iniciar sesion desde el menu (o cerrarla) estando en esta pantalla
+  void _alCambiarSesion() {
+    final perfil = _sesion?.perfilSesion;
+    if (!_cargaInicialHecha || identical(perfil, _perfilCargado)) return;
+    _perfilCargado = perfil;
+    categoriaViewModel.listarYNotificarCategorias();
+  }
+
+  @override
+  void dispose() {
+    _sesion?.removeListener(_alCambiarSesion);
+    super.dispose();
   }
 
   @override

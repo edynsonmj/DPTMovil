@@ -82,17 +82,17 @@ void main() {
 
       await tester.tap(find.widgetWithText(OutlinedButton, 'Abrir'));
       await tester.pumpAndSettle();
+      //el cierre es obligatorio: se acepta el dia que propone el selector
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Confirmar'));
       await tester.pumpAndSettle();
 
-      final enviadas = app.adaptador.peticionesA(
-        'PUT',
-        '/abrirInscripcionesGrupo',
-      );
+      final enviadas = app.adaptador.peticionesA('PATCH', '/grupo/periodo');
       expect(enviadas, hasLength(1), reason: 'excepcion: ${excepcion(tester)}');
-      final query = enviadas.single.uri.queryParameters;
-      expect(query.keys, containsAll(['categoria', 'curso', 'anio', 'iterable']));
-      expect(MontajeInscripciones.categoriasDelContrato, contains(query['categoria']));
+      final grupo = (enviadas.single.cuerpo['grupos'] as List).single as Map;
+      expect(grupo.keys, containsAll(['categoria', 'curso', 'anio', 'iterable']));
+      expect(MontajeInscripciones.categoriasDelContrato, contains(grupo['categoria']));
     });
 
     testWidgets('$capa - $tipo - Particulares - confirmar Cerrar pide cerrar las inscripciones de ese grupo', (
@@ -107,7 +107,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        app.adaptador.peticionesA('PUT', '/cerrarInscripcionesGrupo'),
+        app.adaptador.peticionesA('PATCH', '/grupo/inscripciones'),
         hasLength(1),
         reason: 'excepcion: ${excepcion(tester)}',
       );
@@ -126,6 +126,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
+      //sin fecha final no se ofrece confirmar: el cierre es obligatorio
+      expect(find.text('Confirmar'), findsNothing);
+      await tester.tap(find.text('Seleccionar fecha final'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
       //confirmar en el dialogo de fechas y luego en el de programacion
       await tester.tap(find.text('Confirmar'));
       await tester.pumpAndSettle();
@@ -138,16 +144,14 @@ void main() {
       final hoy = DateTime.now();
       final hoyTexto =
           '${hoy.year}-${hoy.month.toString().padLeft(2, '0')}-${hoy.day.toString().padLeft(2, '0')}';
-      final enviadas = app.adaptador.peticionesA(
-        'PUT',
-        '/abrirInscripcionesGrupo',
-      );
+      final enviadas = app.adaptador.peticionesA('PATCH', '/grupo/periodo');
       expect(
         enviadas,
         hasLength(1),
         reason: 'excepcion al confirmar: $error / despues: ${excepcion(tester)}',
       );
-      expect(enviadas.single.cuerpo, {'fechaInscripcionApertura': hoyTexto});
+      expect(enviadas.single.cuerpo['fechaApertura'], hoyTexto);
+      expect(enviadas.single.cuerpo['fechaCierre'], hoyTexto);
     });
   });
 

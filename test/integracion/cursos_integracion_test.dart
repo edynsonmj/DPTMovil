@@ -22,6 +22,7 @@ import '../contratos/leerContrato.dart';
 import '../dobles/adaptadorHttpFalso.dart';
 import '../dobles/conexionautenticacionFalsa.dart';
 import '../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //integracion local del modulo 8 (plan-diagnostico-cursos.md): CursosViewModel
 //con su cadena real hasta ConexionCursoRemoto y Conexionimagenremoto (el alta
@@ -62,7 +63,7 @@ void main() {
     final dio = crearDioFalso(adaptador);
     final sesion = AutenticacionViewModel(
       Servicioautenticacion(
-        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
       ),
       GoogleSignInFalso(),
     );

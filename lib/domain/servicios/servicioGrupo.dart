@@ -32,7 +32,7 @@ class Serviciogrupo {
   Future<RespuestaModelo> abrirInscripciones(
     Grupoentidad grupo, {
     DateTime? apertura,
-    DateTime? cierre,
+    required DateTime cierre,
   }) {
     return repositorio.abrirInscripciones(
       grupo,

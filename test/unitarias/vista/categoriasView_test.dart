@@ -14,9 +14,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
+import 'package:dpt_movil/data/models/tokenModelo.dart';
+
+import '../../contratos/leerContrato.dart';
 import '../../dobles/conexionCategoriaFalsa.dart';
 import '../../dobles/conexionautenticacionFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //widget test de la pantalla de categorias: con la inyeccion se le pueden dar
 //vms armados con dobles, sin backend ni plugin de Google. Comprueba lo que
@@ -40,7 +44,7 @@ void main() {
       );
     vmSesion = AutenticacionViewModel(
       Servicioautenticacion(
-        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
       ),
       GoogleSignInFalso(),
     );
@@ -121,7 +125,7 @@ void main() {
             ),
           );
     vmSesion = AutenticacionViewModel(
-      Servicioautenticacion(Autenticacionrepositorio(conexion: conexion)),
+      Servicioautenticacion(Autenticacionrepositorio(conexion: conexion, almacenToken: AlmacenToken())),
       GoogleSignInFalso(),
     );
     await montar(tester);
@@ -133,4 +137,78 @@ void main() {
 
     expect(find.text('Agregar categoria'), findsOneWidget);
   });
+
+  //con el backend que exige JWT: la lista salia a la vez que verificarSesion,
+  //sin token, y la pantalla mostraba el 401 hasta volver a cargarla
+  testWidgets('$capa - $tipo - Categorias - con sesion de Google guardada la lista se pide despues de obtener el JWT', (
+    tester,
+  ) async {
+    final almacen = AlmacenToken();
+    final conexionSesion =
+        ConexionautenticacionFalsa()
+          ..respuestaToken = RespuestaModelo(
+            codigoHttp: 200,
+            datos: Tokenmodelo.fromJson(leerContrato('autenticacion', 'token_200')),
+          );
+    vmSesion = AutenticacionViewModel(
+      Servicioautenticacion(Autenticacionrepositorio(conexion: conexionSesion, almacenToken: almacen)),
+      GoogleSignInFalso()..cuenta = CuentaGoogleFalsa(email: 'ana@unicauca.edu.co', idToken: 'id-token-de-google'),
+    );
+    conexionCategoria = _CategoriasQueVenElToken(almacen)
+      ..respuestaListar = conexionCategoria.respuestaListar;
+
+    await montar(tester);
+
+    expect(conexionSesion.llamadasToken, 1);
+    expect(conexionCategoria.llamadasListar, 1);
+    expect((conexionCategoria as _CategoriasQueVenElToken).tokenAlListar, ['jwt-del-sistema']);
+    expect(find.text('Futbol'), findsOneWidget);
+  });
+
+  testWidgets('$capa - $tipo - Categorias - iniciar sesion estando en la pantalla vuelve a pedir la lista', (
+    tester,
+  ) async {
+    final conexion =
+        ConexionautenticacionFalsa()
+          ..respuestaLogin = RespuestaModelo(
+            codigoHttp: 200,
+            datos: Perfilmodelo(
+              id: '1',
+              nombre: 'Ana',
+              correo: 'ana@unicauca.edu.co',
+              tipoId: 'CC',
+              sexo: 'F',
+              role: Roles.coordinador,
+            ),
+          );
+    vmSesion = AutenticacionViewModel(
+      Servicioautenticacion(Autenticacionrepositorio(conexion: conexion, almacenToken: AlmacenToken())),
+      GoogleSignInFalso(),
+    );
+    await montar(tester);
+    expect(conexionCategoria.llamadasListar, 1);
+
+    vmSesion.prepararLoginConCorreo('ana@unicauca.edu.co');
+    await vmSesion.login();
+    await tester.pumpAndSettle();
+    expect(conexionCategoria.llamadasListar, 2);
+
+    //cerrar sesion tambien cambia el token: se vuelve a pedir
+    await vmSesion.logout();
+    await tester.pumpAndSettle();
+    expect(conexionCategoria.llamadasListar, 3);
+  });
+}
+
+//anota el JWT que habia en el almacen cuando la pantalla pidio la lista
+class _CategoriasQueVenElToken extends ConexionCategoriaFalsa {
+  final AlmacenToken almacen;
+  final List<String?> tokenAlListar = [];
+  _CategoriasQueVenElToken(this.almacen);
+
+  @override
+  Future<RespuestaModelo> encontrarCategorias() {
+    tokenAlListar.add(almacen.token);
+    return super.encontrarCategorias();
+  }
 }

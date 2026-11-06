@@ -51,6 +51,9 @@ dev_dependencies:
   #doble del selector de imagenes en las pruebas de pantalla (ya venia como
   #dependencia transitiva de image_picker; misma version del lock)
   image_picker_platform_interface: ^2.10.1
+  #firma HS256 de los JWT de prueba de la suite remota (ya venia como
+  #dependencia transitiva; misma version del lock)
+  crypto: ^3.0.6
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

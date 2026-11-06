@@ -1,0 +1,7 @@
+{
+  "codigoError": "GC-0015",
+  "mensaje": "Las fechas del grupo no son validas, La fecha de cierre de inscripciones (2026-11-05) no puede ser anterior a la fecha de apertura de inscripciones (2026-11-25)",
+  "codigoHttp": 422,
+  "url": "http://localhost:8082/api/v2/grupo/periodo",
+  "metodo": "PATCH"
+}

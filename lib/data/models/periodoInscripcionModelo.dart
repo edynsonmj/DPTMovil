@@ -1,20 +1,30 @@
-import 'package:dpt_movil/data/models/grupoModelo.dart';
-
-//cuerpo de PUT /abrirInscripcionesGrupo. Ambas fechas son opcionales para
-//el backend: sin apertura toma hoy y sin cierre deja las inscripciones
-//abiertas sin limite. Formato yyyy-MM-dd
+//cuerpo de PATCH /grupo/periodo (PeriodoInscripcionRequest): el cierre es
+//obligatorio y debe ser de hoy en adelante; sin apertura el grupo conserva la
+//que tenia. Formato yyyy-MM-dd
 class PeriodoInscripcionModelo {
   final String? apertura;
-  final String? cierre;
+  final String cierre;
 
-  PeriodoInscripcionModelo({this.apertura, this.cierre});
+  PeriodoInscripcionModelo({this.apertura, required this.cierre});
 
-  //las fechas nulas no se envian: se probo el cuerpo vacio contra el
-  //backend, no una clave con null
-  Map<String, dynamic> toJson() {
+  //la ruta admite varios grupos a la vez; la app aplica el periodo a uno
+  Map<String, dynamic> toJson({
+    required String categoria,
+    required String curso,
+    required int anio,
+    required int iterable,
+  }) {
     return {
-      if (apertura != null) 'fechaInscripcionApertura': apertura,
-      if (cierre != null) GrupoModelo.claveCierreInscripcion: cierre,
+      if (apertura != null) 'fechaApertura': apertura,
+      'fechaCierre': cierre,
+      'grupos': [
+        {
+          'categoria': categoria,
+          'curso': curso,
+          'anio': anio,
+          'iterable': iterable,
+        },
+      ],
     };
   }
 }

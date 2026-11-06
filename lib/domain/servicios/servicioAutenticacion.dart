@@ -13,6 +13,16 @@ class Servicioautenticacion {
     return repositorio.login(email);
   }
 
+  Future<RespuestaModelo> iniciarSesionConGoogle(String idTokenGoogle) async {
+    return repositorio.iniciarSesionConGoogle(idTokenGoogle);
+  }
+
+  void cerrarSesion() {
+    repositorio.cerrarSesion();
+  }
+
+  String? get tokenSesion => repositorio.tokenSesion;
+
   Future<RespuestaModelo> registro(PerfilEntidad entidad) async {
     return repositorio.registro(entidad);
   }

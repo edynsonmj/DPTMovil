@@ -14,6 +14,9 @@ class PerfilMapper {
       role: modelo.role,
       facultad: modelo.facultad,
       tipoAlumno: modelo.tipoAlumno,
+      alumnoCodigo: modelo.alumnoCodigo,
+      programa: modelo.programa,
+      dependencia: modelo.dependencia,
     );
   }
 
@@ -27,6 +30,9 @@ class PerfilMapper {
       role: entidad.role,
       facultad: entidad.facultad,
       tipoAlumno: entidad.tipoAlumno,
+      alumnoCodigo: entidad.alumnoCodigo,
+      programa: entidad.programa,
+      dependencia: entidad.dependencia,
     );
   }
 }

@@ -18,6 +18,7 @@ import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
 
 //rutas criticas de las pantallas Grupos asignados (instructor) y Grupos de
 //inscripcion (alumno). Se crea un grupo y un alumno de prueba nuevos por
@@ -79,6 +80,8 @@ class VmGruposInscripcionTest {
           cupos: 20,
           idInstructor: _idInstructor,
           fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+          fechaInscripcionCierre: cierreInscripcionPruebas(),
+          fechaInscripcionApertura: aperturaFuturaPruebas(),
         ),
       );
       expect(grupo.codigoHttp, 201, reason: 'no se creo el grupo');
@@ -95,8 +98,7 @@ class VmGruposInscripcionTest {
       await vmFacultades.listarYNotificarFacultades();
       final digitos = DateTime.now().millisecondsSinceEpoch.toString();
       _idAlumno = digitos.substring(digitos.length - 9);
-      RespuestaModelo registro = await servicioAutenticacion.registro(
-        PerfilEntidad(
+      RespuestaModelo registro = await servicioAutenticacion.registro(await completarRegistro(PerfilEntidad(
           id: _idAlumno,
           nombre: 'Alumno prueba $_idAlumno',
           correo: 'prueba_$_idAlumno@unicauca.edu.co',
@@ -104,8 +106,7 @@ class VmGruposInscripcionTest {
           sexo: 'F',
           facultad: vmFacultades.facultades.first,
           tipoAlumno: 'Estudiante',
-        ),
-      );
+        )));
       expect(registro.codigoHttp, 201, reason: 'no se registro el alumno');
     });
   }
@@ -180,11 +181,7 @@ class VmGruposInscripcionTest {
       final inscripcion = _inscripcion();
       final vm = crearVm();
 
-      expect(
-        await crearVmPeriodo().abrir(_grupoCreado()),
-        isA<Exito>(),
-        reason: 'no se abrieron las inscripciones del grupo',
-      );
+      await abrirInscripcionesPruebas(_grupoCreado());
       expect(await vm.validarInscripcion(inscripcion), isFalse);
 
       //fase 6b (I4): inscribir y desvincular devuelven Resultado. Antes aqui

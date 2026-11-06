@@ -68,12 +68,13 @@ class Gruporepositorio {
     return respuesta;
   }
 
-  //las fechas viajan como yyyy-MM-dd; una fecha nula no se envia y el
-  //backend decide (apertura = hoy, cierre = sin limite)
+  //las fechas viajan como yyyy-MM-dd; sin apertura el grupo conserva la suya.
+  //El periodo no reabre un grupo cerrado a mano, y quitar ese cierre exige
+  //que la fecha ya sea vigente: por eso primero el periodo
   Future<RespuestaModelo> abrirInscripciones(
     Grupoentidad grupo, {
     DateTime? apertura,
-    DateTime? cierre,
+    required DateTime cierre,
   }) async {
     final RespuestaModelo respuesta = await conexion.abrirInscripciones(
       grupo.categoria,
@@ -82,10 +83,20 @@ class Gruporepositorio {
       grupo.iterable,
       PeriodoInscripcionModelo(
         apertura: apertura == null ? null : FormatDate.fechaACadena(apertura, '-'),
-        cierre: cierre == null ? null : FormatDate.fechaACadena(cierre, '-'),
+        cierre: FormatDate.fechaACadena(cierre, '-'),
       ),
     );
-    return _aEntidad(respuesta);
+    if (respuesta.codigoHttp != 200 || !grupo.inscripcionesCerradasManual) {
+      return _aEntidad(respuesta);
+    }
+    return _aEntidad(
+      await conexion.reabrirInscripciones(
+        grupo.categoria,
+        grupo.curso,
+        grupo.anio,
+        grupo.iterable,
+      ),
+    );
   }
 
   Future<RespuestaModelo> cerrarInscripciones(Grupoentidad grupo) async {

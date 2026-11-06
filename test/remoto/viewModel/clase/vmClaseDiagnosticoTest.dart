@@ -15,6 +15,7 @@ import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
 
 //diagnostico del modulo 2 contra el backend real (plan-diagnostico-
 //clases.md): el formulario de clase (Clasesviewmodel) y la pantalla del grupo
@@ -75,6 +76,8 @@ class VmClaseDiagnosticoTest {
           cupos: 20,
           idInstructor: _idInstructor,
           fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+          fechaInscripcionCierre: cierreInscripcionPruebas(),
+          fechaInscripcionApertura: aperturaFuturaPruebas(),
         ),
       );
       expect(g.codigoHttp, 201);
@@ -83,6 +86,7 @@ class VmClaseDiagnosticoTest {
       _grupo = vm.grupos.datos.firstWhere(
         (x) => x.categoria == c.tituloCategoria && x.curso == c.nombreCurso,
       );
+      await sembrarHorariosSemana(_grupo!);
     });
   }
 
@@ -132,9 +136,11 @@ class VmClaseDiagnosticoTest {
   //los dos siguientes salen rojos: solo los llama
   //test/diagnostico/clases/remoto_diagnostico_test.dart, no main_test.dart
 
-  //CL-06 (corregido): la app mandaba la hora local sin zona y el backend la
-  //tomaba como UTC; lo de 00:00 a 04:59 quedaba en el dia anterior. Ahora va
-  //el instante con zona. showDatePicker (claseFormulario.dart) devuelve la
+  //CL-07 (corregido): el backend nuevo recibe un LocalDate y la app envia solo
+  //el dia local. Antes, en UTC, de noche la clase caia en el dia siguiente.
+  //CL-06 (reemplazado por CL-07): la app mandaba la hora local sin zona y el backend la
+  //tomaba como UTC; lo de 00:00 a 04:59 quedaba en el dia anterior.
+  //showDatePicker (claseFormulario.dart) devuelve la
   //fecha elegida a las 00:00, que es el primer caso; 04:59 y 05:00 son el
   //borde que se corria
   void prueba3FechaSinCorrimiento(
@@ -144,18 +150,46 @@ class VmClaseDiagnosticoTest {
     String metodo = "Registrar clase";
     String caso = "la fecha elegida en el selector (00:00), a las 04:59, 05:00 y 23:30 queda en ese dia";
     test('$capa - $tipo - $metodo - $caso', () async {
-      final base = DateTime.now().subtract(const Duration(days: 3));
-      final dia = DateTime(base.year, base.month, base.day);
-      for (final hora in [
-        dia,
-        dia.add(const Duration(hours: 4, minutes: 59)),
-        dia.add(const Duration(hours: 5)),
-        dia.add(const Duration(hours: 23, minutes: 30)),
-      ]) {
+      final base = DateTime.now().subtract(const Duration(days: 7));
+      final primero = DateTime(base.year, base.month, base.day);
+      //un dia por hora: el backend deja una sola clase por fecha (BK-08)
+      final horas = [
+        Duration.zero,
+        const Duration(hours: 4, minutes: 59),
+        const Duration(hours: 5),
+        const Duration(hours: 23, minutes: 30),
+      ];
+      for (var i = 0; i < horas.length; i++) {
+        final dia = DateTime(primero.year, primero.month, primero.day - i);
+        final hora = dia.add(horas[i]);
         final nueva = await _registrar(crearVm, crearVmGrupo, hora, '1');
         expect(nueva, isNotNull, reason: 'no aparecio la clase de $hora');
         expect(_dia(nueva!.fecha!), _dia(dia), reason: 'enviada $hora');
       }
+    });
+  }
+
+  //antes diagnostico de BK-08: el backend reutiliza la clase de esa fecha y
+  //responde 200 con ella. Antes llegaba como un Fallo con un TypeError
+  void prueba7FechaConClase(
+    Clasesviewmodel Function() crearVm,
+    DetalleGrupoViewModel Function(Grupoentidad) crearVmGrupo,
+  ) {
+    String metodo = "Registrar clase";
+    String caso = "una fecha que ya tiene clase es Exito, avisa y no crea otra";
+    test('$capa - $tipo - $metodo - $caso', () async {
+      final fecha = DateTime.now().subtract(const Duration(days: 2));
+      await _crearVm(crearVm).registrarClase(fecha: fecha, horasTexto: '1');
+      final antes = crearVmGrupo(_grupoCreado());
+      await antes.cargarClases();
+
+      final r = await _crearVm(crearVm).registrarClase(fecha: fecha, horasTexto: '2');
+
+      expect(r, isA<Exito<bool>>(), reason: _texto(r));
+      expect((r as Exito<bool>).datos, isFalse);
+      final despues = crearVmGrupo(_grupoCreado());
+      await despues.cargarClases();
+      expect(despues.clases.datos, hasLength(antes.clases.datos.length));
     });
   }
 
@@ -177,13 +211,14 @@ class VmClaseDiagnosticoTest {
   }
 
   //H-01
-  void diagnosticoEliminarClase(
+  void prueba6EliminarClase(
     Clasesviewmodel Function() crearVm,
     DetalleGrupoViewModel Function(Grupoentidad) crearVmGrupo,
   ) {
     String metodo = "Eliminar clase";
-    String caso = "BUG CL-01 - la clase eliminada sale de la pantalla del grupo";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    //antes diagnostico de CL-01: quedo en verde con el backend nuevo
+    String caso = "la clase eliminada sale de la pantalla del grupo";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final nueva = await _registrar(
         crearVm,
         crearVmGrupo,

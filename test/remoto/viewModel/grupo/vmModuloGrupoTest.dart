@@ -16,6 +16,7 @@ import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
 
 //ruta critica del modulo grupo: crear un grupo (formulario de grupo) y lo
 //que muestra su pantalla (horarios, alumnos, clases), mas registrar y
@@ -105,6 +106,8 @@ class VmModuloGrupoTest {
           cupos: 20,
           idInstructor: _idInstructor,
           fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+          fechaInscripcionCierre: cierreInscripcionPruebas(),
+          fechaInscripcionApertura: aperturaFuturaPruebas(),
         ),
       );
       _imprimirError(respuesta);
@@ -198,6 +201,7 @@ class VmModuloGrupoTest {
     String caso = "exito 201 y la clase queda en la lista";
     test('$capa - $tipo - $metodo - $caso', () async {
       final g = _grupoCreado();
+      await sembrarHorariosSemana(g);
       //como la ruta formularioClase: el vm se inicializa con el grupo
       final vm = crearVmFormulario();
       vm.inicializarGrupo(g.categoria, g.curso, g.anio, g.iterable, g.idInstructor!);

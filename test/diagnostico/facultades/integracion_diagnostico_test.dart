@@ -7,7 +7,6 @@ import 'package:dpt_movil/domain/servicios/servicioFacultades.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../contratos/leerContrato.dart';
 import '../../dobles/adaptadorHttpFalso.dart';
 
 //diagnostico de la lista de facultades del registro de punta a punta sin
@@ -56,31 +55,5 @@ void main() {
       expect(vm.error, isNull, reason: '${vm.error}');
       expect(vm.facultades, isEmpty);
     });
-
-    //la ruta autenticacionRegistro crea el vm y lo desecha al salir: una
-    //carga que llega despues no debe notificar
-    test('$capa - $tipo - Listar facultades - BUG FA-04 - una respuesta que llega despues de dispose no lanza', () async {
-      adaptador.responder('GET', '/facultades', 200, leerContrato('facultades', 'facultades_200'));
-      final retenida = adaptador.retener('GET', '/facultades');
-      final carga = vm.listarYNotificarFacultades();
-      await _hastaQue(() => adaptador.peticiones.length == 1);
-      vm.dispose();
-      retenida.complete();
-
-      Object? lanzado;
-      try {
-        await carga;
-      } catch (e) {
-        lanzado = e;
-      }
-      expect(lanzado, isNull, reason: '$lanzado');
-    });
   });
-}
-
-Future<void> _hastaQue(bool Function() condicion) async {
-  for (var i = 0; i < 200 && !condicion(); i++) {
-    await Future.delayed(const Duration(milliseconds: 5));
-  }
-  expect(condicion(), isTrue, reason: 'la peticion no llego al adaptador');
 }

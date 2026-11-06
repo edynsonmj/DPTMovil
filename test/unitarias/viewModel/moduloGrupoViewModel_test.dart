@@ -94,6 +94,8 @@ void main() {
           curso: curso,
           cupos: ' 25 ',
           idInstructor: 'ins1',
+          aperturaInscripcion: DateTime(2026, 3, 10),
+          cierreInscripcion: DateTime(2026, 3, 20),
           hoy: hoy,
         );
 
@@ -103,6 +105,47 @@ void main() {
           (enviado.cat_titulo, enviado.cur_nombre, enviado.cupos, enviado.idInstructor, enviado.anio, enviado.fechaCreacion),
           ('Deportes', 'Iniciacion', 25, 'ins1', 2026, '2026-03-09'),
         );
+        expect(enviado.fechaInscripcionApertura, '2026-03-10');
+        expect(enviado.fechaInscripcionCierre, '2026-03-20');
+      });
+
+      test('$capa - $tipo - Registrar grupo - la apertura es opcional', () async {
+        await vm.registrarGrupo(
+          curso: curso,
+          cupos: '25',
+          idInstructor: 'ins1',
+          cierreInscripcion: DateTime(2026, 3, 20),
+          hoy: hoy,
+        );
+
+        expect(conexion.ultimoInsertado!.fechaInscripcionApertura, isNull);
+        expect(conexion.ultimoInsertado!.fechaInscripcionCierre, '2026-03-20');
+      });
+
+      test('$capa - $tipo - Registrar grupo - sin cierre o con el cierre antes de la apertura no envia nada', () async {
+        final sinCierre = await vm.registrarGrupo(
+          curso: curso,
+          cupos: '25',
+          idInstructor: 'ins1',
+          hoy: hoy,
+        );
+        final alReves = await vm.registrarGrupo(
+          curso: curso,
+          cupos: '25',
+          idInstructor: 'ins1',
+          aperturaInscripcion: DateTime(2026, 3, 20),
+          cierreInscripcion: DateTime(2026, 3, 10),
+          hoy: hoy,
+        );
+
+        expect(
+          [sinCierre, alReves].map((r) => (r as Fallo).mensaje),
+          [
+            'Seleccione la fecha de cierre de inscripciones',
+            'La fecha de cierre no puede ser anterior a la de apertura',
+          ],
+        );
+        expect(conexion.llamadasInsertar, 0);
       });
 
       test('$capa - $tipo - Registrar grupo - sin instructor o con cupos que no son un int no envia nada', () async {
@@ -131,6 +174,7 @@ void main() {
           curso: curso,
           cupos: '25',
           idInstructor: 'ins1',
+          cierreInscripcion: DateTime(2026, 3, 20),
           hoy: hoy,
         );
 

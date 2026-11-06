@@ -1,0 +1,19 @@
+[
+  {
+    "categoria": "Educación física",
+    "curso": "Natación nivel 1",
+    "anio": 2026,
+    "iterable": 1,
+    "imagenGrupo": 402,
+    "cupos": 1,
+    "idInstructor": "1061813673",
+    "fechaCreacion": "2026-11-05",
+    "fechaFinalizacion": null,
+    "fechaInscripcionApertura": "2026-11-05",
+    "fechaIncripcionCierre": "2026-12-12",
+    "periodo": 2,
+    "inscripcionesAbiertas": true,
+    "motivoInscripcion": "ABIERTAS",
+    "inscripcionesCerradasManual": false
+  }
+]

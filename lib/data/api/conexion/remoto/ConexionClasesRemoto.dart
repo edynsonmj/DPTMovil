@@ -65,10 +65,12 @@ class Conexionclasesremoto implements Conexionclases {
         data: modelo,
         options: Options(contentType: 'application/json'),
       );
-      if (response.statusCode != 201) {
+      //201: clase nueva. 200: el backend reutilizo la clase que ya existia en
+      //esa fecha, no es un error (BK-08). El vm distingue los dos casos
+      if (response.statusCode != 201 && response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
-      return RespuestaModelo(codigoHttp: 201);
+      return RespuestaModelo(codigoHttp: response.statusCode!);
     } on DioException catch (dioError) {
       return RespuestaModelo.fromDioException(dioError, metodo);
     } on FormatException catch (formatError) {

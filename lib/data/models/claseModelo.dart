@@ -1,3 +1,5 @@
+import 'package:dpt_movil/config/formatDate.dart';
+
 class Clasemodelo {
   int? codigo;
   String idGrupoCategoria;
@@ -54,9 +56,9 @@ class Clasemodelo {
 
       'idInstructor': idInstructor,
 
-      //con zona (Z): sin ella el backend toma la hora local como UTC y la
-      //clase de las 00:00 a las 04:59 quedaba en el dia anterior (CL-06)
-      'fecha': fecha.toUtc().toIso8601String(),
+      //solo el dia elegido: el backend recibe un LocalDate. Con la hora en UTC,
+      //desde las 19:00 locales la clase caia en el dia siguiente (CL-07)
+      'fecha': FormatDate.fechaACadena(fecha, '-'),
 
       'horas': horas,
 

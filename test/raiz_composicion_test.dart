@@ -19,6 +19,8 @@ import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:flutter/widgets.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
+import 'package:dpt_movil/data/api/sesion/interceptorToken.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
@@ -47,6 +49,12 @@ void main() {
 
     //datos
     expect(contexto.read<Dio>().options.baseUrl, ConfigApi.baseUrl);
+    //el JWT de la sesion: el Dio compartido lo envia con su interceptor
+    expect(contexto.read<AlmacenToken>(), isNotNull);
+    expect(
+      contexto.read<Dio>().interceptors.whereType<InterceptorToken>(),
+      hasLength(1),
+    );
     expect(contexto.read<Conexionimagen>(), isA<Conexionimagenremoto>());
     expect(contexto.read<ServicioCategoria>(), isNotNull);
     expect(contexto.read<ServicioCurso>(), isNotNull);

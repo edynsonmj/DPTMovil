@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/formatDate.dart';
+import 'package:dpt_movil/config/routes/roles.dart';
+import 'package:dpt_movil/data/api/conexion/interfaces/ConexionAtenciones.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
@@ -23,14 +25,16 @@ import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
+import '../../jwtPruebas.dart';
 
 //diagnostico del modulo 5 contra el backend real (plan-diagnostico-
 //estadisticas.md, 4.3): EstadisticasViewModel → servicio → repositorio →
 //conexion → backend, sobre datos propios de cada corrida. El setUpAll crea
 //categoria, curso, grupo, abre sus inscripciones, inscribe a dos alumnos,
 //registra una clase de 2 h con fecha de ayer y marca la asistencia del
-//alumno A. La asistencia se siembra con POST /asistenciasClase directo: la
-//conexion de atenciones de la app usa rutas que el backend no tiene (AS-B01).
+//alumno A. La asistencia se siembra con PUT /clase/{codigo}/asistencia directo:
+//la conexion de atenciones de la app usa rutas que el backend ya no tiene (BK-02).
 //Los casos dependen del orden
 class VmEstadisticasAsistenciaTest {
   final String capa = "viewModel";
@@ -42,6 +46,9 @@ class VmEstadisticasAsistenciaTest {
   late int _idClase;
   Grupoentidad? _grupo;
   final DateTime _ayer = DateTime.now().subtract(const Duration(days: 1));
+
+  //lo reusa test/diagnostico/transversal/remoto_backend_nuevo_test.dart
+  Grupoentidad get grupoSembrado => _grupoCreado();
 
   void preparar({
     required Dio dio,
@@ -97,6 +104,8 @@ class VmEstadisticasAsistenciaTest {
           cupos: 20,
           idInstructor: idInstructor,
           fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+          fechaInscripcionCierre: cierreInscripcionPruebas(),
+          fechaInscripcionApertura: aperturaFuturaPruebas(),
         ),
       );
       expect(grupo.codigoHttp, 201, reason: 'no se creo el grupo');
@@ -107,7 +116,7 @@ class VmEstadisticasAsistenciaTest {
       );
       _grupo = vmLista.getListaGrupos!.single;
       final g = _grupo!;
-      expect(await crearVmPeriodo().abrir(g), isA<Exito>());
+      await abrirInscripcionesPruebas(g);
 
       final vmFacultades = crearVmFacultades();
       await vmFacultades.listarYNotificarFacultades();
@@ -116,8 +125,7 @@ class VmEstadisticasAsistenciaTest {
       _alumnoA = '${base}1';
       _alumnoB = '${base}2';
       for (final id in [_alumnoA, _alumnoB]) {
-        RespuestaModelo registro = await servicioAutenticacion.registro(
-          PerfilEntidad(
+        RespuestaModelo registro = await servicioAutenticacion.registro(await completarRegistro(PerfilEntidad(
             id: id,
             nombre: 'Alumno prueba $id',
             correo: 'prueba_$id@unicauca.edu.co',
@@ -125,8 +133,7 @@ class VmEstadisticasAsistenciaTest {
             sexo: 'F',
             facultad: vmFacultades.facultades.first,
             tipoAlumno: 'Estudiante',
-          ),
-        );
+          )));
         expect(registro.codigoHttp, 201, reason: 'no se registro $id');
         final inscrito = await crearVmInscripcion().agregarIncripcion(
           Inscripcionentidad(
@@ -142,6 +149,7 @@ class VmEstadisticasAsistenciaTest {
 
       //como la ruta formularioClase: ayer, para no caer en el futuro del
       //backend por la zona horaria
+      await sembrarHorariosSemana(g);
       final vmClase = crearVmClase();
       vmClase.inicializarGrupo(g.categoria, g.curso, g.anio, g.iterable, idInstructor);
       final clase = await vmClase.registrarClase(fecha: _ayer, horasTexto: '2');
@@ -212,19 +220,136 @@ class VmEstadisticasAsistenciaTest {
     });
   }
 
-  //ES-05, sale rojo: solo lo llama
-  //test/diagnostico/estadisticas/remoto_diagnostico_test.dart, no
-  //main_test.dart. Necesita el setUpAll de esta clase y no cambia datos
-  void diagnosticoUltimoDiaDelRango(EstadisticasViewModel Function() crearVm) {
+  //antes diagnostico de ES-05 (2026-10-29: el ultimo dia del rango no contaba).
+  //El backend nuevo compara cls_fecha con between; quedo en verde sin tocar la
+  //app. No cambia datos
+  void prueba3UltimoDiaDelRango(EstadisticasViewModel Function() crearVm) {
     String metodo = "Estadisticas generales";
-    String caso = "BUG ES-05 - un rango de un solo dia incluye la clase de ese dia";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "un rango de un solo dia incluye la clase de ese dia";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
       await vm.cargar(_dia(_ayer), _dia(_ayer));
 
       final fila = _filaCategoria(vm);
       expect(fila?.clases, 1, reason: fila == null ? 'sin fila' : _texto(fila));
       expect(fila?.duracion, 120);
+    });
+  }
+
+  //los tres casos siguientes salen rojos: solo los llama
+  //test/diagnostico/estadisticas/remoto_diagnostico_test.dart, no main_test.dart
+
+  //ES-06: la consulta suma horas y minutos por separado y no pasa los minutos a
+  //horas. La duracion sale bien, pero la app grafica `horas`. Crea su propio
+  //grupo, con horario de 1 h 30 cada dia (el backend toma la duracion de ahi)
+  void diagnosticoMinutosAcumulados(EstadisticasViewModel Function() crearVm) {
+    String metodo = "Estadisticas generales";
+    String caso = "BUG ES-06 - tres clases de 1 h 30 dan 4 horas y 30 minutos";
+    test('$capa - diagnostico - $metodo - $caso', () async {
+      final g = _grupoCreado();
+      final hoy = DateTime.now();
+      final grupo = await _dio.post(
+        '/grupo',
+        data: {
+          'categoria': g.categoria,
+          'curso': g.curso,
+          'anio': g.anio,
+          'iterable': 0,
+          'imagenGrupo': g.imagen,
+          'idInstructor': g.idInstructor,
+          'cupos': 5,
+          'fechaCreacion': _dia(hoy),
+          'fechaIncripcionCierre': cierreInscripcionPruebas(),
+        },
+      );
+      final iterable = grupo.data['iterable'] as int;
+      for (final dia in const [
+        'LUNES',
+        'MARTES',
+        'MIERCOLES',
+        'JUEVES',
+        'VIERNES',
+        'SABADO',
+        'DOMINGO',
+      ]) {
+        await _dio.post(
+          '/horario',
+          data: {
+            'categoria': g.categoria,
+            'curso': g.curso,
+            'anio': g.anio,
+            'iterable': iterable,
+            'dia': dia,
+            'horaInicio': '08:00',
+            'horaFin': '09:30',
+            'escenario': 'Escenario prueba',
+          },
+        );
+      }
+      for (final dias in const [1, 2, 3]) {
+        await _dio.post(
+          '/claseGrupo',
+          data: {
+            'idGrupoCategoria': g.categoria,
+            'idGrupoCurso': g.curso,
+            'idGrupoAnio': g.anio,
+            'idGrupoIterable': iterable,
+            'idInstructor': g.idInstructor,
+            'fecha': hoy.subtract(Duration(days: dias)).toUtc().toIso8601String(),
+            'horas': 1,
+            'minutos': 30,
+          },
+        );
+      }
+
+      final vm = crearVm();
+      await vm.cargar(_dia(hoy.subtract(const Duration(days: 10))), _dia(hoy));
+
+      final fila = vm.grupos.datos.singleWhere(
+        (e) => e.leyenda1 == g.categoria && e.leyenda4 == '$iterable',
+      );
+      expect(fila.duracion, 270, reason: _texto(fila));
+      expect(fila.horas, 4, reason: _texto(fila));
+      expect(fila.minutos, 30, reason: _texto(fila));
+    });
+  }
+
+  //ES-07: el 401 no trae cuerpo; es la misma causa de IN-17. La app no renueva
+  //el token mientras esta abierta
+  void diagnosticoSesionVencida(EstadisticasViewModel Function() crearVm) {
+    String metodo = "Estadisticas generales";
+    String caso = "BUG ES-07 - con el token vencido la seccion dice que paso";
+    test('$capa - diagnostico - $metodo - $caso', () async {
+      addTearDown(actuarComoCoordinador);
+      almacenPruebas.token = firmarJwtPrueba(
+        correo: 'coordinador@prueba.test',
+        rol: Roles.coordinador,
+        perfId: 'coordinador-prueba',
+        vigencia: const Duration(hours: -1),
+      );
+      final vm = crearVm();
+
+      await vm.cargar(_dia(_ayer), _dia(DateTime.now()));
+
+      final error = vm.categorias.error;
+      expect(error, startsWith('Código: 401'));
+      expect(error!.replaceFirst('Código: 401 -', '').trim(), isNotEmpty);
+    });
+  }
+
+  //BK-02: esta clase siembra por PUT /clase/{codigo}/asistencia porque la ruta
+  //que usa la app ya no existe. Este caso conserva esa evidencia: antes la daba
+  //el fallo del setUpAll. Una lista vacia basta, la peticion no cambia datos
+  void diagnosticoRegistroDesdeLaApp(Conexionatenciones Function() crearConexion) {
+    String metodo = "Registrar asistencia";
+    String caso = "BUG BK-02 - la conexion de la app llega a una ruta que existe";
+    test('$capa - diagnostico - $metodo - $caso', () async {
+      final respuesta = await crearConexion().registrarAtencionesClase(
+        [],
+        _idClase,
+      );
+
+      expect(respuesta.codigoHttp, 200, reason: '${respuesta.error?.mensaje}');
     });
   }
 
@@ -280,12 +405,18 @@ class VmEstadisticasAsistenciaTest {
   }
 
   Future<void> _marcarAsistencia(Map<String, bool> marcas) async {
-    final respuesta = await _dio.post(
-      '/asistenciasClase',
-      queryParameters: {'idClase': _idClase},
-      data: [
-        for (final m in marcas.entries) {'idPerfil': m.key, 'asistio': m.value},
-      ],
+    //PUT /clase/{codigo}/asistencia: /asistenciasClase ya no existe (BK-02). El
+    //coordinador esta exento del plazo de registro; el resto del grupo queda
+    //como ausente
+    final respuesta = await _dio.put(
+      '/clase/$_idClase/asistencia',
+      data: {
+        'asistencias': [
+          for (final m in marcas.entries)
+            {'idPerfil': m.key, 'estaAtendido': m.value},
+        ],
+        'confirmaTodosAusentes': false,
+      },
     );
     expect(respuesta.statusCode, 200, reason: 'no se registro la asistencia');
   }

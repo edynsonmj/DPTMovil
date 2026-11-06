@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../dobles/conexionautenticacionFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //diagnostico del vm de la sesion con dobles (plan-diagnostico-autenticacion.md).
 //Afirman el comportamiento CORRECTO y se espera que salgan rojas mientras el
@@ -26,7 +27,7 @@ void main() {
     google = GoogleSignInFalso();
     vm = AutenticacionViewModel(
       Servicioautenticacion(
-        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
       ),
       google,
     )..perfilSesion = PerfilEntidad(

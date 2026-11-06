@@ -13,6 +13,8 @@ class GrupoModelo {
   //cerrar inscripciones. Null = nunca se abrio
   String? fechaInscripcionApertura;
   String? fechaInscripcionCierre;
+  //solo de salida: se cambia con PATCH /grupo/inscripciones
+  bool inscripcionesCerradasManual;
 
   //la clave del cierre en el json del backend lleva una errata (falta la
   //"s"): se aisla aqui para que el resto de la app use el nombre correcto
@@ -31,6 +33,7 @@ class GrupoModelo {
     this.idInstructor,
     this.fechaInscripcionApertura,
     this.fechaInscripcionCierre,
+    this.inscripcionesCerradasManual = false,
   });
 
   factory GrupoModelo.fromJson(dynamic json) {
@@ -50,6 +53,7 @@ class GrupoModelo {
               : null,
       fechaInscripcionApertura: json['fechaInscripcionApertura'],
       fechaInscripcionCierre: json[claveCierreInscripcion],
+      inscripcionesCerradasManual: json['inscripcionesCerradasManual'] ?? false,
     );
   }
 
@@ -65,6 +69,11 @@ class GrupoModelo {
       'fechaCreacion': fechaCreacion,
       //opcional en GrupoDto: sin fecha el POST queda como antes
       if (fechaFinalizacion != null) 'fechaFinalizacion': fechaFinalizacion,
+      if (fechaInscripcionApertura != null)
+        'fechaInscripcionApertura': fechaInscripcionApertura,
+      //el backend exige el cierre al crear un grupo (GC-0015)
+      if (fechaInscripcionCierre != null)
+        claveCierreInscripcion: fechaInscripcionCierre,
     };
   }
 }

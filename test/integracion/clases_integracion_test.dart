@@ -14,9 +14,12 @@ import 'package:dpt_movil/domain/servicios/servicioAlumno.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
+import 'package:dpt_movil/presentation/view/views/clase/claseFormulario.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import '../contratos/leerContrato.dart';
 import '../dobles/adaptadorHttpFalso.dart';
@@ -114,13 +117,54 @@ void main() {
         'idGrupoAnio': 2026,
         'idGrupoIterable': 1,
         'idInstructor': '2',
-        //el instante con zona, no la hora local sin ella (CL-06)
-        'fecha': fecha.toUtc().toIso8601String(),
+        //solo el dia elegido, sin hora ni zona: el backend recibe un LocalDate
+        'fecha': '2026-10-28',
         'horas': 2,
         'minutos': 0,
         'observacion': null,
         'eliminado': 0,
       });
+    });
+
+    //nacio de CL-07: en UTC, desde las 19:00 hora local ya es el dia siguiente
+    //y el backend rechaza la clase de hoy como futura
+    test('$capa - $tipo - Registrar clase - de noche sale el mismo dia local', () async {
+      adaptador.responder('POST', '/claseGrupo', 201);
+
+      await formulario().registrarClase(fecha: DateTime(2026, 10, 28, 23, 30), horasTexto: '2');
+
+      final cuerpo = adaptador.peticionesA('POST', '/claseGrupo').single.cuerpo as Map;
+      expect(cuerpo['fecha'], '2026-10-28');
+    });
+
+    //nacio como diagnostico de BK-08: el backend reutiliza la clase de esa
+    //fecha y responde 200 con ella, sin guardar las horas enviadas
+    test('$capa - $tipo - Registrar clase - un 200 con la clase existente es Exito y avisa que no se creo otra', () async {
+      adaptador.responder('POST', '/claseGrupo', 200, leerContrato('clases', 'claseGrupo_200_existente'));
+
+      final resultado = await formulario().registrarClase(fecha: DateTime(2026, 10, 22), horasTexto: '2');
+
+      expect(resultado, isA<Exito<bool>>());
+      expect((resultado as Exito<bool>).datos, isFalse);
+    });
+
+    test('$capa - $tipo - Registrar clase - un 201 dice que la clase es nueva', () async {
+      adaptador.responder('POST', '/claseGrupo', 201, leerContrato('clases', 'claseGrupo_200_existente'));
+
+      final resultado = await formulario().registrarClase(fecha: DateTime(2026, 10, 22), horasTexto: '2');
+
+      expect((resultado as Exito<bool>).datos, isTrue);
+    });
+
+    test('$capa - $tipo - Registrar clase - un 2xx que no es 200 ni 201 es Fallo con un mensaje legible', () async {
+      adaptador.responder('POST', '/claseGrupo', 202, {'codigo': 207});
+
+      final resultado = await formulario().registrarClase(fecha: DateTime(2026, 10, 22), horasTexto: '2');
+
+      expect(resultado, isA<Fallo>());
+      final fallo = resultado as Fallo;
+      expect(fallo.codigo, 202);
+      expect(fallo.mensaje, 'Respuesta inesperada del servidor. Código: 202');
     });
 
     test('$capa - $tipo - Registrar clase - un 400 del backend es Fallo con su codigo y sin red es 503', () async {
@@ -152,5 +196,54 @@ void main() {
     });
     //los casos rojos de este montaje estan en
     //test/diagnostico/clases/integracion_diagnostico_test.dart
+  });
+
+  group('Formulario de clase (pantalla → conexion real → transporte falso):', () {
+    Future<Future<Object?>> abrirFormulario(WidgetTester tester) async {
+      final navegador = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        MaterialApp(navigatorKey: navegador, home: const Scaffold()),
+      );
+      final retorno = navegador.currentState!.push<Object?>(
+        MaterialPageRoute(
+          builder:
+              (_) => ChangeNotifierProvider(
+                create: (_) => formulario(),
+                child: const Claseformulario(),
+              ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return retorno;
+    }
+
+    Future<void> guardar(WidgetTester tester) async {
+      await tester.enterText(find.byType(TextFormField), '2');
+      await tester.tap(find.text('GUARDAR'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('$capa - $tipo - Formulario de clase - la clase existente lo dice y vuelve con true para recargar', (tester) async {
+      adaptador.responder('POST', '/claseGrupo', 200, leerContrato('clases', 'claseGrupo_200_existente'));
+      final retorno = await abrirFormulario(tester);
+
+      await guardar(tester);
+
+      expect(find.text('Ya existía una clase en esa fecha; no se creó otra.'), findsOneWidget);
+      expect(find.text('Clase registrada'), findsNothing);
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(await retorno, isTrue);
+    });
+
+    testWidgets('$capa - $tipo - Formulario de clase - una clase nueva dice que se guardo', (tester) async {
+      adaptador.responder('POST', '/claseGrupo', 201, leerContrato('clases', 'claseGrupo_200_existente'));
+      await abrirFormulario(tester);
+
+      await guardar(tester);
+
+      expect(find.text('Clase registrada'), findsOneWidget);
+    });
   });
 }

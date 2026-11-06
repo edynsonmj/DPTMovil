@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
+import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
@@ -244,13 +245,26 @@ class _InscripcionesParticularesState
     );
   }
 
-  //abrir desde hoy y sin fecha limite; para fechas concretas esta Programar
-  void _confirmarAbrir(Grupoentidad grupo) {
+  //abrir desde hoy: el backend exige una fecha de cierre, asi que se pide
+  //antes de confirmar. Para una apertura futura esta Programar
+  Future<void> _confirmarAbrir(Grupoentidad grupo) async {
+    final cierre = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+      helpText: 'fecha de cierre de las inscripciones',
+    );
+    if (cierre == null || !mounted) return;
     _confirmar(
       titulo: 'Abrir Inscripciones',
       mensaje:
-          '¿Esta seguro de abrir desde hoy y sin fecha limite las inscripciones al grupo ${grupo.curso} ${grupo.anio}-${grupo.iterable}?',
-      accion: () => context.read<PeriodoInscripcionViewModel>().abrir(grupo),
+          '¿Esta seguro de abrir desde hoy y hasta el ${FormatDate.fechaACadena(cierre, '/')} las inscripciones al grupo ${grupo.curso} ${grupo.anio}-${grupo.iterable}?',
+      accion:
+          () => context.read<PeriodoInscripcionViewModel>().abrir(
+            grupo,
+            cierre: cierre,
+          ),
       exito: 'Las inscripciones del grupo quedaron abiertas.',
     );
   }
@@ -266,7 +280,7 @@ class _InscripcionesParticularesState
   }
 
   //rango de fechas: la apertura puede ser futura (queda programada) y el
-  //cierre es opcional. AlertFechas confirma el rango antes de devolverlo
+  //cierre es obligatorio. AlertFechas confirma el rango antes de devolverlo
   void _programar(Grupoentidad grupo) {
     showDialog(
       context: context,
@@ -274,7 +288,8 @@ class _InscripcionesParticularesState
         return AlertFechas(
           titulo: 'Inscripciones ${grupo.curso} ${grupo.anio}-${grupo.iterable}',
           contenido:
-              'Asigne al grupo una fecha de apertura y, si quiere, una de cierre para las inscripciones',
+              'Asigne al grupo una fecha de apertura y una de cierre para las inscripciones',
+          fechaFinalObligatoria: true,
           seleccionRango: (DateTime apertura, DateTime? cierre) {
             _ejecutar(
               () => context.read<PeriodoInscripcionViewModel>().abrir(

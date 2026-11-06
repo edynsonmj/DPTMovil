@@ -1,0 +1,13 @@
+[
+  {
+    "categoria": "Educación física",
+    "curso": "Natación nivel 1",
+    "anio": 2026,
+    "iterable": 1,
+    "periodo": 2,
+    "estado": "EN_ESPERA",
+    "nombreInstructor": "Instructor de prueba",
+    "grupoActivo": true,
+    "horarios": []
+  }
+]

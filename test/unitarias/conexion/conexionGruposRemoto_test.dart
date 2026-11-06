@@ -65,147 +65,105 @@ void main() {
       ]);
     });
 
-    test('$capa - $tipo - Abrir inscripciones - la llave del grupo va codificada en la query', () async {
-      adaptador.responder(
-        'PUT',
-        '/abrirInscripcionesGrupo',
-        200,
-        leerContrato('inscripciones', 'abrir_200'),
-      );
+    test('$capa - $tipo - Aplicar periodo - envia la llave del grupo y las fechas en el cuerpo y devuelve el grupo', () async {
+      adaptador.responder('PATCH', '/grupo/periodo', 200, leerContrato('inscripciones', 'periodo_200'));
 
-      //titulos con espacios, tilde, "&" y "+": lo que rompio AS-04 en
-      //atenciones
-      await conexion.abrirInscripciones(
+      final respuesta = await conexion.abrirInscripciones(
         'Fútbol & Voleibol',
         'Nivel 1 + avanzado',
         2026,
         3,
-        PeriodoInscripcionModelo(),
-      );
-
-      final peticion =
-          adaptador.peticionesA('PUT', '/abrirInscripcionesGrupo').single;
-      expect(peticion.uri.queryParameters, {
-        'categoria': 'Fútbol & Voleibol',
-        'curso': 'Nivel 1 + avanzado',
-        'anio': '2026',
-        'iterable': '3',
-      });
-    });
-
-    test('$capa - $tipo - Abrir inscripciones - envia el periodo y devuelve el grupo actualizado', () async {
-      adaptador.responder(
-        'PUT',
-        '/abrirInscripcionesGrupo',
-        200,
-        leerContrato('inscripciones', 'abrir_200'),
-      );
-
-      final respuesta = await abrir(
         PeriodoInscripcionModelo(apertura: '2026-10-29', cierre: '2026-11-30'),
       );
 
-      final peticion =
-          adaptador.peticionesA('PUT', '/abrirInscripcionesGrupo').single;
+      final peticion = adaptador.peticionesA('PATCH', '/grupo/periodo').single;
       expect(peticion.cuerpo, {
-        'fechaInscripcionApertura': '2026-10-29',
-        'fechaIncripcionCierre': '2026-11-30',
+        'fechaApertura': '2026-10-29',
+        'fechaCierre': '2026-11-30',
+        'grupos': [
+          {'categoria': 'Fútbol & Voleibol', 'curso': 'Nivel 1 + avanzado', 'anio': 2026, 'iterable': 3},
+        ],
       });
       expect(respuesta.codigoHttp, 200);
-      expect(respuesta.datos, isA<GrupoModelo>());
       final grupo = respuesta.datos as GrupoModelo;
       expect(grupo.iterable, 2);
       expect(grupo.fechaInscripcionApertura, '2026-10-29');
       expect(grupo.fechaInscripcionCierre, '2026-11-30');
     });
 
-    test('$capa - $tipo - Abrir inscripciones - sin fechas envia un cuerpo vacio', () async {
-      adaptador.responder(
-        'PUT',
-        '/abrirInscripcionesGrupo',
-        200,
-        leerContrato('inscripciones', 'abrir_200'),
-      );
+    test('$capa - $tipo - Aplicar periodo - sin apertura no la envia', () async {
+      adaptador.responder('PATCH', '/grupo/periodo', 200, leerContrato('inscripciones', 'periodo_200'));
 
-      await abrir(PeriodoInscripcionModelo());
+      await abrir(PeriodoInscripcionModelo(cierre: '2026-11-30'));
 
-      final peticion =
-          adaptador.peticionesA('PUT', '/abrirInscripcionesGrupo').single;
-      expect(peticion.cuerpo, isEmpty);
+      final cuerpo = adaptador.peticionesA('PATCH', '/grupo/periodo').single.cuerpo as Map;
+      expect(cuerpo.containsKey('fechaApertura'), isFalse);
+      expect(cuerpo['fechaCierre'], '2026-11-30');
     });
 
-    test('$capa - $tipo - Abrir inscripciones - 400 de fechas llega con el mensaje del backend', () async {
-      adaptador.responder(
-        'PUT',
-        '/abrirInscripcionesGrupo',
-        400,
-        leerContrato('inscripciones', 'abrir_400_cierre'),
-      );
+    test('$capa - $tipo - Aplicar periodo - 422 de fechas llega con el mensaje del backend', () async {
+      adaptador.responder('PATCH', '/grupo/periodo', 422, leerContrato('inscripciones', 'periodo_422_cierre'));
 
       final respuesta = await abrir(
-        PeriodoInscripcionModelo(apertura: '2026-11-10', cierre: '2026-11-01'),
+        PeriodoInscripcionModelo(apertura: '2026-11-25', cierre: '2026-11-05'),
       );
 
-      expect(respuesta.codigoHttp, 400);
-      expect(respuesta.error?.mensaje, contains('cierreValido'));
-      expect(respuesta.error?.metodo, 'PUT');
+      expect(respuesta.codigoHttp, 422);
+      expect(respuesta.error?.mensaje, contains('GC-0015'));
+      expect(respuesta.error?.metodo, 'PATCH');
     });
 
-    test('$capa - $tipo - Abrir inscripciones - 404 de grupo inexistente', () async {
-      adaptador.responder(
-        'PUT',
-        '/abrirInscripcionesGrupo',
-        404,
-        leerContrato('inscripciones', 'grupo_404'),
-      );
+    test('$capa - $tipo - Aplicar periodo - 404 de grupo inexistente', () async {
+      adaptador.responder('PATCH', '/grupo/periodo', 404, leerContrato('inscripciones', 'grupo_404'));
 
-      final respuesta = await abrir(PeriodoInscripcionModelo());
+      final respuesta = await abrir(PeriodoInscripcionModelo(cierre: '2026-11-30'));
 
       expect(respuesta.codigoHttp, 404);
       expect(respuesta.error?.mensaje, contains('GC-0003'));
     });
 
-    test('$capa - $tipo - Cerrar inscripciones - sin cuerpo y devuelve el grupo cerrado', () async {
-      adaptador.responder(
-        'PUT',
-        '/cerrarInscripcionesGrupo',
-        200,
-        leerContrato('inscripciones', 'cerrar_200'),
-      );
+    test('$capa - $tipo - Aplicar periodo - un 200 que no es una lista se devuelve como error, sin lanzar', () async {
+      //lo que en atenciones se escapaba como TypeError (AS-06)
+      adaptador.responder('PATCH', '/grupo/periodo', 200, {'inesperado': true});
+
+      final respuesta = await abrir(PeriodoInscripcionModelo(cierre: '2026-11-30'));
+
+      expect(respuesta.codigoHttp, isNot(200));
+      expect(respuesta.error, isNotNull);
+    });
+
+    test('$capa - $tipo - Cerrar inscripciones - va en la query con cerradas=true y devuelve el cierre manual', () async {
+      adaptador.responder('PATCH', '/grupo/inscripciones', 200, leerContrato('inscripciones', 'cerrarManual_200'));
 
       final respuesta = await cerrar();
 
-      final peticion =
-          adaptador.peticionesA('PUT', '/cerrarInscripcionesGrupo').single;
+      final peticion = adaptador.peticionesA('PATCH', '/grupo/inscripciones').single;
       expect(peticion.cuerpo, isNull);
       expect(peticion.uri.queryParameters['iterable'], '2');
-      expect(respuesta.codigoHttp, 200);
-      final grupo = respuesta.datos as GrupoModelo;
-      expect(grupo.fechaInscripcionCierre, '2026-10-28');
+      expect(peticion.uri.queryParameters['cerradas'], 'true');
+      expect((respuesta.datos as GrupoModelo).inscripcionesCerradasManual, isTrue);
+    });
+
+    test('$capa - $tipo - Reabrir inscripciones - va con cerradas=false y codifica la llave', () async {
+      adaptador.responder('PATCH', '/grupo/inscripciones', 200, leerContrato('inscripciones', 'abrir_200'));
+
+      await conexion.reabrirInscripciones('Fútbol & Voleibol', 'Nivel 1 + avanzado', 2026, 3);
+
+      expect(adaptador.peticionesA('PATCH', '/grupo/inscripciones').single.uri.queryParameters, {
+        'categoria': 'Fútbol & Voleibol',
+        'curso': 'Nivel 1 + avanzado',
+        'anio': '2026',
+        'iterable': '3',
+        'cerradas': 'false',
+      });
     });
 
     test('$capa - $tipo - Cerrar inscripciones - sin red responde 503', () async {
-      adaptador.fallar(
-        'PUT',
-        '/cerrarInscripcionesGrupo',
-        DioExceptionType.connectionError,
-      );
+      adaptador.fallar('PATCH', '/grupo/inscripciones', DioExceptionType.connectionError);
 
       final respuesta = await cerrar();
 
       expect(respuesta.codigoHttp, 503);
-    });
-
-    test('$capa - $tipo - Abrir inscripciones - un 200 que no es un grupo se devuelve como error, sin lanzar', () async {
-      //lo que en atenciones se escapaba como TypeError (AS-06)
-      adaptador.responder('PUT', '/abrirInscripcionesGrupo', 200, {
-        'inesperado': true,
-      });
-
-      final respuesta = await abrir(PeriodoInscripcionModelo());
-
-      expect(respuesta.codigoHttp, isNot(200));
-      expect(respuesta.error, isNotNull);
     });
   });
 }

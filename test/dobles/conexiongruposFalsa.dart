@@ -78,6 +78,7 @@ class ConexiongruposFalsa implements Conexiongrupos {
   //abrir y cerrar devuelven el grupo actualizado, como el backend
   RespuestaModelo respuestaAbrir = RespuestaModelo(codigoHttp: 200);
   RespuestaModelo respuestaCerrar = RespuestaModelo(codigoHttp: 200);
+  RespuestaModelo respuestaReabrir = RespuestaModelo(codigoHttp: 200);
 
   //grupo pedido, como "categoria/curso/anio/iterable"
   String? ultimoGrupoAbierto;
@@ -86,6 +87,7 @@ class ConexiongruposFalsa implements Conexiongrupos {
   int llamadasNoEliminados = 0;
   int llamadasAbrir = 0;
   int llamadasCerrar = 0;
+  int llamadasReabrir = 0;
 
   @override
   Future<RespuestaModelo> obtenerGruposNoEliminados() async {
@@ -117,5 +119,16 @@ class ConexiongruposFalsa implements Conexiongrupos {
     llamadasCerrar++;
     ultimoGrupoCerrado = '$categoria/$curso/$anio/$iterable';
     return respuestaCerrar;
+  }
+
+  @override
+  Future<RespuestaModelo> reabrirInscripciones(
+    String categoria,
+    String curso,
+    int anio,
+    int iterable,
+  ) async {
+    llamadasReabrir++;
+    return respuestaReabrir;
   }
 }

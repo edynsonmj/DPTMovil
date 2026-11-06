@@ -20,6 +20,7 @@ import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
 
 //diagnostico del modulo 3 contra el backend real (plan-diagnostico-
 //grupos.md): Gruposviewmodel y DetalleGrupoViewModel con su cadena real. El
@@ -99,7 +100,7 @@ class VmGrupoDiagnosticoTest {
         final g = vm.grupos.datos.firstWhere(
           (x) => x.categoria == c.tituloCategoria && x.curso == c.nombreCurso,
         );
-        expect(await crearVmPeriodo().abrir(g), isA<Exito>());
+        await abrirInscripcionesPruebas(g);
         return g;
       }
 
@@ -120,8 +121,7 @@ class VmGrupoDiagnosticoTest {
       _alumnoA = '${base}1';
       _alumnoB = '${base}2';
       for (final id in [_alumnoA, _alumnoB]) {
-        final RespuestaModelo registro = await servicioAutenticacion.registro(
-          PerfilEntidad(
+        final RespuestaModelo registro = await servicioAutenticacion.registro(await completarRegistro(PerfilEntidad(
             id: id,
             nombre: 'Alumno prueba $id',
             correo: 'prueba_$id@unicauca.edu.co',
@@ -129,8 +129,7 @@ class VmGrupoDiagnosticoTest {
             sexo: 'F',
             facultad: vmFacultades.facultades.first,
             tipoAlumno: 'Estudiante',
-          ),
-        );
+          )));
         expect(registro.codigoHttp, 201, reason: 'no se registro $id');
       }
       final vmInscripcion = crearVmInscripcion();
@@ -148,6 +147,7 @@ class VmGrupoDiagnosticoTest {
 
       final vmClase = crearVmClase();
       final ge = _grupoE!;
+      await sembrarHorariosSemana(ge);
       vmClase.inicializarGrupo(ge.categoria, ge.curso, ge.anio, ge.iterable, _idInstructor);
       expect(
         await vmClase.registrarClase(
@@ -231,10 +231,11 @@ class VmGrupoDiagnosticoTest {
   //No cambian datos
 
   //H-10: es la lista a la que se toma asistencia
-  void diagnosticoAlumnoDesvinculado(DetalleGrupoViewModel Function(Grupoentidad) crearVm) {
+  void prueba8AlumnoDesvinculado(DetalleGrupoViewModel Function(Grupoentidad) crearVm) {
     String metodo = "Pantalla del grupo";
-    String caso = "BUG GR-06 - los alumnos del grupo no incluyen al desvinculado";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    //antes diagnostico de GR-06: quedo en verde con el backend nuevo
+    String caso = "los alumnos del grupo no incluyen al desvinculado";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm(_grupoCreado());
       await vm.cargar();
 
@@ -301,6 +302,8 @@ class VmGrupoDiagnosticoTest {
           cupos: 10,
           idInstructor: _idInstructor,
           fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+          fechaInscripcionCierre: cierreInscripcionPruebas(),
+          fechaInscripcionApertura: aperturaFuturaPruebas(),
         ),
       );
       expect(sinCurso.codigoHttp, isNot(201), reason: 'curso: ${sinCurso.codigoHttp}');
@@ -315,6 +318,8 @@ class VmGrupoDiagnosticoTest {
           cupos: 10,
           idInstructor: 'noexiste$_marca',
           fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+          fechaInscripcionCierre: cierreInscripcionPruebas(),
+          fechaInscripcionApertura: aperturaFuturaPruebas(),
         ),
       );
       expect(
@@ -357,6 +362,8 @@ class VmGrupoDiagnosticoTest {
     cupos: cupos,
     idInstructor: _idInstructor,
     fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+    fechaInscripcionCierre: cierreInscripcionPruebas(),
+    fechaInscripcionApertura: aperturaFuturaPruebas(),
   );
 
   Inscripcionentidad _inscripcion(String alumnoId, Grupoentidad g) =>

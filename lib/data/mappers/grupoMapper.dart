@@ -18,6 +18,7 @@ class GrupoMapper {
       idInstructor: modelo.idInstructor,
       fechaInscripcionApertura: modelo.fechaInscripcionApertura,
       fechaInscripcionCierre: modelo.fechaInscripcionCierre,
+      inscripcionesCerradasManual: modelo.inscripcionesCerradasManual,
     );
   }
 
@@ -36,6 +37,7 @@ class GrupoMapper {
       idInstructor: entidad.idInstructor,
       fechaInscripcionApertura: entidad.fechaInscripcionApertura,
       fechaInscripcionCierre: entidad.fechaInscripcionCierre,
+      inscripcionesCerradasManual: entidad.inscripcionesCerradasManual,
     );
   }
 

@@ -36,6 +36,7 @@ import '../dobles/conexionclasesFalsa.dart';
 import '../dobles/conexiongruposFalsa.dart';
 import '../dobles/conexionhorariosFalsa.dart';
 import '../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //montaje compartido de la integracion local de la toma de asistencia (fase 5
 //del diagnostico). No es un test: lo usan test/integracion y
@@ -52,7 +53,7 @@ class MontajeAtenciones {
 
   late final AutenticacionViewModel sesion = AutenticacionViewModel(
     Servicioautenticacion(
-      Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+      Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
     ),
     GoogleSignInFalso(),
   );

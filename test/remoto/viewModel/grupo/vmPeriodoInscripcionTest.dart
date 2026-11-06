@@ -13,6 +13,7 @@ import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
 
 //abrir, programar y cerrar las inscripciones de un grupo contra el backend
 //real (plan de abrir inscripciones, fase 5). Se crea un grupo propio por
@@ -74,6 +75,8 @@ class VmPeriodoInscripcionTest {
           cupos: 20,
           idInstructor: vmInstructores.instructores.first.id,
           fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+          fechaInscripcionCierre: cierreInscripcionPruebas(),
+          fechaInscripcionApertura: aperturaFuturaPruebas(),
         ),
       );
       expect(grupo.codigoHttp, 201, reason: 'no se creo el grupo');
@@ -95,10 +98,12 @@ class VmPeriodoInscripcionTest {
     PeriodoInscripcionViewModel Function() crearVm,
     Gruposviewmodel Function() crearVmGrupos,
   ) {
-    String caso = "un grupo nuevo no tiene periodo ni es inscribible";
+    String caso = "un grupo nuevo con apertura futura esta programado y no es inscribible";
     test('$capa - $tipo - $metodo - $caso', () async {
+      //el backend exige el cierre al crear: ya no hay grupos nuevos sin
+      //periodo. La siembra pone una apertura futura
       final vm = crearVm();
-      expect(await _estadoEnBackend(vm), EstadoInscripcion.sinPeriodo);
+      expect(await _estadoEnBackend(vm), EstadoInscripcion.programada);
       expect(await _inscribible(crearVmGrupos()), isFalse);
     });
   }
@@ -107,17 +112,18 @@ class VmPeriodoInscripcionTest {
     PeriodoInscripcionViewModel Function() crearVm,
     Gruposviewmodel Function() crearVmGrupos,
   ) {
-    String caso = "abrir sin fechas lo abre desde hoy y sin limite";
+    String caso = "abrir sin apertura lo abre desde hoy hasta el cierre elegido";
     test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
+      final cierre = _hoy.add(const Duration(days: 15));
 
-      final resultado = await vm.abrir(_grupoCreado());
+      final resultado = await vm.abrir(_grupoCreado(), cierre: cierre);
       _imprimir(resultado);
 
       expect(resultado, isA<Exito<Grupoentidad>>());
       final grupo = (resultado as Exito<Grupoentidad>).datos!;
       expect(grupo.fechaInscripcionApertura, _texto(_hoy));
-      expect(grupo.fechaInscripcionCierre, isNull);
+      expect(grupo.fechaInscripcionCierre, _texto(cierre));
       expect(await _estadoEnBackend(vm), EstadoInscripcion.abierta);
       expect(await _inscribible(crearVmGrupos()), isTrue);
     });
@@ -170,7 +176,7 @@ class VmPeriodoInscripcionTest {
   void prueba5CierreAntesDeApertura(
     PeriodoInscripcionViewModel Function() crearVm,
   ) {
-    String caso = "un cierre anterior a la apertura es 400 y no cambia nada";
+    String caso = "un cierre anterior a la apertura es 422 y no cambia nada";
     test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
 
@@ -183,8 +189,8 @@ class VmPeriodoInscripcionTest {
 
       expect(resultado, isA<Fallo>());
       final fallo = resultado as Fallo;
-      expect(fallo.codigo, 400);
-      expect(fallo.mensaje, contains('cierreValido'));
+      expect(fallo.codigo, 422);
+      expect(fallo.mensaje, contains('GC-0015'));
       //sigue programado como lo dejo el caso anterior
       expect(await _estadoEnBackend(vm), EstadoInscripcion.programada);
     });
@@ -202,9 +208,29 @@ class VmPeriodoInscripcionTest {
       _imprimir(resultado);
 
       expect(resultado, isA<Exito<Grupoentidad>>());
+      expect((resultado as Exito<Grupoentidad>).datos!.inscripcionesCerradasManual, isTrue);
       expect(await _estadoEnBackend(vm), EstadoInscripcion.cerrada);
       expect(await _inscribible(crearVmGrupos()), isFalse);
+
+      //volver a abrir aplica el periodo y quita el cierre manual
+      final reabierto = await crearVm().abrir(
+        await _grupoRecargado(vm),
+        cierre: _hoy.add(const Duration(days: 15)),
+      );
+      _imprimir(reabierto);
+      expect(reabierto, isA<Exito<Grupoentidad>>());
+      expect(await _estadoEnBackend(vm), EstadoInscripcion.abierta);
+      expect(await _inscribible(crearVmGrupos()), isTrue);
+
+      //deja el grupo cerrado, como lo esperan los casos siguientes
+      expect(await crearVm().cerrar(_grupoCreado()), isA<Exito<Grupoentidad>>());
     });
+  }
+
+  Future<Grupoentidad> _grupoRecargado(PeriodoInscripcionViewModel vm) async {
+    await vm.cargar();
+    final g = _grupoCreado();
+    return vm.grupos.datos.firstWhere((x) => x.clave == g.clave);
   }
 
   void prueba7GrupoInexistente(PeriodoInscripcionViewModel Function() crearVm) {

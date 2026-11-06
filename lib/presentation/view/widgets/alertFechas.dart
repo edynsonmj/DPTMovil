@@ -6,12 +6,15 @@ class AlertFechas extends StatefulWidget {
   final Function(DateTime, DateTime?) seleccionRango;
   final String titulo;
   final String contenido;
+  //el backend exige el cierre: sin fecha final no se puede confirmar
+  final bool fechaFinalObligatoria;
 
   AlertFechas({
     super.key,
     required this.titulo,
     required this.contenido,
     required this.seleccionRango,
+    this.fechaFinalObligatoria = false,
   });
 
   @override
@@ -72,7 +75,8 @@ class _AlertFechasState extends State<AlertFechas> {
         ],
       ),
       actions: [
-        if (_fechaInicial != null)
+        if (_fechaInicial != null &&
+            (_fechaFinal != null || !widget.fechaFinalObligatoria))
           TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -128,7 +132,7 @@ class _AlertFechasState extends State<AlertFechas> {
               await _seleccionFecha(
                   context: context,
                   esInicial: false,
-                  fechaInicial: (_fechaFinal == null) ? null : _fechaFinal,
+                  fechaInicial: _fechaFinal ?? _fechaInicial ?? DateTime.now(),
                   primeraFecha: (_fechaInicial == null) ? null : _fechaInicial,
                   ultimaFecha: null);
             },

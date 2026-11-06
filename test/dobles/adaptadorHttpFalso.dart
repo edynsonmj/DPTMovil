@@ -11,8 +11,19 @@ class PeticionRegistrada {
   final String metodo;
   final Uri uri;
   final dynamic cuerpo;
+  //cabeceras con que salio (Authorization incluida, puesta por la conexion
+  //o por InterceptorToken)
+  final Map<String, dynamic> cabeceras;
 
-  PeticionRegistrada(this.metodo, this.uri, this.cuerpo);
+  PeticionRegistrada(this.metodo, this.uri, this.cuerpo, [this.cabeceras = const {}]);
+
+  //valor de Authorization, sin distinguir mayusculas en el nombre
+  String? get autorizacion {
+    for (final e in cabeceras.entries) {
+      if (e.key.toLowerCase() == 'authorization') return e.value?.toString();
+    }
+    return null;
+  }
 
   //ruta sin la base, como la escribe la conexion: '/asistenciasClase'
   String get ruta => uri.path.substring(AdaptadorHttpFalso._basePath.length);
@@ -72,6 +83,7 @@ class AdaptadorHttpFalso implements HttpClientAdapter {
       metodo,
       options.uri,
       await _leerCuerpo(requestStream),
+      Map<String, dynamic>.from(options.headers),
     );
     peticiones.add(peticion);
     final clave = _clave(metodo, peticion.ruta);

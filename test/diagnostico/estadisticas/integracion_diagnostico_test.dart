@@ -4,6 +4,7 @@ library;
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionEstadisticasRemoto.dart';
 import 'package:dpt_movil/data/repositories/estadisticasRepositorio.dart';
 import 'package:dpt_movil/domain/servicios/servicioEstadisticas.dart';
+import 'package:dpt_movil/presentation/view/views/estadisticas/estadisticasGeneralesView.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -97,6 +98,35 @@ void main() {
         'Una hora y cincuenta',
         'Una hora y diez',
       ]);
+    });
+
+    //forma observada el 2026-11-05: tres clases de 1 h 30 llegan como horas 3,
+    //minutos 90 y duracion 270. La grafica pinta `horas`: 3 en lugar de 4,5,
+    //y queda detras de un grupo de 4 h justas
+    test('$capa - $tipo - Cargar - BUG ES-06 - la grafica usa el tiempo total cuando los minutos pasan de 60', () async {
+      adaptador.responder('GET', '/estadisticas/categorias', 200, [
+        fila('Cuatro horas justas', 4, 0),
+        fila('Tres clases de 1 h 30', 3, 90),
+      ]);
+
+      await vm.cargar('2026-01-01', '2026-11-05');
+
+      final grafica = EstadisticasGeneralesView.formatoDatosCategorias(
+        vm.categorias.datos,
+      );
+      expect(grafica.first.leyenda, 'Tres clases de 1 h 30');
+      expect(grafica.first.indice2, 4.5);
+    });
+
+    //ES-07 contra el backend real en remoto_diagnostico_test.dart
+    test('$capa - $tipo - Cargar - BUG ES-07 - un 401 sin cuerpo deja un mensaje en la seccion', () async {
+      adaptador.responder('GET', '/estadisticas/categorias', 401, '');
+
+      await vm.cargar('2026-01-01', '2026-11-05');
+
+      final error = vm.categorias.error;
+      expect(error, startsWith('Código: 401'));
+      expect(error!.replaceFirst('Código: 401 -', '').trim(), isNotEmpty);
     });
   });
 }

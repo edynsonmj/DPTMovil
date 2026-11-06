@@ -1,4 +1,5 @@
 import 'package:dpt_movil/config/theme/color_tema.dart';
+import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formGrupoArgumentos.dart';
@@ -36,6 +37,8 @@ class _GrupoFormularioState extends State<Grupoformulario> {
   final _cuposController = TextEditingController();
 
   String? _idInstructor;
+  DateTime? _aperturaInscripcion;
+  DateTime? _cierreInscripcion;
 
   @override
   void initState() {
@@ -78,6 +81,7 @@ class _GrupoFormularioState extends State<Grupoformulario> {
               _infoCurso(),
               _inputCupos(),
               _selectInstructor(),
+              _inputFechasInscripcion(),
               _acciones(),
             ],
           ),
@@ -101,6 +105,62 @@ class _GrupoFormularioState extends State<Grupoformulario> {
         return null;
       },
     );
+  }
+
+  //sin apertura las inscripciones quedan abiertas desde que se crea el grupo
+  Widget _inputFechasInscripcion() {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12),
+      child: Column(
+        children: [
+          Text(
+            'Apertura de inscripciones (opcional)',
+            style: Tipografia.cuerpo1(),
+          ),
+          OutlinedButton(
+            onPressed:
+                () => _elegirFecha(
+                  _aperturaInscripcion,
+                  (fecha) => _aperturaInscripcion = fecha,
+                ),
+            child: Text(
+              _aperturaInscripcion == null
+                  ? 'Abrir al crear el grupo'
+                  : FormatDate.fechaACadena(_aperturaInscripcion!, '/'),
+            ),
+          ),
+          SizedBox(height: 12),
+          Text('Cierre de inscripciones', style: Tipografia.cuerpo1()),
+          OutlinedButton(
+            onPressed:
+                () => _elegirFecha(
+                  _cierreInscripcion,
+                  (fecha) => _cierreInscripcion = fecha,
+                ),
+            child: Text(
+              _cierreInscripcion == null
+                  ? 'Seleccionar fecha de cierre'
+                  : FormatDate.fechaACadena(_cierreInscripcion!, '/'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _elegirFecha(
+    DateTime? actual,
+    void Function(DateTime) asignar,
+  ) async {
+    final fecha = await showDatePicker(
+      context: context,
+      initialDate: actual ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+      helpText: 'seleccione una fecha',
+    );
+    if (fecha == null || !mounted) return;
+    setState(() => asignar(fecha));
   }
 
   Widget _selectInstructor() {
@@ -222,6 +282,8 @@ class _GrupoFormularioState extends State<Grupoformulario> {
         curso: _curso,
         cupos: _cuposController.text,
         idInstructor: _idInstructor,
+        aperturaInscripcion: _aperturaInscripcion,
+        cierreInscripcion: _cierreInscripcion,
         original: _esEdicion ? _grupo : null,
       );
       await _mostrarResultado(resultado);

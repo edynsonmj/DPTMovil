@@ -136,16 +136,20 @@ class _ClaseFormularioState extends State<Claseformulario> {
   }
 
   //el vm ya interpreto la respuesta: la vista solo decide que mostrar
-  Future<void> _mostrarResultado(Resultado<void> resultado) async {
+  Future<void> _mostrarResultado(Resultado<bool> resultado) async {
     if (!mounted) return;
     switch (resultado) {
-      case Exito():
+      case Exito(:final datos):
+        final bool nueva = datos ?? true;
         await showDialog(
           context: context,
           builder:
               (_) => DialogExito(
-                titulo: 'Clase registrada',
-                mensaje: 'La clase se ha guardado exitosamente.',
+                titulo: nueva ? 'Clase registrada' : 'Clase existente',
+                mensaje:
+                    nueva
+                        ? 'La clase se ha guardado exitosamente.'
+                        : 'Ya existía una clase en esa fecha; no se creó otra.',
               ),
         );
         //con true la pantalla del grupo recarga sus clases

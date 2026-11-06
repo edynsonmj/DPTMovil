@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/formatDate.dart';
+import 'package:dpt_movil/config/routes/roles.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
@@ -9,6 +11,7 @@ import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/inscripcionEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
+import 'package:dpt_movil/domain/servicios/servicioInscripcion.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
@@ -18,6 +21,8 @@ import 'package:dpt_movil/presentation/viewmodels/inscripcionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
+import '../../jwtPruebas.dart';
 
 //diagnostico del modulo 4 contra el backend real (plan-diagnostico-
 //inscripciones.md, 4.3): Inscripcionviewmodel → servicio → repositorio →
@@ -32,6 +37,11 @@ class VmInscripcionTest {
   late String _alumnoB;
   Grupoentidad? _grupo;
   Grupoentidad? _grupoCupoUno;
+  bool _porLimpiar = true;
+
+  //tiempo para que BK-09 no se mezcle con lo que prueba cada caso
+  static const Duration _pasaElSegundo = Duration(milliseconds: 1200);
+  static const String _baseUrl = 'http://localhost:8082/api/v2';
 
   void preparar({
     required CategoriaViewModel vmCategoria,
@@ -83,6 +93,8 @@ class VmInscripcionTest {
             cupos: cupos,
             idInstructor: idInstructor,
             fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+            fechaInscripcionCierre: cierreInscripcionPruebas(),
+            fechaInscripcionApertura: aperturaFuturaPruebas(),
           ),
         );
         expect(grupo.codigoHttp, 201, reason: 'no se creo el grupo de $cupos');
@@ -97,11 +109,7 @@ class VmInscripcionTest {
       _grupo = grupos.firstWhere((g) => g.cupos == 20);
       _grupoCupoUno = grupos.firstWhere((g) => g.cupos == 1);
       for (final g in grupos) {
-        expect(
-          await crearVmPeriodo().abrir(g),
-          isA<Exito>(),
-          reason: 'no se abrieron las inscripciones de ${g.clave}',
-        );
+        await abrirInscripcionesPruebas(g);
       }
 
       //dos alumnos con id numerico unico por corrida
@@ -112,8 +120,7 @@ class VmInscripcionTest {
       _alumnoA = '${base}1';
       _alumnoB = '${base}2';
       for (final id in [_alumnoA, _alumnoB]) {
-        RespuestaModelo registro = await servicioAutenticacion.registro(
-          PerfilEntidad(
+        RespuestaModelo registro = await servicioAutenticacion.registro(await completarRegistro(PerfilEntidad(
             id: id,
             nombre: 'Alumno prueba $id',
             correo: 'prueba_$id@unicauca.edu.co',
@@ -121,8 +128,7 @@ class VmInscripcionTest {
             sexo: 'F',
             facultad: vmFacultades.facultades.first,
             tipoAlumno: 'Estudiante',
-          ),
-        );
+          )));
         expect(registro.codigoHttp, 201, reason: 'no se registro el alumno $id');
       }
     });
@@ -186,17 +192,13 @@ class VmInscripcionTest {
     });
   }
 
-  //los dos casos siguientes salen rojos: son de diagnostico y solo los llama
-  //test/diagnostico/inscripciones/remoto_diagnostico_test.dart, no
-  //main_test.dart. Necesitan el setUpAll de esta clase, pero no el estado de
-  //los demas casos
-
-  //IN-13: el backend responde 404 con el cuerpo vacio y el vm arma el Fallo
-  //con ese cuerpo como mensaje
-  void diagnosticoMensajeDelRechazo(Inscripcionviewmodel Function() crearVm) {
+  //antes diagnostico de IN-13 (2026-10-29: 404 con el cuerpo vacio). El backend
+  //nuevo responde 404 GC-0003 con cuerpo; este caso quedo en verde sin tocar la
+  //app. Que el mensaje sea el JSON entero es IN-16
+  void prueba8MensajeDelRechazo(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Desvincular";
-    String caso = "BUG IN-13 - el rechazo trae un mensaje que la pantalla pueda mostrar";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "el rechazo trae un mensaje que la pantalla pueda mostrar";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
 
       final resultado = await vm.desvincularInscripcion(
@@ -207,6 +209,218 @@ class VmInscripcionTest {
       //DialogError pinta este texto: vacio, el alumno ve un error en blanco
       expect((resultado as Fallo).mensaje.trim(), isNotEmpty, reason: _texto(resultado));
     });
+  }
+
+  //los casos siguientes son de diagnostico contra el backend nuevo: solo los
+  //llama test/diagnostico/inscripciones/remoto_diagnostico_test.dart, no
+  //main_test.dart. Actuan con el JWT del alumno, como la pantalla, y cada uno
+  //parte de los dos alumnos fuera de sus grupos (sin depender del orden). Los
+  //grupos y alumnos salen del setUpAll
+
+  //BK-09: inscr_fechainscripcion no guarda fraccion de segundo y redondea
+  //hacia arriba: una inscripcion hecha en .500 o despues queda en el segundo
+  //siguiente y `fechaInscripcion <= CURRENT_TIMESTAMP` da falso hasta entonces.
+  //Por eso era intermitente; aqui se fija el momento del envio
+  void diagnosticoValidarTrasInscribir(Inscripcionviewmodel Function() crearVm) {
+    String metodo = "Inscribir";
+    test('$capa - diagnostico - $metodo - control BK-09 - enviada en la primera mitad del segundo, el boton queda en inscrito', () async {
+      await _comoAlumno(_alumnoA);
+      final vm = crearVm();
+      final inscripcion = _inscripcion(_alumnoA, _grupoCreado());
+
+      await _esperarFraccion(50, 350);
+      final resultado = await vm.agregarIncripcion(inscripcion);
+
+      expect(resultado, isA<Exito>(), reason: _texto(resultado));
+      expect(vm.estadoDe(_grupoCreado()).datos, isTrue);
+    });
+
+    test('$capa - diagnostico - $metodo - BUG BK-09 - enviada en la segunda mitad del segundo, el boton queda en inscrito', () async {
+      await _comoAlumno(_alumnoA);
+      final vm = crearVm();
+      final inscripcion = _inscripcion(_alumnoA, _grupoCreado());
+
+      await _esperarFraccion(600, 850);
+      final resultado = await vm.agregarIncripcion(inscripcion);
+
+      expect(resultado, isA<Exito>(), reason: _texto(resultado));
+      //en falso la tarjeta vuelve a Matricular, sin error (estadoDe.error null)
+      expect(vm.estadoDe(_grupoCreado()).datos, isTrue);
+    });
+  }
+
+  //BK-06: el 201 trae estado EN_ESPERA en el cuerpo y la conexion lo descarta
+  void diagnosticoListaDeEspera(
+    Inscripcionviewmodel Function() crearVm,
+    Servicioinscripcion Function() crearServicio,
+  ) {
+    String metodo = "Inscribir";
+    String caso = "BUG BK-06 - en un grupo lleno la respuesta dice que quedo EN_ESPERA";
+    test('$capa - diagnostico - $metodo - $caso', () async {
+      final grupo = _grupoUno();
+      await _comoAlumno(_alumnoA);
+      final primero = await crearVm().agregarIncripcion(_inscripcion(_alumnoA, grupo));
+      expect(primero, isA<Exito>(), reason: _texto(primero));
+
+      await _comoAlumno(_alumnoB);
+      final respuesta = await crearServicio().agregarInscripcion(
+        _inscripcion(_alumnoB, grupo),
+      );
+
+      expect(respuesta.codigoHttp, 201);
+      await Future.delayed(_pasaElSegundo);
+      expect(await crearVm().validarInscripcion(_inscripcion(_alumnoB, grupo)), isFalse);
+      expect('${respuesta.datos}', contains('EN_ESPERA'));
+    });
+  }
+
+  //IN-14: inscribir() reactiva por existsById sin mirar si la fila ya esta
+  //activa. Con el grupo lleno entra por la rama de lista de espera y pisa el
+  //estado INSCRITO. Con BK-09 el alumno ve Matricular justo despues de
+  //inscribirse, asi que puede repetir desde la pantalla
+  void diagnosticoRepetirConGrupoLleno(Inscripcionviewmodel Function() crearVm) {
+    String metodo = "Inscribir";
+    String caso = "BUG IN-14 - repetir con el grupo lleno no quita el cupo al alumno inscrito";
+    test('$capa - diagnostico - $metodo - $caso', () async {
+      final inscripcion = _inscripcion(_alumnoA, _grupoUno());
+      await _comoAlumno(_alumnoA);
+      final vm = crearVm();
+      expect(await vm.agregarIncripcion(inscripcion), isA<Exito>());
+      await Future.delayed(_pasaElSegundo);
+      expect(await vm.validarInscripcion(inscripcion), isTrue, reason: 'no quedo inscrito');
+
+      await vm.agregarIncripcion(inscripcion);
+      await Future.delayed(_pasaElSegundo);
+
+      expect(await vm.validarInscripcion(inscripcion), isTrue);
+    });
+  }
+
+  void diagnosticoRepetirYAlumnoInexistente(Inscripcionviewmodel Function() crearVm) {
+    String metodo = "Inscribir";
+    //con cupos entra por la misma rama de IN-14: responde 201 y reescribe la
+    //fecha de inscripcion de una fila activa
+    test('$capa - diagnostico - $metodo - BUG BK-07 - repetir la inscripcion activa es rechazado', () async {
+      final inscripcion = _inscripcion(_alumnoA, _grupoCreado());
+      await _comoAlumno(_alumnoA);
+      final vm = crearVm();
+      expect(await vm.agregarIncripcion(inscripcion), isA<Exito>());
+      await Future.delayed(_pasaElSegundo);
+
+      final segunda = await vm.agregarIncripcion(inscripcion);
+
+      expect(segunda, isA<Fallo>(), reason: _texto(segunda));
+    });
+
+    //solo llega con rol distinto de alumno: el alumno recibe 403 antes
+    test('$capa - diagnostico - $metodo - BUG BK-07 - un alumno inexistente es 404, no un 500 con la traza', () async {
+      actuarComoCoordinador();
+      final resultado = await crearVm().agregarIncripcion(
+        _inscripcion('000000000', _grupoCreado()),
+      );
+
+      expect(resultado, isA<Fallo>(), reason: _texto(resultado));
+      expect((resultado as Fallo).codigo, 404);
+    });
+  }
+
+  //IN-16: fromDioException pone la respuesta entera como mensaje (como IT-01)
+  void diagnosticoRechazoLegible(Inscripcionviewmodel Function() crearVm) {
+    String metodo = "Inscribir";
+    String caso = "BUG IN-16 - un grupo cerrado da el motivo, no el JSON de la respuesta";
+    test('$capa - diagnostico - $metodo - $caso', () async {
+      final g = _grupoCreado();
+      Future<void> cerrar(bool cerradas) async {
+        actuarComoCoordinador();
+        final r = await crearDioPruebas(_baseUrl).patch(
+          '/grupo/inscripciones',
+          queryParameters: {
+            'categoria': g.categoria,
+            'curso': g.curso,
+            'anio': g.anio,
+            'iterable': g.iterable,
+            'cerradas': cerradas,
+          },
+        );
+        expect(r.statusCode, 200);
+      }
+
+      await _comoAlumno(_alumnoA);
+      await cerrar(true);
+      addTearDown(() => cerrar(false));
+      await _comoAlumno(_alumnoA);
+
+      final resultado = await crearVm().agregarIncripcion(_inscripcion(_alumnoA, g));
+
+      expect(resultado, isA<Fallo>(), reason: _texto(resultado));
+      final fallo = resultado as Fallo;
+      expect(fallo.codigo, 422);
+      expect(fallo.mensaje, contains('cerradas'));
+      expect(fallo.mensaje, isNot(contains('codigoError')));
+    });
+  }
+
+  //IN-17: 401 con cuerpo vacio; es el mismo sintoma de IN-13 en otra respuesta.
+  //La app no renueva el token mientras esta abierta
+  void diagnosticoSesionVencida(Inscripcionviewmodel Function() crearVm) {
+    String metodo = "Inscribir";
+    String caso = "BUG IN-17 - con el token vencido el Fallo trae un mensaje";
+    test('$capa - diagnostico - $metodo - $caso', () async {
+      addTearDown(actuarComoCoordinador);
+      almacenPruebas.token = firmarJwtPrueba(
+        correo: 'alumno@prueba.test',
+        rol: Roles.alumno,
+        perfId: _alumnoA,
+        vigencia: const Duration(hours: -1),
+      );
+
+      final resultado = await crearVm().agregarIncripcion(
+        _inscripcion(_alumnoA, _grupoCreado()),
+      );
+
+      expect(resultado, isA<Fallo>(), reason: _texto(resultado));
+      final fallo = resultado as Fallo;
+      expect(fallo.codigo, 401);
+      expect(fallo.mensaje.trim(), isNotEmpty);
+    });
+  }
+
+  //deja a los dos alumnos fuera de los dos grupos, solo la primera vez en cada
+  //caso, y actua como [id]. Los rechazos se ignoran: puede no estar inscrito
+  Future<void> _comoAlumno(String id) async {
+    if (_porLimpiar) {
+      _porLimpiar = false;
+      addTearDown(() => _porLimpiar = true);
+      final dio = crearDioPruebas(_baseUrl);
+      actuarComoCoordinador();
+      for (final alumno in [_alumnoA, _alumnoB]) {
+        for (final g in [_grupoCreado(), _grupoUno()]) {
+          await dio.put(
+            '/desvincularInscripcion',
+            data: {
+              'alumnoId': alumno,
+              'categoria': g.categoria,
+              'curso': g.curso,
+              'anio': g.anio,
+              'iterable': g.iterable,
+            },
+            options: Options(validateStatus: (_) => true),
+          );
+        }
+      }
+    }
+    actuarComoAlumno(id);
+    addTearDown(actuarComoCoordinador);
+  }
+
+  //espera a que el reloj este entre [desde] y [hasta] ms dentro del segundo.
+  //El backend corre en esta maquina: el reloj es el mismo
+  Future<void> _esperarFraccion(int desde, int hasta) async {
+    while (true) {
+      final ms = DateTime.now().millisecond;
+      if (ms >= desde && ms < hasta) return;
+      await Future.delayed(const Duration(milliseconds: 5));
+    }
   }
 
   //H-07: cupo

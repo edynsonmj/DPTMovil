@@ -14,22 +14,61 @@ class GoogleSignInFalso extends Fake implements GoogleSignIn {
   //plugin) despues de contar la llamada
   Object? errorAlSalir;
 
+  //como el plugin real: despues de signOut, signInSilently ya no devuelve
+  //la cuenta hasta que se vuelva a elegir con signIn
+  bool _salio = false;
+
   @override
   Future<GoogleSignInAccount?> signInSilently({
     bool suppressErrors = true,
     bool reAuthenticate = false,
   }) async {
     llamadasSilencioso++;
-    return cuenta;
+    return _salio ? null : cuenta;
   }
 
   @override
-  Future<GoogleSignInAccount?> signIn() async => cuenta;
+  Future<GoogleSignInAccount?> signIn() async {
+    _salio = false;
+    return cuenta;
+  }
 
   @override
   Future<GoogleSignInAccount?> signOut() async {
     llamadasSalir++;
     if (errorAlSalir != null) throw errorAlSalir!;
+    _salio = true;
     return null;
   }
+}
+
+//cuenta de Google de prueba. idToken es lo que entregaria Google con el
+//serverClientId configurado; null = sin client ID web (Android no lo da)
+class CuentaGoogleFalsa extends Fake implements GoogleSignInAccount {
+  @override
+  final String email;
+  @override
+  final String? displayName;
+  final String? idToken;
+
+  CuentaGoogleFalsa({
+    required this.email,
+    this.displayName,
+    this.idToken = 'id-token-de-google',
+  });
+
+  @override
+  String? get photoUrl => null;
+
+  @override
+  Future<GoogleSignInAuthentication> get authentication async =>
+      _AutenticacionGoogleFalsa(idToken);
+}
+
+class _AutenticacionGoogleFalsa extends Fake
+    implements GoogleSignInAuthentication {
+  @override
+  final String? idToken;
+
+  _AutenticacionGoogleFalsa(this.idToken);
 }

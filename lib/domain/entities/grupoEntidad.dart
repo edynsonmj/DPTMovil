@@ -16,6 +16,8 @@ class Grupoentidad {
   //periodo de inscripcion (yyyy-MM-dd), null si nunca se abrio
   String? fechaInscripcionApertura;
   String? fechaInscripcionCierre;
+  //cierre a mano del coordinador: manda sobre las fechas
+  bool inscripcionesCerradasManual;
 
   Grupoentidad({
     required this.categoria,
@@ -30,6 +32,7 @@ class Grupoentidad {
     this.fechaFinalizacion,
     this.fechaInscripcionApertura,
     this.fechaInscripcionCierre,
+    this.inscripcionesCerradasManual = false,
   });
 
   //identifica al grupo (su llave en el backend). La usan los vms que guardan
@@ -40,15 +43,19 @@ class Grupoentidad {
   String get clave => claveDe(categoria, curso, anio, iterable);
 
   //estado de las inscripciones en el dia [hoy] (se recibe para poder
-  //probarlo sin depender del reloj). Misma regla que el backend en
-  //GET /gruposInscripcion; que el dia del cierre aun cuente como abierto se
-  //infiere de que "cerrar" deja el cierre en ayer
+  //probarlo sin depender del reloj). Misma regla que el backend
+  //(Grupo.estadoInscripcion): el cierre manual manda, sin apertura esta
+  //abierta desde siempre y el dia del cierre aun cuenta. Solo un grupo viejo,
+  //sin ninguna de las dos fechas, se muestra sin periodo
   EstadoInscripcion estadoInscripcion(DateTime hoy) {
+    if (inscripcionesCerradasManual) return EstadoInscripcion.cerrada;
     final apertura = _soloFecha(fechaInscripcionApertura);
-    if (apertura == null) return EstadoInscripcion.sinPeriodo;
-    final dia = DateTime(hoy.year, hoy.month, hoy.day);
-    if (apertura.isAfter(dia)) return EstadoInscripcion.programada;
     final cierre = _soloFecha(fechaInscripcionCierre);
+    if (apertura == null && cierre == null) return EstadoInscripcion.sinPeriodo;
+    final dia = DateTime(hoy.year, hoy.month, hoy.day);
+    if (apertura != null && apertura.isAfter(dia)) {
+      return EstadoInscripcion.programada;
+    }
     if (cierre != null && cierre.isBefore(dia)) {
       return EstadoInscripcion.cerrada;
     }

@@ -15,6 +15,8 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInscripcionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionInstructoresRemoto.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
+import 'package:dpt_movil/data/api/sesion/interceptorToken.dart';
 import 'package:dpt_movil/data/repositories/alumnosRepositorio.dart';
 import 'package:dpt_movil/data/repositories/atencionesRepositorio.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
@@ -56,7 +58,15 @@ import 'package:provider/single_child_widget.dart';
 //(la unica compartida) y los servicios de cada modulo migrado. Las
 //conexiones y repositorios 1:1 se construyen dentro del create del servicio
 List<SingleChildWidget> proveedoresDatos() => [
-  Provider<Dio>(create: (_) => crearClienteHttp()),
+  //JWT de la sesion: lo escribe el repositorio de autenticacion y el
+  //interceptor del Dio lo envia en cada peticion
+  Provider<AlmacenToken>(create: (_) => AlmacenToken()),
+  Provider<Dio>(
+    create:
+        (c) =>
+            crearClienteHttp()
+              ..interceptors.add(InterceptorToken(c.read<AlmacenToken>())),
+  ),
   //unica conexion compartida: la usan categoria, curso y Servicioimagen
   Provider<Conexionimagen>(
     create: (c) => Conexionimagenremoto(c.read<Dio>()),
@@ -150,6 +160,7 @@ List<SingleChildWidget> proveedoresDatos() => [
         (c) => Servicioautenticacion(
           Autenticacionrepositorio(
             conexion: Conexionautenticacionremoto(c.read<Dio>()),
+            almacenToken: c.read<AlmacenToken>(),
           ),
         ),
   ),
@@ -177,7 +188,10 @@ List<SingleChildWidget> vmsGlobales() => [
     create:
         (c) => AutenticacionViewModel(
           c.read<Servicioautenticacion>(),
-          GoogleSignIn(scopes: ['email', 'profile']),
+          GoogleSignIn(
+            scopes: ['email', 'profile'],
+            serverClientId: ConfigApi.googleServerClientId,
+          ),
         ),
   ),
 ];

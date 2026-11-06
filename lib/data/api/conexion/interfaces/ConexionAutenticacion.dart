@@ -5,4 +5,8 @@ abstract class Conexionautenticacion {
   Future<RespuestaModelo> login(String email);
 
   Future<RespuestaModelo> registro(Perfilmodelo modelo);
+
+  //cambia el ID Token de Google por el JWT del backend (POST /auth/token).
+  //200 → Tokenmodelo; 404 → el correo no esta registrado; 401 → token invalido
+  Future<RespuestaModelo> intercambiarToken(String idTokenGoogle);
 }

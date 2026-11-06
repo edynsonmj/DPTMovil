@@ -1,3 +1,4 @@
+import 'package:dpt_movil/config/formatDate.dart';
 import 'package:dpt_movil/data/mappers/claseMapper.dart';
 import 'package:dpt_movil/data/models/claseModelo.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
@@ -29,7 +30,7 @@ void main() {
       expect(entidad.eliminado, 0);
     });
 
-    test('$capa - $tipo - aModelo - el json enviado lleva la fecha con zona', () {
+    test('$capa - $tipo - aModelo - el json enviado lleva solo el dia local', () {
       final fecha = DateTime(2026, 10, 26);
 
       final modelo = ClaseMapper.aModelo(
@@ -54,7 +55,7 @@ void main() {
         'idGrupoAnio': 2026,
         'idGrupoIterable': 1,
         'idInstructor': '2',
-        'fecha': fecha.toUtc().toIso8601String(),
+        'fecha': FormatDate.fechaACadena(fecha, '-'),
         'horas': 2,
         'minutos': 30,
         'observacion': 'Obs',

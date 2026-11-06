@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:dpt_movil/presentation/view/widgets/imagenRemota.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
@@ -78,7 +79,7 @@ class Tarjeta extends StatelessWidget {
                 width: double.infinity,
                 child: path == null
                 ? Image.asset('assets/images/1.jpg', fit: BoxFit.cover)
-                : Image.network(
+                : ImagenRemota(
                   path,
                   fit: BoxFit.cover,
                   loadingBuilder:

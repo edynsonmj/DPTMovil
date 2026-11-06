@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import '../../dobles/conexionatencionesFalsa.dart';
 import '../../dobles/conexionautenticacionFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //widget test de la pantalla de una clase (fase 5): el backend aun no tiene
 //los endpoints de atenciones, asi que esta es la unica forma de ver la
@@ -61,7 +62,7 @@ void main() {
                 (_) => AutenticacionViewModel(
                   Servicioautenticacion(
                     Autenticacionrepositorio(
-                      conexion: ConexionautenticacionFalsa(),
+                      conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken(),
                     ),
                   ),
                   GoogleSignInFalso(),
@@ -135,7 +136,7 @@ void main() {
                 (_) => AutenticacionViewModel(
                   Servicioautenticacion(
                     Autenticacionrepositorio(
-                      conexion: ConexionautenticacionFalsa(),
+                      conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken(),
                     ),
                   ),
                   GoogleSignInFalso(),

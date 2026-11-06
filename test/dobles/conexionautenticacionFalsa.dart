@@ -8,12 +8,15 @@ class ConexionautenticacionFalsa implements Conexionautenticacion {
   //respuesta que devuelve cada metodo; el test la fija antes de actuar
   RespuestaModelo respuestaLogin = RespuestaModelo(codigoHttp: 404);
   RespuestaModelo respuestaRegistro = RespuestaModelo(codigoHttp: 201);
+  RespuestaModelo respuestaToken = RespuestaModelo(codigoHttp: 404);
 
   //lo que recibio, para comprobar que el repositorio armo bien la peticion
   String? ultimoCorreo;
   Perfilmodelo? ultimoRegistro;
   int llamadasLogin = 0;
   int llamadasRegistro = 0;
+  String? ultimoIdToken;
+  int llamadasToken = 0;
 
 
   @override
@@ -28,5 +31,12 @@ class ConexionautenticacionFalsa implements Conexionautenticacion {
     llamadasRegistro++;
     ultimoRegistro = modelo;
     return respuestaRegistro;
+  }
+
+  @override
+  Future<RespuestaModelo> intercambiarToken(String idTokenGoogle) async {
+    llamadasToken++;
+    ultimoIdToken = idTokenGoogle;
+    return respuestaToken;
   }
 }

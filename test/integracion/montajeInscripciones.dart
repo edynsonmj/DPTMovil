@@ -21,6 +21,7 @@ import '../dobles/adaptadorHttpFalso.dart';
 import '../dobles/conexionCategoriaFalsa.dart';
 import '../dobles/conexionautenticacionFalsa.dart';
 import '../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //montaje compartido de las pantallas de inscripciones del coordinador (plan
 //de abrir inscripciones, fase 1 en adelante). No es un test: lo usan
@@ -50,7 +51,7 @@ class MontajeInscripciones {
 
   late final AutenticacionViewModel sesion = AutenticacionViewModel(
     Servicioautenticacion(
-      Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+      Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
     ),
     GoogleSignInFalso(),
   )..perfilSesion = PerfilEntidad(
@@ -70,16 +71,16 @@ class MontajeInscripciones {
       leerContrato('inscripciones', 'gruposNoEliminados_200'),
     );
     adaptador.responder(
-      'PUT',
-      '/abrirInscripcionesGrupo',
+      'PATCH',
+      '/grupo/periodo',
       200,
-      leerContrato('inscripciones', 'abrir_200'),
+      leerContrato('inscripciones', 'periodo_200'),
     );
     adaptador.responder(
-      'PUT',
-      '/cerrarInscripcionesGrupo',
+      'PATCH',
+      '/grupo/inscripciones',
       200,
-      leerContrato('inscripciones', 'cerrar_200'),
+      leerContrato('inscripciones', 'cerrarManual_200'),
     );
   }
 

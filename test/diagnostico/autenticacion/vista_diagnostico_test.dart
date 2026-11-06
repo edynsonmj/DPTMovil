@@ -8,7 +8,6 @@ import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionVie
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../contratos/leerContrato.dart';
 import '../../integracion/montajeAutenticacion.dart';
 
 //diagnostico del inicio de sesion y el registro con el menu lateral y las
@@ -72,27 +71,6 @@ void main() {
     });
 
     //GUARDAR no se deshabilita mientras la peticion esta en curso
-    testWidgets('$capa - $tipo - Registro - BUG AU-07 - dos toques en GUARDAR envian un solo registro', (tester) async {
-      final retenida = m.adaptador.retener('POST', '/RegistroPerfilAlumno');
-      m.adaptador.responder('POST', '/RegistroPerfilAlumno', 201, leerContrato('autenticacion', 'registro_201'));
-      await abrirRegistro(tester);
-      await m.llenarRegistro(tester);
-
-      await tester.tap(find.text('GUARDAR'));
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.tap(find.text('GUARDAR'), warnIfMissed: false);
-      await tester.pump(const Duration(milliseconds: 100));
-      //ambas pasaron por Dio y esperan en el transporte retenido
-      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
-      await tester.pump();
-      final enviadas = m.adaptador.peticionesA('POST', '/RegistroPerfilAlumno').length;
-      retenida.complete();
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pumpAndSettle();
-
-      expect(enviadas, 1);
-    });
   });
 
   group('Inicio de sesion (diagnostico del menu lateral):', () {

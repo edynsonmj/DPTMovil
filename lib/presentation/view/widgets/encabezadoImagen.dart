@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:dpt_movil/presentation/view/widgets/imagenRemota.dart';
 import 'package:flutter/material.dart';
 
 class EncabezadoImagen extends StatelessWidget {
@@ -12,7 +13,7 @@ class EncabezadoImagen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (urlImagen != null && urlImagen!.isNotEmpty) {
-      return Image.network(
+      return ImagenRemota(
         urlImagen!,
         height: 200,
         width: MediaQuery.of(context).size.width,

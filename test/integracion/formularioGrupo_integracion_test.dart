@@ -22,6 +22,7 @@ import '../contratos/leerContrato.dart';
 import '../dobles/adaptadorHttpFalso.dart';
 import '../dobles/conexionautenticacionFalsa.dart';
 import '../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //formulario de alta de grupo de punta a punta sin backend: la ruta real
 //(AppRutas.grupoFormulario) con las cadenas reales de grupos e instructores
@@ -61,7 +62,7 @@ void main() {
     final dio = crearDioFalso(adaptador);
     final sesion = AutenticacionViewModel(
       Servicioautenticacion(
-        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+        Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
       ),
       GoogleSignInFalso(),
     );
@@ -108,6 +109,15 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  //el backend exige el cierre: se acepta el dia que propone el selector (hoy)
+  Future<void> elegirCierre(WidgetTester tester) async {
+    await tester.ensureVisible(find.text('Seleccionar fecha de cierre'));
+    await tester.tap(find.text('Seleccionar fecha de cierre'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+  }
+
   Future<void> guardar(WidgetTester tester) async {
     await tester.ensureVisible(find.text('GUARDAR'));
     await tester.tap(find.text('GUARDAR'));
@@ -130,10 +140,14 @@ void main() {
       await abrirFormulario(tester);
       await tester.enterText(find.widgetWithText(TextFormField, 'Cupos del grupo'), '25');
       await elegirInstructor(tester);
+      await elegirCierre(tester);
 
       await guardar(tester);
 
       final cuerpo = adaptador.peticionesA('POST', '/grupo').single.cuerpo as Map;
+      //sin apertura elegida no se envia: las inscripciones abren al crear
+      expect(cuerpo['fechaIncripcionCierre'], FormatDate.fechaACadena(DateTime.now(), '-'));
+      expect(cuerpo.containsKey('fechaInscripcionApertura'), isFalse);
       expect(
         (cuerpo['categoria'], cuerpo['curso'], cuerpo['cupos'], cuerpo['idInstructor'], cuerpo['imagenGrupo']),
         ('Categoria Fase 4', 'Curso Categoria Fase 4', 25, '2', 1197),
@@ -152,6 +166,7 @@ void main() {
       await abrirFormulario(tester);
       await tester.enterText(find.widgetWithText(TextFormField, 'Cupos del grupo'), '25');
       await elegirInstructor(tester);
+      await elegirCierre(tester);
 
       await guardar(tester);
 
@@ -174,6 +189,17 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.byType(DialogError), findsOneWidget);
+      expect(adaptador.peticionesA('POST', '/grupo'), isEmpty);
+    });
+
+    testWidgets('$capa - $tipo - Agregar grupo - sin fecha de cierre avisa y no envia nada', (tester) async {
+      await abrirFormulario(tester);
+      await tester.enterText(find.widgetWithText(TextFormField, 'Cupos del grupo'), '25');
+      await elegirInstructor(tester);
+
+      await guardar(tester);
+
+      expect(find.textContaining('fecha de cierre'), findsWidgets);
       expect(adaptador.peticionesA('POST', '/grupo'), isEmpty);
     });
 

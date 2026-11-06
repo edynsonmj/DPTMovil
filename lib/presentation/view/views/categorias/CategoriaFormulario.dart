@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogExito.dart';
+import 'package:dpt_movil/presentation/view/widgets/imagenRemota.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
@@ -283,10 +284,10 @@ class _CategoriaFormularioState extends State<CategoriaFormulario> {
     if (_categoria?.idImagen == null && _imagen == null) {
       return Text('No se ha seleccionado ninguna imagen');
     }
-    Image img;
+    Widget img;
     //Si hay imagen en a cargar
     if (_categoria?.idImagen != null && _imagen == null) {
-      img = Image.network(
+      img = ImagenRemota(
         _viewModel.urlImagen(_categoria!.idImagen!),
         fit: BoxFit.cover,
       );

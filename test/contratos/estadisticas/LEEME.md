@@ -5,6 +5,7 @@
 - Los números llegan siempre como `double` (`1.0`, `0.0`).
 - `leyenda1` a `leyenda4` son, según la ruta, la categoría, el curso, el año y el iterable; las leyendas que no usa la ruta llegan como `null`.
 - `duracion` es el total en minutos, y `horas` y `minutos` son su desglose (`horas × 60 + minutos == duracion`).
+- **Observado el 2026-11-05:** `minutos` no se pasa a horas. Tres clases de 1 h 30 llegan como `horas: 3.0`, `minutos: 90.0`, `duracion: 270.0` (ES-06). La igualdad de arriba se cumple, pero `minutos` puede pasar de 59.
 
 Plan: `auditoria-mvvm/plan-diagnostico-estadisticas.md`.
 

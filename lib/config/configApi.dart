@@ -10,6 +10,16 @@ class ConfigApi {
   );
   static const int puerto = 8082;
   static const String baseUrl = 'http://$host:$puerto/api/v2';
+
+  //client ID web de Google Cloud (mismo proyecto que el cliente Android de
+  //co.edu.unicauca.dpt_movil). Sin el, Android no entrega el ID Token que
+  //pide POST /auth/token. No es secreto; se cambia con
+  //--dart-define=GOOGLE_SERVER_CLIENT_ID=...
+  static const String googleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue:
+        '612503201417-n3nfshmljq67fssjfrm2o3p9g040avsi.apps.googleusercontent.com',
+  );
 }
 
 //cliente http que comparten las conexiones migradas. La raiz lo crea con

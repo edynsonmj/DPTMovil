@@ -1,10 +1,15 @@
 @Tags(['diagnostico'])
 library;
 
+import 'package:dpt_movil/data/api/conexion/remoto/ConexionAtencionesRemoto.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../main_test.dart'
-    show crearEstadisticasViewModel, prepararVmEstadisticasAsistencia;
+    show
+        baseUrlPruebas,
+        crearEstadisticasViewModel,
+        prepararVmEstadisticasAsistencia;
+import '../../remoto/jwtPruebas.dart';
 import '../../remoto/viewModel/estadisticas/vmEstadisticasAsistenciaTest.dart';
 
 //diagnostico de las estadisticas contra el BACKEND REAL
@@ -16,6 +21,10 @@ void main() {
   group('Estadisticas con asistencias remotas (diagnostico):', () {
     VmEstadisticasAsistenciaTest test = VmEstadisticasAsistenciaTest();
     prepararVmEstadisticasAsistencia(test);
-    test.diagnosticoUltimoDiaDelRango(crearEstadisticasViewModel);
+    test.diagnosticoMinutosAcumulados(crearEstadisticasViewModel);
+    test.diagnosticoSesionVencida(crearEstadisticasViewModel);
+    test.diagnosticoRegistroDesdeLaApp(
+      () => Conexionatencionesremoto(crearDioPruebas(baseUrlPruebas)),
+    );
   });
 }

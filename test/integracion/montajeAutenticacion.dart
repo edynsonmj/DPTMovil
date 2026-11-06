@@ -1,7 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:dpt_movil/config/routes/route_generator.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionFacultadRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
+import 'package:dpt_movil/data/api/sesion/interceptorToken.dart';
 import 'package:dpt_movil/data/models/categoriaModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
@@ -31,11 +34,18 @@ import '../dobles/googleSignInFalso.dart';
 //Rutas reales de route_generator y el menu lateral real. La sesion es el
 //AutenticacionViewModel real hasta Conexionautenticacionremoto sobre el
 //transporte falso; las facultades del registro y los grupos de inscripciones
-//del coordinador tambien van por su cadena real. Las categorias (la pantalla
+//del coordinador tambien van por su cadena real, sobre el mismo Dio con
+//InterceptorToken. Las categorias (la pantalla
 //a la que lleva cerrar sesion) van con su doble
 class MontajeAutenticacion {
   final AdaptadorHttpFalso adaptador = AdaptadorHttpFalso();
   final GoogleSignInFalso google = GoogleSignInFalso();
+
+  //como la raiz: un solo almacen del JWT y un Dio que lo envia en cada
+  //peticion, compartido por todas las conexiones del montaje
+  final AlmacenToken almacenToken = AlmacenToken();
+  late final Dio dio =
+      crearDioFalso(adaptador)..interceptors.add(InterceptorToken(almacenToken));
 
   final ConexionCategoriaFalsa conexionCategorias =
       ConexionCategoriaFalsa()
@@ -47,7 +57,8 @@ class MontajeAutenticacion {
   late final AutenticacionViewModel sesion = AutenticacionViewModel(
     Servicioautenticacion(
       Autenticacionrepositorio(
-        conexion: Conexionautenticacionremoto(crearDioFalso(adaptador)),
+        conexion: Conexionautenticacionremoto(dio),
+        almacenToken: almacenToken,
       ),
     ),
     google,
@@ -59,6 +70,12 @@ class MontajeAutenticacion {
       '/facultades',
       200,
       leerContrato('facultades', 'facultades_200'),
+    );
+    adaptador.responder(
+      'GET',
+      '/programas',
+      200,
+      leerContrato('programas', 'programas_200'),
     );
     adaptador.responder(
       'GET',
@@ -89,7 +106,7 @@ class MontajeAutenticacion {
             create:
                 (_) => Serviciofacultades(
                   Facultadesrepositorio(
-                    conexion: Conexionfacultadremoto(crearDioFalso(adaptador)),
+                    conexion: Conexionfacultadremoto(dio),
                   ),
                 ),
           ),
@@ -97,7 +114,7 @@ class MontajeAutenticacion {
             create:
                 (_) => Serviciogrupo(
                   Gruporepositorio(
-                    conexion: Conexiongruposremoto(crearDioFalso(adaptador)),
+                    conexion: Conexiongruposremoto(dio),
                   ),
                 ),
           ),
@@ -147,6 +164,16 @@ class MontajeAutenticacion {
     await tester.pumpAndSettle();
   }
 
+  //menu lateral → "Iniciar sesion" → "Continuar con Google"; la cuenta y su
+  //ID Token salen de google.cuenta
+  Future<void> iniciarSesionConGoogle(WidgetTester tester) async {
+    await abrirMenu(tester);
+    await tester.tap(find.text('Iniciar sesion'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continuar con Google'));
+    await tester.pumpAndSettle();
+  }
+
   //elige una opcion de un DropdownMenu del registro por su texto de ayuda
   Future<void> elegir(WidgetTester tester, String ayuda, String opcion) async {
     final menu = find.ancestor(
@@ -176,6 +203,11 @@ class MontajeAutenticacion {
     await elegir(tester, 'Selecciona tu tipo de identificacion', 'CC');
     await elegir(tester, 'Selecciona tu sexo', 'M');
     await elegir(tester, 'Estas vinculado a la universidad como:', 'Estudiante');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Codigo institucional'),
+      '104619021',
+    );
     await elegir(tester, 'Selecciona tu facultad', 'fiet');
+    await elegir(tester, 'Selecciona tu programa academico', 'Artes Plásticas');
   }
 }

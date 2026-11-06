@@ -25,6 +25,7 @@ import '../../dobles/conexionautenticacionFalsa.dart';
 import '../../dobles/conexionclasesFalsa.dart';
 import '../../dobles/conexionhorariosFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //widget test de la pantalla de un grupo (fase 4c): se monta con el mismo vm
 //que crea la ruta, armado con dobles. Comprueba que cada seccion pinta lo
@@ -93,7 +94,7 @@ void main() {
                 (_) => AutenticacionViewModel(
                   Servicioautenticacion(
                     Autenticacionrepositorio(
-                      conexion: ConexionautenticacionFalsa(),
+                      conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken(),
                     ),
                   ),
                   GoogleSignInFalso(),

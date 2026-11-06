@@ -1,0 +1,7 @@
+{
+  "codigoError": "GC-0012",
+  "mensaje": "Las inscripciones de este curso estan cerradas, Las inscripciones de este grupo estan cerradas",
+  "codigoHttp": 422,
+  "url": "http://localhost:8082/api/v2/inscripcion",
+  "metodo": "POST"
+}

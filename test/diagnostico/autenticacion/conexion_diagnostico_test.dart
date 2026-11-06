@@ -42,14 +42,6 @@ void main() {
     }
 
     //Perfilmodelo.fromJson no lee facultad: la sesion nunca la conoce
-    test('$capa - $tipo - Login - BUG AU-02 - la facultad del perfil llega al modelo', () async {
-      adaptador.responder('GET', '/login', 200, loginDelContrato());
-
-      final respuesta = await conexion.login('ana@unicauca.edu.co');
-
-      expect((respuesta.datos as Perfilmodelo).facultad, 'fiet');
-    });
-
     //fromJson lanza TypeError (un Error, no una Exception) y la conexion
     //solo captura Exception: atraviesa repositorio y vm hasta el onTap del
     //menu (mismo caso que AL-04)

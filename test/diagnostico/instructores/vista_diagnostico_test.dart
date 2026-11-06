@@ -19,6 +19,7 @@ import 'package:provider/provider.dart';
 import '../../dobles/conexionautenticacionFalsa.dart';
 import '../../dobles/conexioninstructoresFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //diagnostico de la pantalla "Instructores" del menu del coordinador (plan-
 //diagnostico-instructores-facultades.md, H-07): la ruta real de
@@ -43,7 +44,7 @@ void main() {
   //como el menu lateral del coordinador: un boton abre la ruta
   Future<void> abrirInstructores(WidgetTester tester) async {
     final sesion = AutenticacionViewModel(
-      Servicioautenticacion(Autenticacionrepositorio(conexion: ConexionautenticacionFalsa())),
+      Servicioautenticacion(Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken())),
       GoogleSignInFalso(),
     )..perfilSesion = PerfilEntidad(
       id: 'coo1',

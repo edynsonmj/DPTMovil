@@ -65,10 +65,10 @@ class VmEliminarCategoriaTest {
       final categoriasAntes = vm.categorias;
       Resultado<void> resultado = await vm.eliminarCategoria("");
       _imprimirRespuesta(resultado);
-      //el DELETE no valida el titulo vacio como hace el POST: lo trata como
-      //un titulo mas que no existe y responde 404, no 400
+      //backend nuevo (2026-11-05): el DELETE ya valida el titulo vacio y
+      //responde 400; antes lo trataba como inexistente (404)
       expect(resultado, isA<Fallo>());
-      expect((resultado as Fallo).codigo, 404);
+      expect((resultado as Fallo).codigo, 400);
       expect(resultado.mensaje, isNotEmpty);
       expect(identical(vm.categorias, categoriasAntes), isTrue);
     });

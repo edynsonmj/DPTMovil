@@ -31,7 +31,7 @@ class RespuestaModelo {
           datos: null,
           error: ErrorModelo(
             codigoHttp: 400,
-            mensaje: response.data,
+            mensaje: _textoDe(response),
             url: url,
             metodo: metodo,
           ),
@@ -42,7 +42,7 @@ class RespuestaModelo {
           datos: null,
           error: ErrorModelo(
             codigoHttp: 409,
-            mensaje: response.data,
+            mensaje: _textoDe(response),
             url: url,
             metodo: metodo,
           ),
@@ -53,7 +53,7 @@ class RespuestaModelo {
           datos: null,
           error: ErrorModelo(
             codigoHttp: 500,
-            mensaje: response.data,
+            mensaje: _textoDe(response),
             url: url,
             metodo: metodo,
           ),
@@ -77,13 +77,22 @@ class RespuestaModelo {
           datos: null,
           error: ErrorModelo(
             codigoHttp: 0,
-            mensaje: response.data,
+            mensaje: _textoDe(response),
             url: url,
             metodo: metodo,
           ),
         );
     }
   }
+  //el cuerpo de una respuesta no siempre es texto: un 2xx inesperado suele
+  //traer un Map, que como mensaje lanzaba un TypeError (CAT-07, BK-08)
+  static String _textoDe(Response<dynamic> response) {
+    final datos = response.data;
+    return datos is String
+        ? datos
+        : 'Respuesta inesperada del servidor. Código: ${response.statusCode}';
+  }
+
   factory RespuestaModelo.fromDioException(
     DioException excepcion,
     String metodo,

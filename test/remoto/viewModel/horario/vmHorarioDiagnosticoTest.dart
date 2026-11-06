@@ -15,6 +15,7 @@ import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:dpt_movil/presentation/viewmodels/periodoInscripcionViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
 
 //diagnostico del modulo 6 contra el backend real (plan-diagnostico-
 //horarios.md). El setUpAll crea un grupo nuevo por corrida; las pruebas 1 a 3
@@ -76,6 +77,8 @@ class VmHorarioDiagnosticoTest {
           cupos: 20,
           idInstructor: vmInstructores.instructores.first.id,
           fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+          fechaInscripcionCierre: cierreInscripcionPruebas(),
+          fechaInscripcionApertura: aperturaFuturaPruebas(),
         ),
       );
       expect(g.codigoHttp, 201);
@@ -185,8 +188,8 @@ class VmHorarioDiagnosticoTest {
       final id = await _crear(g, {'dia': 'Martes', 'horaInicio': '06:00', 'horaFin': '07:00', 'escenario': 'Cancha 1'});
       final r = await _dio.put(
         '/horario',
-        queryParameters: {'id': id},
-        data: {'dia': 'Viernes', 'horaInicio': '18:00', 'horaFin': '19:30', 'escenario': 'Cancha 2'},
+        queryParameters: {'prmId': id},
+        data: {'categoria': g.categoria, 'curso': g.curso, 'anio': g.anio, 'iterable': g.iterable, 'dia': 'Viernes', 'horaInicio': '18:00', 'horaFin': '19:30', 'escenario': 'Cancha 2'},
       );
       expect(r.statusCode, 200);
 
@@ -205,7 +208,7 @@ class VmHorarioDiagnosticoTest {
     test('$capa - $tipo - $metodo - $caso', () async {
       final g = _grupoCreado();
       final id = await _crear(g, {'dia': 'Sabado', 'horaInicio': '09:00', 'horaFin': '11:00', 'escenario': 'Coliseo'});
-      final r = await _dio.delete('/horario', queryParameters: {'id': id});
+      final r = await _dio.delete('/horario', queryParameters: {'prmId': id});
       expect(r.statusCode, 200);
 
       final vm = crearVm(g);
@@ -220,8 +223,8 @@ class VmHorarioDiagnosticoTest {
   Future<int> _crear(Grupoentidad g, Map<String, String> datos) async {
     final r = await _dio.post(
       '/horario',
-      queryParameters: {'categoria': g.categoria, 'curso': g.curso, 'anio': g.anio, 'iterable': g.iterable},
-      data: datos,
+      //desde el backend nuevo la llave del grupo va en el cuerpo
+      data: {'categoria': g.categoria, 'curso': g.curso, 'anio': g.anio, 'iterable': g.iterable, ...datos},
     );
     expect(r.statusCode, 201, reason: 'no se creo el horario $datos');
     return r.data['id'] as int;

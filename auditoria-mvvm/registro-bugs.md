@@ -127,7 +127,7 @@ AS-01 no se repitió de punta a punta. El alumno llega al grupo por cursos, no p
 
 | ID | Capa | Síntoma observable (evidencia del rojo) | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
 |---|---|---|---|---|---|---|---|
-| AS-B01 | Backend | No existían `GET /atencionesporclase` ni `POST /atenciones` (404); la funcionalidad no se podía usar en ningún entorno. El 2026-10-29 el backend publicó `GET`/`POST /asistenciasClase?idClase=` con otra forma (`{alumno, asistio}` al leer, `{idPerfil, asistio}` al registrar) y la app se adaptó: conexión, modelo y contrato en `test/contratos/atenciones/` | `/v3/api-docs` del 2026-10-29; `VmAtencionTest.prueba4ClaseInexistente` (404 `GC-0003` para una clase que no existe); ciclo cargar → marcar → guardar → recargar comprobado a mano contra la clase 207 de la BD de pruebas | **API del backend + prueba remota** | A | backend + app | **corregido** (2026-10-29) |
+| AS-B01 | Backend | No existían `GET /atencionesporclase` ni `POST /atenciones` (404); la funcionalidad no se podía usar en ningún entorno. El 2026-10-29 el backend publicó `GET`/`POST /asistenciasClase?idClase=` con otra forma (`{alumno, asistio}` al leer, `{idPerfil, asistio}` al registrar) y la app se adaptó: conexión, modelo y contrato en `test/contratos/atenciones/` | `/v3/api-docs` del 2026-10-29; `VmAtencionTest.prueba4ClaseInexistente` (404 `GC-0003` para una clase que no existe); ciclo cargar → marcar → guardar → recargar comprobado a mano contra la clase 207 de la BD de pruebas | **API del backend + prueba remota** | A | backend + app | **corregido** (2026-10-29). **Reabierto como BK-02 el 2026-11-05:** el backend nuevo ya no publica `/asistenciasClase` |
 | AS-01 | Navegación / roles | **Si llegan a la pantalla del grupo**, un alumno y un usuario sin sesión ven "AGREGAR CLASE" y el botón de eliminar clase, y abren la toma de asistencia: ni esa pantalla ni la ruta `clase` comprueban el rol. En la app (2026-10-29) el alumno **no llega** a esa pantalla: por el catálogo se queda en la lista de cursos, porque tocar un curso solo navega para el coordinador ([cursos.dart:184](../lib/presentation/view/views/curso/cursos.dart), ver O-01); en inscripciones solo ve los cursos a los que puede inscribirse; y el menú lateral muestra "grupos asignados" solo al instructor. Lo mismo vale sin sesión. Lo que falta es la comprobación en la pantalla y en la ruta (defensa en profundidad), no un camino abierto conocido. Que coordinador e instructor vean "AGREGAR CLASE" es lo esperado | `vista_diagnostico` · AS-01 alumno y AS-01 sin sesión (control en verde) | **Prueba + emulador.** La prueba monta la pantalla del grupo **directamente**, sin pasar por la navegación: demuestra lo que hace la pantalla, no que se pueda llegar a ella. Que no se llega sale de lo que observó el usuario en el emulador y de leer `cursos.dart` | A → **M** (no hay camino conocido en la interfaz) | app | **confirmado, aplazado por decisión**: roles y autenticación se tratan al final de la corrección de hallazgos. El caso del instructor ajeno al grupo espera la regla 3.4-1. Sus pruebas siguen en rojo como evidencia |
 | AS-02 | Vista | Dos toques a "Guardar" mientras el primer envío sigue en camino → **2** registros enviados | `vista_diagnostico` · AS-02 (`Expected: <1>`, `Actual: <2>`); `integracion_diagnostico` · AS-02 (2 POST en la red) | **Prueba** (pantalla y de punta a punta). **Inferido:** que se dupliquen los registros en la base de datos depende de si un segundo POST reemplaza o agrega (pregunta 2 del contrato) | M (A si se confirma B-01) | app | **confirmado** |
 | AS-03 | Vista / VM | Tras una carga con 500, "Guardar" sigue activo y muestra "No hay alumnos para registrar", lo que oculta el error real | `vista_diagnostico` · AS-03 | **Prueba** | M | app | **confirmado** |
@@ -192,9 +192,9 @@ Backend levantado (`/v3/api-docs`: `POST /inscripcion`, `PUT /desvincularInscrip
 | Nivel | Archivo | Verdes | Rojas |
 |---|---|---|---|
 | U-Repo | `test/unitarias/repositorio/inscripcionRepositorio_test.dart` (+4 casos) | 4 | — |
-| U-Repo (diagnóstico) | `test/diagnostico/inscripciones/repositorio_diagnostico_test.dart` | — | 2 (IN-12) |
+| U-Repo (diagnóstico) | `test/diagnostico/inscripciones/repositorio_diagnostico_test.dart` | — | 2 (IN-12; corregido el 2026-11-05: pasaron a `unitarias/repositorio/`, archivo eliminado) |
 | I-Local: VM → conexión real → transporte falso | `test/integracion/inscripcion_integracion_test.dart` (nuevo) | 4 | — |
-| I-Local (diagnóstico) | `test/diagnostico/inscripciones/integracion_diagnostico_test.dart` | — | 4 (IN-08, 09, 10, 11; IN-08, IN-09 e IN-10 corregidos y movidos a la suite de integración el 2026-11-05) |
+| I-Local (diagnóstico) | `test/diagnostico/inscripciones/integracion_diagnostico_test.dart` | — | 4 (IN-08, 09, 10, 11; los cuatro corregidos y movidos a la suite de integración el 2026-11-05, archivo eliminado) |
 | I-Remota: VM → backend real | `test/remoto/viewModel/inscripcion/vmInscripcionTest.dart` (nuevo, en `main_test.dart`) | 6 | — |
 | I-Remota (diagnóstico) | `test/diagnostico/inscripciones/remoto_diagnostico_test.dart` (**necesita el backend**) | — | 2 (IN-08, IN-13; IN-08 corregido y movido a la suite remota el 2026-11-05) |
 
@@ -211,9 +211,9 @@ Resultado:
 | IN-08 | Conexión | Un error al desvincular se etiqueta como `POST`, pero la petición que sale es un `PUT`: el `origen` del `Fallo` es `POST …/desvincularInscripcion`. Causa: `metodo = "POST"` en [ConexionInscripcionRemoto.dart:81](../lib/data/api/conexion/remoto/ConexionInscripcionRemoto.dart) | `integracion_diagnostico` · IN-08 (500 programado; `Actual: 'POST http://falso/api/v2/desvincularInscripcion'`); `remoto_diagnostico` · IN-08 (grupo inexistente contra el backend real; `Actual: 'POST http://localhost:8082/api/v2/desvincularInscripcion'`) | **Prueba** (sin backend y contra el backend real) | B | app | **corregido** (2026-11-05): `eliminarInscripcion` etiqueta el error con `PUT`, el método que envía. Las dos pruebas pasaron a verde: la local a `test/integracion/inscripcion_integracion_test.dart` y la remota a la suite remota (`VmInscripcionTest.prueba6OrigenDelError`, llamada desde `main_test.dart`) |
 | IN-09 | VM | Si la validación no se puede hacer (sin red), el grupo queda como **no inscrito**, sin error: `datos: false`, `error: null`. La pantalla pinta "Matricular" y nada indica que la consulta falló | `integracion_diagnostico` · IN-09 (`Expected: not null`, `Actual: <null>`) | **Prueba.** **Inferido:** que un alumno ya inscrito pulse "Matricular" y reciba el 409 de "ya inscrito" | M | app | **corregido** (2026-11-05): `Inscripcionviewmodel` guarda el error de la consulta en el estado del grupo (`_consultar`), y la tarjeta muestra «No se pudo consultar tu inscripción» con un botón «Reintentar» en lugar de «Matricular». La prueba pasó a `test/integracion/inscripcion_integracion_test.dart`, y dos `testWidgets` nuevos en `test/unitarias/vista/gruposInscripcionView_test.dart` cubren la tarjeta |
 | IN-10 | VM | Tras un `POST /inscripcion` con 201, si la revalidación falla, el VM devuelve `Exito` (diálogo "Te has inscrito al grupo") pero deja el grupo como **no inscrito** (`datos: false`, `error: null`): el botón vuelve a decir "Matricular". Misma causa que IN-09 (`validarInscripcion` convierte el error en `false`) | `integracion_diagnostico` · IN-10 (`Expected: true`, `Actual: <false>`) | **Prueba** | M | app | **corregido** (2026-11-05): tras un 201 (o un 200 al desvincular), si la revalidación falla el grupo queda con el resultado esperado y el error, y la tarjeta muestra el aviso con «Reintentar» en lugar de volver a «Matricular». La prueba pasó a `test/integracion/inscripcion_integracion_test.dart` |
-| IN-11 | Modelo / conexión | Una inscripción con `fechaInscripcion` no se puede enviar: el VM devuelve `Fallo(0, "null")`. Causa probable: `Inscripcionmodelo.toJson` pone el `DateTime` sin convertir y el JSON no se puede codificar | `integracion_diagnostico` · IN-11 (`Fallo 0 null (POST …/inscripcion)`) | **Prueba.** La entrada con fecha la fabrica la prueba: la pantalla actual **nunca** pone fechas, así que hoy no se ve en uso real. La causa sale de leer el código | B | app | **confirmado** (latente) |
-| IN-12 | Repositorio | Un `TypeError` lanzado por la conexión **escapa** del repositorio (`agregarInscripcion` y `eliminarInscripcion` solo capturan `Exception`), cuando la regla del proyecto es devolver los errores | `repositorio_diagnostico` · IN-12 ×2 (`Instance of 'TypeError'`) | **Prueba.** El `TypeError` lo lanza el doble. **Inferido:** la conexión real puede lanzarlo ante un 2xx distinto del esperado y sin cuerpo (mismo mecanismo que AS-07); el VM lo atrapa y lo muestra como mensaje técnico (`Fallo(-1, …)`) | B | app | **confirmado** |
-| IN-13 | Backend → VM | Desvincular a un alumno que no está inscrito da `404` con el **cuerpo vacío** y el `Fallo` llega con `mensaje: ''`. El alumno vería un diálogo de error sin texto (y sin código, X-01) | `remoto_diagnostico` · IN-13 (`Expected: non-empty`, `Actual: ''`; `Fallo 404  (POST …)`) | **Prueba contra el backend real.** Que el diálogo salga vacío se deduce de `DialogError` (pinta `mensaje`); no hay prueba de widget | M | backend (404 sin cuerpo) + app (sin texto por defecto cuando el mensaje viene vacío) | **confirmado** |
+| IN-11 | Modelo / conexión | Una inscripción con `fechaInscripcion` no se puede enviar: el VM devuelve `Fallo(0, "null")`. Causa probable: `Inscripcionmodelo.toJson` pone el `DateTime` sin convertir y el JSON no se puede codificar | `integracion_diagnostico` · IN-11 (`Fallo 0 null (POST …/inscripcion)`) | **Prueba.** La entrada con fecha la fabrica la prueba: la pantalla actual **nunca** pone fechas, así que hoy no se ve en uso real. La causa sale de leer el código | B | app | **corregido** (2026-11-05): `Inscripcionmodelo.toJson` envía las dos fechas con `toIso8601String()`; una fecha ausente sigue yendo nula. Contra el backend real, una fecha ISO da 201, pero el backend la ignora y pone la suya. La prueba pasó a `test/integracion/inscripcion_integracion_test.dart`, con un caso nuevo para `fechaDesvinculacion` |
+| IN-12 | Repositorio | Un `TypeError` lanzado por la conexión **escapa** del repositorio (`agregarInscripcion` y `eliminarInscripcion` solo capturan `Exception`), cuando la regla del proyecto es devolver los errores | `repositorio_diagnostico` · IN-12 ×2 (`Instance of 'TypeError'`) | **Prueba.** El `TypeError` lo lanza el doble. **Inferido:** la conexión real puede lanzarlo ante un 2xx distinto del esperado y sin cuerpo (mismo mecanismo que AS-07); el VM lo atrapa y lo muestra como mensaje técnico (`Fallo(-1, …)`). **Comprobado al corregir:** la conexión real lo lanza ante un 2xx distinto del esperado con cuerpo JSON (`fromResponse` pone el mapa como mensaje) | B | app | **corregido** (2026-11-05): `agregarInscripcion` y `eliminarInscripcion` de la conexión ya capturan cualquier error, como `validarInscripcion`, y el repositorio también en sus tres métodos. Las dos pruebas pasaron a `unitarias/repositorio/inscripcionRepositorio_test.dart`, y `unitarias/conexion/conexionInscripcionRemoto_test.dart` suma dos casos con la conexión real. Sigue latente el arreglo de `fromResponse`, que comparte con BK-08 |
+| IN-13 | Backend → VM | Desvincular a un alumno que no está inscrito da `404` con el **cuerpo vacío** y el `Fallo` llega con `mensaje: ''`. El alumno vería un diálogo de error sin texto (y sin código, X-01) | `remoto_diagnostico` · IN-13 (`Expected: non-empty`, `Actual: ''`; `Fallo 404  (POST …)`) | **Prueba contra el backend real.** Que el diálogo salga vacío se deduce de `DialogError` (pinta `mensaje`); no hay prueba de widget | M | backend (404 sin cuerpo) + app (sin texto por defecto cuando el mensaje viene vacío) | **corregido por el backend** (revisado 2026-11-05): el backend nuevo responde 404 `GC-0003` con cuerpo. La prueba pasó a verde sin tocar la app y se movió a la suite remota (`VmInscripcionTest.prueba8MensajeDelRechazo`). El mismo síntoma sigue en el 401 (IN-17), y el cuerpo llega como JSON crudo (IN-16) |
 
 ### Hipótesis descartadas (su prueba salió verde)
 
@@ -234,6 +234,56 @@ También salieron en verde los caminos normales: 201 envía los 5 campos del gru
 | H-12 | Backend → VM | Los 404 de `POST /inscripcion` (alumno o grupo inexistente) también llegan sin mensaje, como IN-13 | La prueba remota solo comprobó el código 404 |
 | H-13 | Pruebas | La prueba unitaria `Validar - un error cuenta como no inscrito` (`gruposInscripcionViewModel_test.dart`) fija como esperado el comportamiento que causa IN-09 y IN-10 (señal D4) | Es una observación sobre la prueba; se revisa al corregir IN-09 |
 | H-14 | VM | `cargarEstados` no descarta respuestas viejas si se vuelve a cargar mientras hay validaciones en camino | La pantalla carga una sola vez (`initState`); no hay camino de recarga que probar |
+
+## Módulo 4: revisión contra el backend nuevo (2026-11-05)
+
+Informe: [informe-diagnostico-inscripciones-backend-nuevo.md](informe-diagnostico-inscripciones-backend-nuevo.md). Backend arriba (`/v3/api-docs`, 66 rutas). Las tres rutas que usa la app (`POST /inscripcion`, `PUT /desvincularInscripcion`, `GET /validarInscripcion`) existen y aceptan lo que envía `Conexioninscripcionremoto`, incluida la clave `eliminado`, que el DTO ignora. Las pruebas de diagnóstico remotas ahora actúan con el JWT del alumno, como la pantalla.
+
+| Suite | Resultado |
+|---|---|
+| Sin backend | 351 en verde |
+| `test/diagnostico/inscripciones` | 14 en rojo, 2 controles en verde |
+| `main_test` · Inscripcion del alumno remota | 5 en verde, 3 en rojo (5 en rojo en la primera corrida, por BK-09) |
+| `main_test` · Grupos asignados e inscripcion remotos | 2 en verde, 2 en rojo |
+| `main_test` · Periodo de inscripcion remoto | 7 en verde |
+
+### Reclasificación
+
+| ID | Estado | Motivo |
+|---|---|---|
+| IN-01 a IN-03 | **siguen corregidos** | Sus pruebas siguen en verde |
+| IN-04 | **sin cambio** | Las rutas `PUT` ya no existen (BK-01). `PATCH /grupo/periodo` acepta varios grupos; no se comprobó si eso cierra la decisión D1 |
+| IN-05 | **por comprobar** | El backend guarda las fechas por grupo; falta que el cliente confirme que no van por curso |
+| IN-06 | **sigue corregido** | Sustituido por GR-02 |
+| IN-07 a IN-10 | **siguen corregidos** | Sus pruebas siguen en verde, también contra el backend real |
+| IN-11, IN-12 | **siguen** (corregidos después, el 2026-11-05) | Seguían en rojo. Ambos latentes: la pantalla no pone fechas y el backend responde 201 y 200 como espera la conexión |
+| IN-13 | **corregido por el backend** | La prueba quedó en verde sin tocar la app |
+| H-06, H-08 | **siguen descartadas** | Desvincular sin inscripción da 404; reactivar funciona (control de BK-09) |
+| H-07 | **reabierta** | Era cierta con el backend anterior; hoy son BK-06 y BK-07 |
+| H-09 | **reabierta en parte** | Grupo inexistente: 404. Alumno inexistente: 500 (BK-07) |
+| H-12 | **descartada** | Los rechazos de `POST /inscripcion` traen cuerpo; el 404 de un grupo inexistente trae `GC-0003` |
+
+### Hallazgos nuevos (prueba en rojo)
+
+| ID | Capa | Síntoma observable | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
+|---|---|---|---|---|---|---|---|
+| IN-14 | Backend | Un alumno inscrito que repite la inscripción con el grupo lleno **pierde el cupo**: pasa a `EN_ESPERA`, responde 201 y la app dice «Te has inscrito». `inscribir()` reactiva por `existsById` sin mirar si la fila ya está activa. Quedó el cupo libre y sin promover a nadie (`cuposDisponibles: 1`, `tamanoListaEspera: 1`) | `remoto_diagnostico` · BUG IN-14 (`Expected: true`, `Actual: <false>`) | **Prueba contra el backend real.** **Inferido:** que pase desde la pantalla, porque BK-09 muestra «Matricular» justo después de inscribirse; no se probó tocando el botón dos veces | A | backend | **confirmado** |
+| IN-15 | Vista / VM | Un alumno en lista de espera ve «Matricular» y no tiene cómo saber que está en la lista ni cómo salir: `validarInscripcion` solo cuenta `INSCRITO`. Si pulsa, recibe 409 `GC-0007`. El backend sí deja desvincularlo y `/inscripcion/misCursos` trae el estado, pero la app no llama esa ruta | `inscripciones/vista_diagnostico` · BUG IN-15 (`Found 1 widget with text "Matricular"`) | **Prueba** de pantalla con los cuerpos observados; el 409 y el desvincular, por petición directa al backend | M | app | **confirmado** |
+| IN-16 | Conexión → vista | Todo rechazo llega como la respuesta JSON entera: `Fallo.mensaje` es `{"codigoError":…}` y `DialogError` pinta cada clave, con `codigoHttp`, `url` y `metodo`. Afecta a grupo cerrado, límite de cursos, público del curso y lista de espera. Misma causa que IT-01 (`fromDioException`) | `remoto_diagnostico` · BUG IN-16 (`Expected: not contains 'codigoError'`); `vista_diagnostico` · BUG IN-16 (`Found 1 widget with text containing codigoError`) | **Prueba** (backend real y pantalla) | M | app | **confirmado** |
+| IN-17 | Conexión → vista | Con el token vencido, el 401 no trae cuerpo y `DialogError` se abre en blanco. Es el síntoma de IN-13 en otra respuesta | `remoto_diagnostico` · BUG IN-17 (`Expected: non-empty`, `Actual: ''`); `vista_diagnostico` · BUG IN-17 | **Prueba** (backend real y pantalla). **Inferido:** que ocurra en uso normal; depende de la vigencia del JWT | M | app | **confirmado** |
+
+### Hipótesis sin verificar (no son hallazgos)
+
+| Hip. | Capa | Hipótesis | Por qué no es hallazgo |
+|---|---|---|---|
+| H-IN-01 | Backend / cliente | El catálogo debería ocultar los grupos cuyo curso no va dirigido al alumno. Observado: `/gruposInscripcion` los lista y al inscribirse da 422 `GC-0030` | Falta la regla del cliente; no hay comportamiento correcto contra el cual poner una prueba en rojo |
+| H-IN-02 | Cliente | El alumno debería saber antes de pulsar que llegó al límite de 3 cursos. Observado: la cuarta inscripción da 422 `GC-0014` | Falta la regla; el mensaje crudo ya es IN-16 |
+| H-IN-03 | App | Editar un curso desde la app vuelve `publico` a `MIXTO`: `CursoModelo` no tiene ese campo y el backend toma el ausente como `MIXTO` | Solo lectura; es del módulo de cursos |
+| H-IN-04 | App / cliente | Rutas sin pantalla: `/inscripcion/listaEspera`, `/inscripcion/promover`, `/inscripcion/disponibilidad`, `/inscripcion/tieneInscritos` | Falta saber si el cliente las quiere en la app móvil |
+| H-IN-05 | Backend | Un alumno en lista de espera que se inscribe con un cupo libre pasa a `INSCRITO` sin respetar la cola | Solo lectura de `inscribir()` |
+| H-IN-06 | Backend | BK-09 afecta a cerca de la mitad de las inscripciones | Se deduce del redondeo; no se midió |
+
+---
 
 ## Módulo 5: diagnóstico por pruebas de las estadísticas generales (2026-10-29)
 
@@ -264,7 +314,7 @@ Resultado:
 | ES-02 | Modelo / conexión | Una fila con `leyenda1: null` hace que la sección muestre el texto de la excepción (`type 'Null' is not a subtype of type 'String'`) en lugar de un error con código: `fromJson` lanza un `TypeError`, la conexión solo captura `Exception`, el repositorio no captura nada (ES-01) y lo atrapa el `catch` del VM | `integracion_diagnostico` · ES-02 (`Expected: a string starting with 'Código: '`) | **Prueba.** La fila incompleta la fabrica la prueba: el backend real siempre manda `leyenda1` | B | app | **confirmado** |
 | ES-03 | Modelo | Un número entero en el JSON (`"clases": 2` en vez de `2.0`) rompe la sección con `type 'int' is not a subtype of type 'double'`: `fromJson` asigna `json['clases']` (y `horas`, `minutos`, `duracion`) directamente a un `double` | `integracion_diagnostico` · ES-03 (`Expected: null`, `Actual: "type 'int' is not a subtype of type 'double'"`) | **Prueba.** Hoy el backend manda `1.0`; si cambia a `Integer`, o un serializador omite el `.0`, las tres gráficas fallan | B | app | **confirmado** (latente) |
 | ES-04 | VM | El orden "de mayor a menor" solo mira `horas`: 1 h 10 min queda **delante** de 1 h 50 min (`_ordenarPorHoras` compara `b.horas` con `a.horas`) | `integracion_diagnostico` · ES-04 (`at location [0] is 'Una hora y diez' instead of 'Una hora y cincuenta'`) | **Prueba** | B | app | **confirmado** |
-| ES-05 | Backend | **El último día del rango no cuenta.** Una clase del 2026-10-28 (`fecha` guardada `2026-10-28`) da 0 clases con el rango `[2026-10-28, 2026-10-28]` y también con `[2026-10-27, 2026-10-28]`; con `[2026-10-28, 2026-10-29]` cuenta 1 clase y 120 min. El coordinador que pide "octubre" (hasta el 31) no ve las clases del 31 | `remoto_diagnostico` · ES-05 (`Expected: <1>`, `Actual: <0.0>`); confirmado a mano con las tres peticiones al backend | **Prueba contra el backend real.** **Inferido:** la causa probable es que se compara un *date-time* con `fin` a las 00:00; no se ha visto el código del backend | M | backend (o la app, enviando `fin + 1 día`, si se acuerda así) | **confirmado** |
+| ES-05 | Backend | **El último día del rango no cuenta.** Una clase del 2026-10-28 (`fecha` guardada `2026-10-28`) da 0 clases con el rango `[2026-10-28, 2026-10-28]` y también con `[2026-10-27, 2026-10-28]`; con `[2026-10-28, 2026-10-29]` cuenta 1 clase y 120 min. El coordinador que pide "octubre" (hasta el 31) no ve las clases del 31 | `remoto_diagnostico` · ES-05 (`Expected: <1>`, `Actual: <0.0>`); confirmado a mano con las tres peticiones al backend | **Prueba contra el backend real.** **Inferido:** la causa probable es que se compara un *date-time* con `fin` a las 00:00; no se ha visto el código del backend | M | backend (o la app, enviando `fin + 1 día`, si se acuerda así) | **corregido por el backend** (revisado 2026-11-05): `cls_fecha` se compara con `between` y el rango `[ayer, ayer]` ya cuenta la clase. La prueba quedó en verde sin tocar la app y se movió a la suite remota (`VmEstadisticasAsistenciaTest.prueba3UltimoDiaDelRango`) |
 
 ### Hipótesis descartadas (su prueba salió verde)
 
@@ -319,6 +369,51 @@ También salieron en verde:
 | 19 | I-Remota | Repetir el POST de la misma asistencia → totales sin cambios | ✅ |
 | 20 | I-Remota | Observación H-12: 2 asistencias → se imprime `clases 1.0, duracion 120.0`; solo se afirma que la fila cuadra | ✅ (observación) |
 
+## Módulo 5: revisión contra el backend nuevo (2026-11-05)
+
+Informe: [informe-diagnostico-estadisticas-backend-nuevo.md](informe-diagnostico-estadisticas-backend-nuevo.md). Backend arriba. Las tres rutas que usa la app (`/estadisticas/{categorias,cursos,grupos}`) no cambiaron: mismos parámetros, misma forma, y solo las puede pedir el coordinador, igual que el menú.
+
+**Cambio de siembra:** `VmEstadisticasAsistenciaTest` marcaba la asistencia con `POST /asistenciasClase`, que ya no existe (BK-02), y por eso su `setUpAll` fallaba. Ahora usa `PUT /clase/{codigo}/asistencia`. No se cambió ninguna aserción. Un caso nuevo con el ID BK-02 conserva la evidencia de ese bug.
+
+| Suite | Resultado |
+|---|---|
+| Sin backend | 351 en verde |
+| `test/diagnostico/estadisticas` | 9 en rojo |
+| `main_test` · Estadisticas generales remotas | 4 en verde |
+| `main_test` · Estadisticas con asistencias remotas | 6 en verde (antes no corría) |
+
+### Reclasificación
+
+| ID | Estado | Motivo |
+|---|---|---|
+| ES-01 a ES-04 | **siguen** | Siguen en rojo. ES-01, ES-02 y ES-03 son latentes: el backend siempre manda `leyenda1` y números con `.0`. ES-04 se ve con grupos de horario partido (ver ES-06) |
+| ES-05 | **corregido por el backend** | La prueba quedó en verde sin tocar la app |
+| H-06 a H-09 | **siguen descartadas** | Sus pruebas corren de nuevo y salen en verde |
+| H-10, H-11 | **sin cambio** | Sigue faltando la regla. Rango invertido observado: 200 con todo en cero |
+| H-12 | **sin cambio, ahora con la causa** | La consulta lee `tbl_clase` y no toca asistencias: mide clases dictadas |
+| H-13 | **observado, falta la regla** | Una clase sin asistencia confirmada sumó igual: 2 clases y 240 min en lugar de 1 y 120. Petición directa, sin prueba |
+| H-14, H-15 | **sin cambio** | El backend tampoco publica rutas de facultades o programas |
+
+### Hallazgos nuevos (prueba en rojo)
+
+| ID | Capa | Síntoma observable | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
+|---|---|---|---|---|---|---|---|
+| ES-06 | Backend → vista | Los minutos no se pasan a horas: tres clases de 1 h 30 llegan como `horas: 3.0`, `minutos: 90.0`, `duracion: 270.0`. La gráfica solo pinta `horas`, así que muestra 3 en lugar de 4,5, y ese grupo queda detrás de uno de 4 h justas. Con horarios partidos el error crece con cada clase | `remoto_diagnostico` · BUG ES-06 (`Expected: <4>`, `Actual: <3.0>`); `integracion_diagnostico` · BUG ES-06 (`Expected: 'Tres clases de 1 h 30'`, `Actual: 'Cuatro horas justas'`) | **Prueba** (backend real y cadena local con la forma observada). Las pruebas anteriores no lo veían porque `horas × 60 + minutos == duracion` se sigue cumpliendo | M | backend (normalizar) o app (calcular desde `duracion`) | **confirmado** |
+| ES-07 | Conexión → VM | Con el token vencido, las tres secciones muestran `Código: 401 - ` sin texto. Misma causa que IN-17 | `remoto_diagnostico` · BUG ES-07 (`Expected: non-empty`, `Actual: ''`); `integracion_diagnostico` · BUG ES-07 | **Prueba** (backend real y cadena local). **Inferido:** que ocurra en uso normal; depende de la vigencia del JWT | B | app | **confirmado** |
+
+### Hipótesis sin verificar (no son hallazgos)
+
+| Hip. | Capa | Hipótesis | Por qué no es hallazgo |
+|---|---|---|---|
+| H-ES-01 | Backend / cliente | Una clase con novedad `NO_REALIZADA` sigue sumando horas. Observado: siguió en 2 clases y 240 min. `contarFaltasPorGrupo` sí excluye esas fechas, así que el backend no las trata igual en todas partes | Falta la regla. Petición directa, sin prueba |
+| H-ES-02 | Backend / cliente | Un grupo eliminado sigue apareciendo con sus horas. Observado: conservó 2 clases y 180 min, porque la consulta no filtra `meta_eliminado` del grupo | Puede ser histórico a propósito. Petición directa, sin prueba |
+| H-ES-03 | App | El Excel hereda ES-06: escribe `horas` y `minutos` tal como llegan | Solo lectura de `excel.dart` |
+| H-ES-04 | App / cliente | `/estadisticas/alumnos` e `/estadisticas/instructores` no tienen pantalla | Falta saber si el cliente las quiere en la app móvil |
+
+**Para el módulo de clases:** `DELETE /clase` ahora responde con `eliminado: 1` y las estadísticas bajaron de 3 a 2 clases. CL-01 parece corregido; se confirma al revisar ese módulo.
+
+---
+
 ## Módulo 3: diagnóstico por pruebas de grupos (2026-10-29)
 
 Plan: [plan-diagnostico-grupos.md](plan-diagnostico-grupos.md). **Regla:** solo es hallazgo lo que demuestra una prueba **en rojo**. Lo demás va a hipótesis.
@@ -342,7 +437,7 @@ Resultado:
 
 | ID | Capa | Síntoma observable (evidencia del rojo) | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
 |---|---|---|---|---|---|---|---|
-| GR-06 | Backend | **La lista de alumnos del grupo incluye a un alumno desvinculado.** Después de inscribir a A y B y desvincular a B, `/alumnosGrupo` devuelve los dos, con `eliminadoestado: 0`, aunque `validarInscripcion` dice que B **no** está inscrito (`false`). Esa lista es la que ve la pantalla del grupo y la de la toma de asistencia | `remoto_diagnostico` · GR-06 (`Expected: [A]`, `Actual: [A, B]`); confirmado a mano con `/alumnosGrupo` y `/validarInscripcion` | **Prueba contra el backend real.** **Inferido:** que se le pueda tomar asistencia a un alumno retirado y que cuente en estadísticas; tiene relación con AS-11 | M | backend | **confirmado** |
+| GR-06 | Backend | **La lista de alumnos del grupo incluye a un alumno desvinculado.** Después de inscribir a A y B y desvincular a B, `/alumnosGrupo` devuelve los dos, con `eliminadoestado: 0`, aunque `validarInscripcion` dice que B **no** está inscrito (`false`). Esa lista es la que ve la pantalla del grupo y la de la toma de asistencia | `remoto_diagnostico` · GR-06 (`Expected: [A]`, `Actual: [A, B]`); confirmado a mano con `/alumnosGrupo` y `/validarInscripcion` | **Prueba contra el backend real.** **Inferido:** que se le pueda tomar asistencia a un alumno retirado y que cuente en estadísticas; tiene relación con AS-11 | M | backend | **corregido por el backend** (revisado 2026-11-05): `/alumnosGrupo` ya no incluye al desvinculado. La prueba quedó en verde sin tocar la app y pasó a la suite remota (`VmGrupoDiagnosticoTest.prueba8AlumnoDesvinculado`) |
 | GR-03 | Conexión | `/gruposCurso` concatena categoría y curso en la URL sin codificar. Con `Fútbol & Voleibol` el backend recibe `prmCategoria=Fútbol ` y la lista del curso sale **vacía** aunque el grupo existe | `integracion_diagnostico` · GR-03 (`Actual: 'Fútbol '`); `remoto_diagnostico` · GR-03 (categoría y curso con `&` creados en la corrida → `Actual: []`) | **Prueba** sin backend y contra el backend real | M | app | **confirmado** |
 | GR-05 | Conexiones de la pantalla del grupo | En un grupo cuya categoría o curso llevan `&`, la pantalla del grupo no ve **nada**: el curso da `404 GC-0003` y las clases y los alumnos salen vacíos y **sin error**, aunque el grupo tiene 1 clase y 1 alumno inscrito. `/curso`, `/clasesGrupo`, `/alumnosGrupo` y `/horarios` concatenan la llave igual que GR-03 | `remoto_diagnostico` · GR-05 (`curso: null (Código: 404 …); clases: 0; alumnos: 0`) | **Prueba contra el backend real.** Que el vacío no muestre error se debe a que el backend responde `GC-0002` y la app lo toma por lista vacía | M | app | **confirmado** |
 | GR-02 | Repositorio / modelo | Al crear un grupo se pierde `fechaFinalizacion`: `GrupoModelo.fromEntidad` no la copia y `toJson` no la envía, aunque `GrupoDto` la acepta (antes IN-06, sin prueba) | `repositorio_diagnostico` · GR-02 (`Actual: <null>`); `integracion_diagnostico` · GR-02 (el JSON del `POST /grupo` no la lleva) | **Prueba.** El formulario actual no pide esa fecha, así que hoy solo se pierde si otra pantalla la pone | B | app | **corregido** (2026-11-04): `GrupoMapper.aModelo` copia todos los campos y `GrupoModelo.toJson` envía `fechaFinalizacion` cuando la hay (opcional en `GrupoDto`; sin fecha el POST no cambia). Las pruebas pasaron a `test/unitarias/repositorio/grupoRepositorio_test.dart` y `test/integracion/grupos_integracion_test.dart`. Verificado contra el backend real: `vmGrupoDiagnosticoTest.prueba7FechaFinalizacion` (suite remota) crea el grupo con 201 y la fecha vuelve en `/gruposCurso` |
@@ -526,7 +621,7 @@ Resultado:
 | CAT-16a | Backend / cliente | **Observado:** eliminar una categoría que tiene un curso responde `Exito`, y `/cursosbycategoria` **sigue devolviendo el curso** (1). El borrado es lógico y no arrastra los cursos | Falta la regla: ¿se debe impedir eliminar una categoría con cursos, o hay que ocultarlos también? |
 | CAT-16b | Backend / cliente | **Observado:** tras eliminar una categoría, crear otra con el mismo título da `409 GC-0007` "Ya existe es mismo registro", aunque no aparece en la lista. El coordinador no puede reutilizar el nombre ni ver por qué | Falta la regla de qué hacer con los títulos de categorías eliminadas |
 | CAT-11 | Rutas | `route_generator.dart:30` importa `views/Categorias/CategoriasView.dart`, pero la carpeta en git es `categorias/`: en un sistema que distingue mayúsculas (Linux, CI) no compila | Confirmado leyendo el código y `git ls-files`; en Windows ninguna prueba puede ponerlo en rojo |
-| CAT-07 | Modelo | `ErrorModelo.mensaje` recibe `response.data` (puede ser un `Map`) en `fromResponse` ante un 2xx inesperado | No se escribió una prueba aparte |
+| CAT-07 | Modelo | `ErrorModelo.mensaje` recibe `response.data` (puede ser un `Map`) en `fromResponse` ante un 2xx inesperado | No se escribió una prueba aparte. **Corregido** (2026-11-05) con BK-08: `fromResponse` ya no pone un `Map` como mensaje |
 | CAT-10 | Vista | El botón de quitar imagen nunca se agrega al `Stack` | Es de la vista |
 
 ### Escenarios implementados
@@ -583,7 +678,7 @@ Resultado:
 | ID | Capa | Síntoma observable (evidencia del rojo) | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
 |---|---|---|---|---|---|---|---|
 | CL-06 | Conexión / backend | **La clase se guarda un día antes.** La app envía `fecha.toIso8601String()` con la hora local y **sin zona**; el backend la toma como UTC y guarda la fecha en UTC-5. Todo lo enviado entre las 00:00 y las 04:59 queda en el día anterior: una clase del 2026-10-26 a las 00:00 se lista como 2026-10-25. El selector de fecha del formulario (`showDatePicker` en `claseFormulario.dart`) devuelve justamente las **00:00** del día elegido | `remoto_diagnostico` · CL-06 (`enviada 2026-10-26 00:00:00.000`, `Actual: '2026-10-25'`). Confirmado a mano con 4 altas directas: 00:00 y 04:59 → día anterior; 05:00 y 23:30 → mismo día | **Prueba contra el backend real** (corrupción de la fecha guardada). **Inferido del código:** que **toda** clase cuya fecha se elige en el selector quede un día antes. La fecha por defecto (`DateTime.now()`) solo se corre si se registra antes de las 5 a. m. **Inferido:** afecta la fecha de la asistencia y el rango de las estadísticas (relacionado con ES-05) | **A** | app (enviar `yyyy-MM-dd` o la hora con zona) + backend (no suponer UTC) | **corregido** (2026-10-29): `Clasemodelo.toJson` envía el instante con zona (`fecha.toUtc().toIso8601String()`, termina en `Z`), así que el backend ya no supone UTC sobre una hora local. Verificado contra el backend real a las 00:00, 04:59, 05:00 y 23:30: la clase queda en el día elegido. Prueba: `vmClaseDiagnosticoTest.prueba3FechaSinCorrimiento`, ahora en la suite remota (`main_test.dart`). Del lado del backend sigue pendiente no suponer UTC cuando la fecha llega sin zona |
-| CL-01 | Backend | **Eliminar una clase no la quita.** `DELETE /clase?id=` responde 200, el VM muestra éxito y recarga, pero la clase sigue en la pantalla del grupo con `eliminado: 0` | `remoto_diagnostico` · CL-01 (`sigue la clase 307 con eliminado 0`) | **Prueba contra el backend real.** Ya se había visto el 2026-10-21; `VmModuloGrupoTest.prueba6EliminarClase200` solo fija el 200 (señal D4). **Inferido:** que se le pueda tomar asistencia a una clase "eliminada" y que sume en estadísticas | M | backend | **confirmado** |
+| CL-01 | Backend | **Eliminar una clase no la quita.** `DELETE /clase?id=` responde 200, el VM muestra éxito y recarga, pero la clase sigue en la pantalla del grupo con `eliminado: 0` | `remoto_diagnostico` · CL-01 (`sigue la clase 307 con eliminado 0`) | **Prueba contra el backend real.** Ya se había visto el 2026-10-21; `VmModuloGrupoTest.prueba6EliminarClase200` solo fija el 200 (señal D4). **Inferido:** que se le pueda tomar asistencia a una clase "eliminada" y que sume en estadísticas | M | backend | **corregido por el backend** (revisado 2026-11-05): `DELETE /clase` marca `eliminado: 1` y la clase sale de la lista. La prueba quedó en verde sin tocar la app y pasó a la suite remota (`VmClaseDiagnosticoTest.prueba6EliminarClase`) |
 | CL-05 | Conexión | Una clase con `fecha: null` hace que la pantalla del grupo muestre `type 'Null' is not a subtype of type 'String'`: `Clasemodelo.fromJson` lanza y ni la conexión (solo captura `Exception`) ni el repositorio (la llamada está fuera de su `try`) lo capturan | `integracion_diagnostico` · CL-05 | **Prueba.** El JSON incompleto lo fabrica la prueba (las clases reales traen fecha) | B | app | **confirmado** (latente) |
 | CL-04 | Repositorio / modelo | `agregarClase` con una entidad sin `fecha` o sin `horas` lanza `Null check operator used on a null value` (`Clasemodelo.fromEntidad` hace `fecha!`, `horas!` y `minutos!`; el repositorio solo captura `Exception`. Desde 2026-11-04 ese código está en `ClaseMapper.aModelo`, sin cambios) | `repositorio_diagnostico` · CL-04 | **Prueba.** El formulario valida fecha y horas antes de llamar, así que no se llega desde la pantalla | B | app | **confirmado** (latente) |
 | CL-03 | Repositorio | Un `TypeError` de la conexión atraviesa el repositorio al listar, agregar y eliminar | `repositorio_diagnostico` · CL-03 (`Instance of 'TypeError'`) | **Prueba.** El error lo lanza el doble; CL-05 demuestra que la conexión real lo deja pasar | B | app | **confirmado** |
@@ -773,7 +868,7 @@ En la app, las dos listas solo se leen: `GET /instructores` llena el desplegable
 | U-Repo | `test/unitarias/repositorio/instructoresRepositorio_test.dart` (nuevo) y `facultadesRepositorio_test.dart` (+1) | 4 | — |
 | U-Repo (diagnóstico) | `test/diagnostico/facultades/repositorio_diagnostico_test.dart` | — | 1 (FA-02) |
 | I-Local: VM → conexión real → transporte falso | `test/integracion/instructores_integracion_test.dart` y `facultades_integracion_test.dart` (nuevos; fixtures reales en `test/contratos/instructores/` y `test/contratos/facultades/`) | 8 | — |
-| I-Local (diagnóstico) | `test/diagnostico/instructores/integracion_diagnostico_test.dart` y `test/diagnostico/facultades/integracion_diagnostico_test.dart` | — | 5 (IT-01, IT-02, FA-01, FA-03, FA-04) |
+| I-Local (diagnóstico) | `test/diagnostico/instructores/integracion_diagnostico_test.dart` y `test/diagnostico/facultades/integracion_diagnostico_test.dart` | — | 5 (IT-01, IT-02, FA-01, FA-03, FA-04; FA-04 corregido y movido a la suite de integración el 2026-11-05) |
 | I-Local (vista, diagnóstico): ruta real `AppRutas.instructores` | `test/diagnostico/instructores/vista_diagnostico_test.dart` | 1 (control IT-03) | 1 (IT-03) |
 | I-Remota: VM → backend real | `test/remoto/viewModel/instructor/vmInstructorDiagnosticoTest.dart` (nuevo, en `main_test.dart`) | 2 | — |
 
@@ -793,7 +888,7 @@ Resultado:
 | FA-01 | Conexión | Una facultad con `nombre: null` hace que el registro muestre `type 'Null' is not a subtype of type 'String'`: `fromJson` lanza y ni la conexión (solo captura `Exception`) ni el repositorio (sin `try`) lo capturan. La conexión de instructores sí captura todo (H-04 descartada) | `integracion_diagnostico` · FA-01 | **Prueba.** El JSON incompleto lo fabrica la prueba; la facultad real no tiene nulos | B | app | **confirmado** (latente) |
 | FA-02 | Repositorio | Un `TypeError` de la conexión atraviesa `listarFacultades` | `repositorio_diagnostico` · FA-02 (`Instance of 'TypeError'`) | **Prueba.** El error lo lanza el doble; FA-01 demuestra que la conexión real lo deja pasar | B | app | **confirmado** |
 | IT-02 | VM | `InstructoresViewModel` no usa `NotificacionSegura`: si se sale del formulario de grupo antes de que llegue la lista, lanza `A InstructoresViewModel was used after being disposed` | `integracion_diagnostico` · IT-02 (`FlutterError`) | **Prueba.** Esa aserción de Flutter solo salta en modo debug. Mismo caso que CAT-04 | B | app | **confirmado** |
-| FA-04 | VM | Lo mismo con `Facultadesviewmodel` al salir del registro: `A Facultadesviewmodel was used after being disposed` | `integracion_diagnostico` · FA-04 (`FlutterError`) | **Prueba.** Solo en modo debug | B | app | **confirmado** |
+| FA-04 | VM | Lo mismo con `Facultadesviewmodel` al salir del registro: `A Facultadesviewmodel was used after being disposed` | `integracion_diagnostico` · FA-04 (`FlutterError`) | **Prueba.** Solo en modo debug | B | app | **corregido** (2026-11-05): `Facultadesviewmodel` usa `NotificacionSegura` (lo pedía la carga de programas del registro). La prueba pasó a `test/integracion/facultades_integracion_test.dart` |
 
 ### Hipótesis descartadas (su prueba salió verde)
 
@@ -832,7 +927,7 @@ Resultado:
 | 15 | I-Local | Facultades 200 con un objeto → `Código: 406` | ✅ |
 | 16 | I-Local | Facultad con `nombre: null` → error con formato `Código: …` | ❌ FA-01 |
 | 17 | I-Local | Facultades: el 404 documentado → lista vacía sin error | ❌ FA-03 |
-| 18 | I-Local | Facultades: respuesta después de `dispose` → no lanza | ❌ FA-04 |
+| 18 | I-Local | Facultades: respuesta después de `dispose` → no lanza | ❌ FA-04 (✅ desde 2026-11-05) |
 | 19 | I-Local (vista) | Control: la ruta `AppRutas.instructores` abre la pantalla | ✅ |
 | 20 | I-Local (vista) | La pantalla "Instructores" muestra los instructores del backend y no otros | ❌ IT-03 |
 | 21 | I-Remota | Cada instructor trae sus 4 campos y su id no se repite | ✅ |
@@ -898,11 +993,11 @@ Plan: [plan-diagnostico-autenticacion.md](plan-diagnostico-autenticacion.md). **
 | Nivel | Archivo | Verdes | Rojas |
 |---|---|---|---|
 | U-Conexión: conexión real → transporte falso | `test/unitarias/conexion/conexionAutenticacionRemoto_test.dart` (nuevo) | 5 | — |
-| U-Conexión (diagnóstico) | `test/diagnostico/autenticacion/conexion_diagnostico_test.dart` | — | 5 (AU-01 ×2, AU-02, AU-03 ×2) |
+| U-Conexión (diagnóstico) | `test/diagnostico/autenticacion/conexion_diagnostico_test.dart` | — | 5 (AU-01 ×2, AU-02, AU-03 ×2; AU-02 corregido y movido a la suite unitaria el 2026-11-05) |
 | U-VM (diagnóstico) | `test/diagnostico/autenticacion/viewModel_diagnostico_test.dart` | — | 1 (AU-04) |
 | U-Vista: `CategoriasView` | `test/unitarias/vista/categoriasView_test.dart` (+1) | 1 | — |
 | I-Local: menú lateral y rutas reales → cadena real → transporte falso (montaje `test/integracion/montajeAutenticacion.dart`) | `test/integracion/autenticacion_integracion_test.dart` (nuevo) | 5 | — |
-| I-Local (diagnóstico) | `test/diagnostico/autenticacion/vista_diagnostico_test.dart` | 1 (control AU-10) | 8 (AU-05 a AU-09, AU-10 ×3) |
+| I-Local (diagnóstico) | `test/diagnostico/autenticacion/vista_diagnostico_test.dart` | 1 (control AU-10) | 8 (AU-05 a AU-09, AU-10 ×3; AU-07 corregido y movido a la suite de integración el 2026-11-05) |
 | I-Remota | `test/remoto/viewModel/autenticacion/vmLoginTest.dart` (ya existía) | — | 1 (AU-B01) |
 
 Resultado:
@@ -915,16 +1010,16 @@ Resultado:
 
 | ID | Capa | Síntoma observable (evidencia del rojo) | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
 |---|---|---|---|---|---|---|---|
-| AU-B01 | Backend ↔ app | Por la cadena real de la app, `GET /login` responde **401** en lugar de 404 o 200: el backend exige un JWT (`Authorization: Bearer`) y la app no envía ninguno. Con curl, `/categorias2` y `/instructores` dan lo mismo. **Con este backend nadie puede iniciar sesión ni cargar ninguna pantalla** | `main_test` · `VmLoginTest` prueba1 (`Expected: <404>`, `Actual: <401>`) | **API del backend** (2026-11-05). **Por confirmar:** si es el backend que se va a desplegar o una rama en desarrollo; el repositorio en disco no tiene esta seguridad | A | backend + app (la app tendría que pedir el JWT a `/auth/token` y enviarlo en cada petición) | **confirmado contra el backend**; por decidir con el equipo del backend |
+| AU-B01 | Backend ↔ app | Por la cadena real de la app, `GET /login` responde **401** en lugar de 404 o 200: el backend exige un JWT (`Authorization: Bearer`) y la app no envía ninguno. Con curl, `/categorias2` y `/instructores` dan lo mismo. **Con este backend nadie puede iniciar sesión ni cargar ninguna pantalla** | `main_test` · `VmLoginTest` prueba1 (`Expected: <404>`, `Actual: <401>`) | **API del backend** (2026-11-05). **Por confirmar:** si es el backend que se va a desplegar o una rama en desarrollo; el repositorio en disco no tiene esta seguridad | A | app | **corregido en la app el 2026-11-05, sin verificar contra el backend real**: `GoogleSignIn` pide el ID Token con el client ID web (`ConfigApi.googleServerClientId`), `login()` lo cambia en `/auth/token` y `InterceptorToken` envía el JWT en cada petición (pruebas en `unitarias/conexion/interceptorToken_test.dart`, `conexionAutenticacionRemoto_test.dart` y `integracion/autenticacion_integracion_test.dart`). Falta probarlo en el emulador con una cuenta real. El inicio solo con correo sigue usando `GET /login` y recibe 401 (AU-08). Antes: confirmado contra el backend. Desde el 2026-11-05 se trabaja con este backend (`E:/2026-1/Practica/BackDeporteParaTodos (Nuevo)`, `main` `151a38d`). Revisión del flujo: `POST /auth/token` recibe el Google ID Token en `Authorization: Bearer`, lo valida con las claves públicas de Google y devuelve `{token, perfil}` (404 si el correo no está registrado). Ese token va como Bearer en el resto de rutas; el rol viaja en el claim `rol`. Solo son públicos `POST /RegistroPerfilAlumno`, `GET /facultades` y `GET /programas`. **La app hoy no puede obtener un ID Token:** `GoogleSignIn` no tiene `serverClientId` ni hay `default_web_client_id` (sin `google-services.json`), y en Android el plugin solo pide el ID Token con uno de los dos |
 | AU-09 | Vista / navegación | Al cerrar sesión, el menú hace `pushNamed(categorias)` **encima** de lo que había: la pantalla de inscripciones del coordinador sigue en la pila y "atrás" vuelve a ella sin sesión | `vista_diagnostico` · AU-09 (`Found 1 widget with text "configuracion general"` fuera de pantalla, con `perfilSesion` ya en `null`) | **Prueba** con el menú y las rutas reales. **Inferido:** las acciones de esa pantalla siguen disponibles; las rutas no miran el rol (AU-10) | M | app | **confirmado** |
 | AU-06 | Vista | Un `409` del registro ("El perfil ya existe") **cierra el formulario** con `pop(false)`. El menú cierra la sesión y muestra "Ha fallado el registro, intenta nuevamente": no dice el motivo y el alumno pierde lo que llenó. Lo mismo pasa con cualquier respuesta distinta de 201 | `vista_diagnostico` · AU-06 (`Expected: [1, true]`, `Actual: [0, false]`) | **Prueba** con el 409 documentado | M | app | **confirmado** |
 | AU-05 | Vista | En el registro por correo, al escribir el nombre y elegir después cualquier desplegable, el campo "Nombre completo" **desaparece** y queda un texto fijo: ya no se puede corregir. `onChanged` guarda `_nombre` sin `setState`, y el siguiente `setState` decide que el nombre "vino de Google" | `vista_diagnostico` · AU-05 (`Found 0 widgets with type "TextFormField"`) | **Prueba.** Con Google el nombre ya llega y el campo no se muestra, así que solo afecta al registro por correo | M | app | **confirmado** |
 | AU-08 | Vista | Un login fallido que no sea 404 muestra `Error: <código>`. Con el backend de hoy, todo login muestra **"Error: 401"** | `vista_diagnostico` · AU-08 (`Found 1 widget with text "Error: 401"`) | **Prueba** con el `401` sin cuerpo que responde hoy el backend (AU-B01) | B | app | **confirmado** |
 | AU-10 | Rutas | Las rutas del coordinador no comprueban el rol: con sesión de alumno, de instructor o sin sesión, `AppRutas.InscripcionesGenerales` abre la pantalla. Solo el menú lateral esconde la opción. Es el mismo caso que AS-01 en la ruta `clase` | `vista_diagnostico` · AU-10 ×3; su control (el coordinador la abre) está en verde | **Prueba** que abre la ruta **directamente**: demuestra lo que hace la ruta, no que se pueda llegar a ella. No hay un camino conocido en la interfaz | B | app | **confirmado**; las reglas por rol siguen a la espera del cliente (AS-01) |
-| AU-07 | Vista | GUARDAR no se deshabilita mientras se envía el registro: dos toques mandan **dos** `POST /RegistroPerfilAlumno` | `vista_diagnostico` · AU-07 (`Expected: <1>`, `Actual: <2>`) | **Prueba** con el transporte retenido. **Inferido:** el backend respondería 409 al segundo | B | app | **confirmado** |
+| AU-07 | Vista | GUARDAR no se deshabilita mientras se envía el registro: dos toques mandan **dos** `POST /RegistroPerfilAlumno` | `vista_diagnostico` · AU-07 (`Expected: <1>`, `Actual: <2>`) | **Prueba** con el transporte retenido. **Inferido:** el backend respondería 409 al segundo | B | app | **corregido** (2026-11-05): GUARDAR queda deshabilitado mientras se envía el registro. La prueba pasó a `test/integracion/autenticacion_integracion_test.dart` |
 | AU-04 | VM | Si `signOut` de Google lanza (p. ej. un `PlatformException`), `logout` deja escapar la excepción hasta el menú y **no borra la sesión** | `viewModel_diagnostico` · AU-04 (`PlatformException(sign_out_failed)`) | **Prueba.** El fallo lo lanza el doble; no se ha visto en el emulador | B | app | **confirmado** (latente) |
 | AU-01 | Conexión | El correo va sin codificar en `/login?email=$email`: `ana+deporte@…` llega como `ana deporte@…` y `ana&b@…` parte la query en `email=ana`. Mismo caso que GR-05 | `conexion_diagnostico` · AU-01 ×2 | **Prueba.** **Inferido:** ese usuario recibiría 404 y se le pediría registrarse. Los correos institucionales no suelen llevar `+` ni `&` | B | app | **confirmado** (latente) |
-| AU-02 | Modelo | `Perfilmodelo.fromJson` no lee `facultad`: la sesión nunca la conoce | `conexion_diagnostico` · AU-02 (`Actual: <null>`) | **Prueba** con el `PerfilDto` documentado. Hoy nada lee `perfilSesion.facultad` | B | app | **confirmado** (latente) |
+| AU-02 | Modelo | `Perfilmodelo.fromJson` no lee `facultad`: la sesión nunca la conoce | `conexion_diagnostico` · AU-02 (`Actual: <null>`) | **Prueba** con el `PerfilDto` documentado. Hoy nada lee `perfilSesion.facultad` | B | app | **corregido** (2026-11-05): `Perfilmodelo.fromJson` lee `facultad`, `programa`, `alumnoCodigo` y `dependencia`. La prueba pasó a `test/unitarias/conexion/conexionAutenticacionRemoto_test.dart` |
 | AU-03 | Conexión | Un perfil con un campo obligatorio nulo, o un 201 sin cuerpo, lanza `TypeError` o `NoSuchMethodError` desde `fromJson`. La conexión solo captura `Exception`, así que el error atraviesa todas las capas hasta el `onTap` del menú. Mismo caso que AL-04 | `conexion_diagnostico` · AU-03 ×2 | **Prueba.** El JSON incompleto lo fabrica la prueba | B | app | **confirmado** (latente) |
 
 ### Hipótesis descartadas (su prueba salió verde)
@@ -942,6 +1037,7 @@ Resultado:
 | AU-H3 | Vista / cliente | El registro solo ofrece CC y TI, aunque el backend acepta CE, PP, PEP y DIE (comentario en la vista). Tampoco ofrece "Contratista" como tipo de alumno, que `AlumnoRequest` sí admite | Regla del cliente: ¿pueden registrarse extranjeros o contratistas? |
 | AU-H4 | VM | Si el login con Google funciona pero el backend falla (que no sea 404), `cuenta` queda asignada: `verificarSesion` no reintenta al volver a categorías | Solo lectura del código; el usuario puede volver a iniciar sesión desde el menú |
 | AU-O1 | Vista | El aviso "Te has registrado exitosamente" espera en cola unos 4 s, detrás de "Valores aceptados", que el registro muestra antes de enviar | Observado en `autenticacion_integracion_test`; es cosmético |
+| AU-H5 | Backend (seguridad) | `googleJwtDecoder` (`SecurityConfig`) solo comprueba la firma y la vigencia del ID Token: no valida `aud` (el client ID de la app) ni `iss`. Un ID Token emitido por Google para **cualquier** otra aplicación serviría para obtener un JWT del sistema con el rol de ese correo | Solo lectura del código del backend; no se probó con un token real. Responsable: backend |
 | AU-O2 | Modelo | `PerfilDto` trae `alumnoCodigo`, `programa` y `dependencia`, que la app no lee | Nada los usa todavía |
 
 ### Escenarios implementados
@@ -954,7 +1050,7 @@ Resultado:
 | 4 | U-Conexión | Registro → cuerpo igual al contrato; 201 → perfil | ✅ |
 | 5 | U-Conexión | Registro 409 → 409 sin lanzar | ✅ |
 | 6 | U-Conexión | Correo con `+` y con `&` llega sin cambios | ❌ AU-01 ×2 |
-| 7 | U-Conexión | La facultad del perfil llega al modelo | ❌ AU-02 |
+| 7 | U-Conexión | La facultad del perfil llega al modelo | ❌ AU-02 (✅ desde 2026-11-05) |
 | 8 | U-Conexión | Perfil con `tipoId: null` y 201 sin cuerpo → error devuelto, sin lanzar | ❌ AU-03 ×2 |
 | 9 | U-VM | `signOut` de Google falla → la sesión se borra igual, sin lanzar | ❌ AU-04 |
 | 10 | U-Vista | Iniciar sesión de coordinador por el VM muestra "Agregar categoria" sin notificar a mano | ✅ (CAT-12 descartada) |
@@ -965,11 +1061,100 @@ Resultado:
 | 15 | I-Local | Cerrar sesión → borra la sesión, sale de Google y abre categorías | ✅ |
 | 16 | I-Local | Nombre escrito y luego un desplegable → el nombre sigue editable | ❌ AU-05 |
 | 17 | I-Local | Registro 409 → el formulario sigue abierto con el motivo | ❌ AU-06 |
-| 18 | I-Local | Dos toques en GUARDAR → un solo `POST` | ❌ AU-07 |
+| 18 | I-Local | Dos toques en GUARDAR → un solo `POST` | ❌ AU-07 (✅ desde 2026-11-05) |
 | 19 | I-Local | Login 401 → mensaje legible, no `Error: 401` | ❌ AU-08 |
 | 20 | I-Local | Cerrar sesión desde una pantalla del coordinador → esa pantalla no queda en la pila | ❌ AU-09 |
 | 21 | I-Local | `InscripcionesGenerales` por ruta: el coordinador la abre (control); alumno, instructor y sin sesión no | ✅ control · ❌ AU-10 ×3 |
 | 22 | I-Remota | Correo no registrado → 404 | ❌ AU-B01 (`401`) |
+
+## Módulos restantes: revisión contra el backend nuevo (2026-11-05)
+
+Plan y resultado: [plan-diagnostico-backend-nuevo.md](plan-diagnostico-backend-nuevo.md). Inscripciones y estadísticas tienen su propia sección. **Regla:** solo cambia de estado lo que una prueba unitaria o remota demuestra. Lo visto por petición directa se anota como observación.
+
+| Suite | Resultado |
+|---|---|
+| Sin backend | 351 en verde |
+| `test/main_test.dart` (remota) | 105 en verde, 7 en rojo: BK-05 ×2, BK-06, BK-07 ×2, BK-08 y la expectativa vieja de `VmGruposInscripcionTest` · prueba3 |
+| `test/diagnostico` | 94 en rojo, 7 en verde (controles y `setUpAll`), 1 omitida |
+
+La autorización por rol quedó comprobada con los JWT de cada rol: alumno, instructor y coordinador leen lo que sus pantallas piden. Alumno recibe 403 en `/clasesGrupo`, `/alumnosGrupo` y `/gruposInstructor`, que el menú no le ofrece. Anónimo recibe 401 en todo salvo facultades, programas y registro.
+
+### Resueltos con el backend nuevo
+
+| ID | Evidencia |
+|---|---|
+| CL-01 | Prueba remota en verde sin tocar la app |
+| GR-06 | Prueba remota en verde sin tocar la app |
+| ES-05, IN-13 | Ver sus secciones |
+| AS-11 (desvinculados) | La prueba de GR-06 cubre a los desvinculados; los alumnos eliminados siguen sin comprobarse |
+
+### Reabiertos o cambiados
+
+| ID | Cambio |
+|---|---|
+| AS-B01 | Reabierto como BK-02 |
+| AS-04, AS-05 | Se decidieron sobre `/asistenciasClase`, que ya no existe. Hay que revisarlos al reescribir la conexión |
+| AU-B01 | Sigue sin verificar: `/auth/token` exige un ID Token firmado por Google. Solo se comprobó que uno inválido da 401 |
+
+### Sin cambio
+
+Estos dependen del código de la app y siguen en rojo:
+
+- **Asistencias:** AS-01 a AS-03, AS-06 a AS-09 y AS-12. AS-07 queda pendiente de la conexión nueva.
+- **Clases:** CL-03 a CL-05.
+- **Grupos:** GR-01, GR-03 a GR-05.
+- **Horarios:** HO-02 a HO-05. HO-04 y HO-05 ya tienen rutas de escritura en el backend.
+- **Categorías:** CAT-01 a CAT-04, CAT-06, CAT-09, CAT-13.
+- **Cursos:** CU-01, CU-02, CU-04.
+- **Alumnos:** AL-01 a AL-04.
+- **Instructores y facultades:** IT-01 a IT-03, FA-01 a FA-03.
+- **Autenticación:** AU-01, AU-03 a AU-06, AU-08 a AU-10.
+- **Transversal:** X-01.
+
+AL-03, IT-01 y FA-03 prueban un 404 de lista vacía. **Observado:** un grupo sin alumnos responde 200 con `GC-0002`, que la app ya trata como vacío, así que AL-03 no se da hoy. Las listas de instructores y facultades no se pueden vaciar por la API.
+
+### Observaciones por petición directa (no son hallazgos)
+
+| ID | Observado el 2026-11-05 | Falta |
+|---|---|---|
+| H-08 (clases) | Una clase futura ya da 422 `GC-0018` | Prueba propia |
+| H-07 (horarios) | Ya existen `POST`, `PUT` y `DELETE /horario`; la falta es de la app (HO-04, HO-05) | Decidir quién carga los horarios |
+| H-13 (instructores) | Sigue igual: acepta el día `Xyz` y un horario duplicado | Regla del cliente |
+| CAT-16a | Sigue igual, y además los grupos de la categoría eliminada siguen en `/gruposInscripcion` | Regla del cliente |
+| CAT-16b | Sigue igual: recrear el título da 409 | Regla del cliente |
+| AU-H1 | Sin JWT, `/login` da 401, así que el correo solo ya no abre sesión (BK-11) | Nada, salvo quitar la opción |
+| AU-H2 | Descartada en lo observado: el 201 trae `role: Alumno` | — |
+| H-RN-01 | El 201 del registro de un docente trae `facultad: null`, aunque se envió | Ver si se guarda |
+| H-RN-02 | `PATCH /curso/estado` no se probó: la app no lo usa y no hay forma de reactivar un curso desde ella | Decidir con el cliente |
+| H-RN-03 | Facultades y programas siguen con doble codificación (`EconÃ³micas`) | Backend |
+
+---
+
+## Compatibilidad con el backend nuevo (2026-11-05)
+
+Backend en uso: `E:/2026-1/Practica/BackDeporteParaTodos (Nuevo)`. La suite remota volvió a correr firmando sus propios JWT (`test/remoto/jwtPruebas.dart`, coordinador por defecto). Lo que era de siembra se ajustó en `test/remoto/datosPruebas.dart`. Lo demás **no se ajustó**: las pruebas siguen en rojo como evidencia. Las rojas viven en `main_test.dart`, no en `remoto_diagnostico_test.dart`, hasta decidir qué hacer con cada una.
+
+Al revisar estadísticas (2026-11-05) los 4 casos sin correr volvieron a correr, en verde, porque la siembra ya no depende de `/asistenciasClase`.
+
+Resultado al corregir grupos (BK-01 y BK-03, 2026-11-05): **93 en verde, 11 en rojo, 4 sin correr** (su `setUpAll` falla por BK-02). `flutter test test/unitarias test/raiz_composicion_test.dart test/integracion`: 351 en verde.
+
+| ID | Módulo | Síntoma observable | Prueba | Origen de la evidencia | Sev. | Resp. | Estado |
+|---|---|---|---|---|---|---|---|
+| BK-01 | Grupos | La app llama a `PUT /abrirInscripcionesGrupo` y `/cerrarInscripcionesGrupo`, que ya no existen (404 de Spring, sin `GC-0003`). El coordinador no puede abrir ni cerrar inscripciones. El backend usa `PATCH /grupo/periodo` y `PATCH /grupo/inscripciones?cerradas=` | `VmPeriodoInscripcionTest` ×7 | **API del backend** + `/v3/api-docs` | M | app | **corregido** (2026-11-05): abrir usa `PATCH /grupo/periodo`, cerrar usa `PATCH /grupo/inscripciones?cerradas=true` y, si el grupo estaba cerrado a mano, abrir aplica el periodo y luego lo reabre. El cierre ahora es obligatorio al abrir y al programar; la app lee `inscripcionesCerradasManual`. Comprobado contra el backend real con `VmPeriodoInscripcionTest` (7 en verde), incluido cerrar y reabrir. Falta probarlo en pantalla, en el emulador |
+| BK-02 | Asistencias | `/asistenciasClase` ya no existe: la toma de asistencia recibe 404, tanto al listar como al registrar. El backend publica `PUT /clase/{codigo}/asistencia`, `POST /atenciones` y `GET /atencionesporclase` | `transversal/remoto_backend_nuevo` · BUG BK-02 (lista de una clase real, `Actual: 'Código: 404 - …NoResourceFoundException…'`); `estadisticas/remoto_diagnostico` · BUG BK-02 (registro, `Expected: <200>`, `Actual: <404>`). `VmAtencionTest.prueba4ClaseInexistente` sigue en verde por casualidad: su 404 es el de la ruta, no el de la clase | **Prueba contra el backend real** + `/v3/api-docs` | A | app | **confirmado** |
+| BK-03 | Grupos | `POST /grupo` exige `fechaIncripcionCierre` (422 `GC-0015`) y el formulario de grupo no la pide: desde la app no se puede crear un grupo. `GrupoModelo.toJson` ya la envía si existe; falta el campo en el formulario y en `registrarGrupo` | `VmModuloGrupoTest` (rojo antes de sembrar la fecha) | **API del backend** + lectura de `registrarGrupo` | M | app | **corregido** (2026-11-05): el formulario pide el cierre (obligatorio) y la apertura (opcional; sin ella las inscripciones abren al crear el grupo). `registrarGrupo` valida ambas. Probado en `formularioGrupo_integracion_test` sobre el transporte falso; no se creó un grupo real desde el formulario |
+| BK-04 | Clases | `POST /claseGrupo` en un día sin horario exige `justificacion` (422 `GC-0021`) y la app no tiene cómo enviarla: el formulario y `registrarClase` no la piden. Con horario, el backend ignora las horas enviadas y las calcula | `transversal/remoto_backend_nuevo` · BUG BK-04 (`NoSuchMethodError`: `registrarClase` no acepta `justificacion`) y su control (422) | **Prueba contra el backend real** + `ClaseServicio` | M | app | **confirmado** |
+| BK-05 | Horarios | Un grupo sin horarios responde `200` con un objeto `GC-0002`, no `[]`: la app muestra `Código: 406 - se esperaba una lista` en lugar de una lista vacía. Clases y alumnos dan la misma forma, pero su conexión o su VM ya la tratan como lista vacía | `transversal/remoto_backend_nuevo` · BUG BK-05; `VmModuloGrupoTest` · prueba3, `VmHorarioDiagnosticoTest` · prueba1 | **Prueba contra el backend real** | M | app | **confirmado** |
+| BK-06 | Inscripciones | Un grupo sin cupos ya no da 409: responde 201 con `estado: EN_ESPERA`. La conexión descarta el cuerpo y la pantalla dice «Te has inscrito al grupo» aunque el alumno quedó en lista de espera | `inscripciones/vista_diagnostico` · BUG BK-06 (`Found 1 widget with text "Te has inscrito al grupo"`; su control con `INSCRITO` en verde); `remoto_diagnostico` · BUG BK-06 (`Expected: contains 'EN_ESPERA'`, `Actual: 'null'`); `VmInscripcionTest` · prueba4 | **Prueba** (pantalla sobre transporte falso con el cuerpo observado, y backend real) | A | app | **confirmado**, ahora con prueba propia |
+| BK-07 | Inscripciones | **Revisado el 2026-11-05.** (a) Repetir una inscripción activa con cupos responde 201 y reescribe `fechaInscripcion`, no 409. (b) Un alumno inexistente da 500 con la traza completa de Spring en el cuerpo, no 404. **Corrección:** un grupo inexistente **sí** da 404 `GC-0003`; antes no se veía porque `prueba5` se detiene en la primera aserción. (c) El grupo cerrado da 422 (`GC-0012` si es a mano, `GC-0016` por fechas, este último leído en el código), no 409: es regla nueva, no bug; la app lo trata como cualquier rechazo y solo falla la expectativa vieja de `VmGruposInscripcionTest` · prueba3 | `remoto_diagnostico` · BUG BK-07 ×2 (`Expected: Fallo`, `Actual: Exito`; `Expected: <404>`, `Actual: <500>`); `VmInscripcionTest` · prueba1 y prueba5 | **Prueba contra el backend real.** (b) no se alcanza desde la pantalla: con rol alumno y otro id la respuesta es 403 antes | M | backend | **confirmado** (a) y (b); (c) **descartado** como bug: falta actualizar la expectativa de prueba3, que no se tocó porque es una prueba roja |
+| BK-08 | Clases | Registrar una clase en una fecha que ya tiene clase da `Fallo -1 type '_Map<String, dynamic>' is not a subtype of type 'String'`. **Causa probada:** el backend reutiliza la clase y responde 200 con ella; la conexión solo acepta 201, `RespuestaModelo.fromResponse` pone el mapa como mensaje y salta el `TypeError` (como CAT-07). Por eso falla `prueba3FechaSinCorrimiento`: registra cuatro horas de un mismo día. Afecta CL-06 solo en esa prueba; no significa que CL-06 volviera | `transversal/remoto_backend_nuevo` · BUG BK-08 (`Fallo -1 type…`); `VmClaseDiagnosticoTest` · prueba3 | **Prueba contra el backend real** + `ClaseRest` | M | app | **corregido** (2026-11-05): `RespuestaModelo.fromResponse` siempre produce texto, la conexión acepta 200 y 201, y `registrarClase` devuelve `Exito<bool>`: con `false` la pantalla avisa «Ya existía una clase en esa fecha; no se creó otra», porque las horas enviadas no se guardan. Pruebas en `integracion/clases_integracion_test.dart`, `unitarias/modelo/respuestaModelo_test.dart` y `VmClaseDiagnosticoTest.prueba7FechaConClase` (backend real). `prueba3FechaSinCorrimiento` pasó a usar un día por hora y sigue en rojo por CL-07 |
+| BK-09 | Inscripciones | Después de inscribir con éxito, `validarInscripcion` devuelve `false` y la tarjeta vuelve a «Matricular», sin error. Se pasa solo en menos de un segundo, pero la pantalla ya no vuelve a consultar | `remoto_diagnostico` · BUG BK-09 (envío entre .600 y .850 del segundo: `Expected: true`, `Actual: <false>`, 3 de 3) y su control (envío entre .050 y .350: verde, 3 de 3). Efecto secundario en `VmInscripcionTest` · prueba1, prueba2 y prueba7 y `VmGruposInscripcionTest` · prueba4 | **Prueba contra el backend real.** **Causa:** `fechaInscripcion` se guarda sin fracción de segundo y redondeada hacia arriba, y `existeInscripcionActiva` exige `fechaInscripcion <= CURRENT_TIMESTAMP`. Observado: el POST devolvió `21:20:46.624` y la fila quedó en `21:20:47.000`. Lo anterior sobre la zona de Bogotá queda descartado como causa. **Por confirmar:** el tipo de la columna, en el esquema | M | backend | **confirmado, causa probada** |
+| BK-10 | Categorías / transversal | Sin sesión, todas las rutas de lectura dan 401 sin cuerpo y la app abre en categorías: la pantalla inicial muestra `Código: 401 - ` en lugar de pedir que se inicie sesión | `transversal/remoto_backend_nuevo` · BUG BK-10 (`Actual: 'Código: 401 - '`) | **Prueba contra el backend real.** **Por decidir con el cliente:** si un visitante debe poder ver el catálogo; eso exigiría abrir esas rutas en el backend | M | app + cliente | **confirmado** |
+| BK-11 | Autenticación | «Continuar con correo» ya no puede funcionar: `GET /login` exige un JWT que solo se obtiene después de entrar. `VmLoginTest` · prueba1 sigue en verde porque la suite sí manda un token | `transversal/remoto_backend_nuevo` · BUG BK-11 (`Expected: not <401>`, `Actual: <401>`) | **Prueba contra el backend real** | M | app (quitar la opción) | **confirmado** |
+
+Con BK-01 cambió una regla de la app: ya no existe "abrir sin fecha límite". `VmPeriodoInscripcionTest` · prueba1 y prueba2 se reescribieron para eso. Un grupo sin ninguna fecha sigue mostrándose "Sin abrir", aunque para el backend está abierto: solo puede ser un grupo viejo.
+
+Ninguna prueba actúa todavía con rol de alumno o instructor. Hay ayudantes (`actuarComoAlumno`, `actuarComoInstructor`), pero los permisos por rol siguen sin probarse. Observado con un token de alumno: `GET /instructores` responde 200.
 
 ## Seguimiento en Jira (2026-10-29)
 
@@ -1000,4 +1185,31 @@ Los 57 hallazgos abiertos del 2026-10-29, más HO-04 y HO-05 (módulo 6b, 2026-1
 | CU-06 | [SCRUMBAN-99](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-99) | CU-07 | [SCRUMBAN-100](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-100) | DE-01 | [SCRUMBAN-101](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-101) |
 | GR-07 | [SCRUMBAN-102](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-102) | GR-08 | [SCRUMBAN-103](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-103) |  |  |
 
+| IN-14 | [SCRUMBAN-105](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-105) | IN-15 | [SCRUMBAN-106](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-106) | IN-16 | [SCRUMBAN-107](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-107) |
+| IN-17 | [SCRUMBAN-108](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-108) | ES-06 | [SCRUMBAN-109](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-109) | ES-07 | [SCRUMBAN-110](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-110) |
+| BK-02 | [SCRUMBAN-111](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-111) | BK-04 | [SCRUMBAN-112](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-112) | BK-05 | [SCRUMBAN-113](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-113) |
+| BK-06 | [SCRUMBAN-114](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-114) | BK-07 | [SCRUMBAN-115](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-115) | BK-08 | [SCRUMBAN-116](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-116) |
+| BK-09 | [SCRUMBAN-117](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-117) | BK-10 | [SCRUMBAN-118](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-118) | BK-11 | [SCRUMBAN-119](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-119) |
+| AU-09 | [SCRUMBAN-120](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-120) | AU-06 | [SCRUMBAN-121](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-121) | AU-05 | [SCRUMBAN-122](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-122) |
+| AU-08 | [SCRUMBAN-123](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-123) | AU-10 | [SCRUMBAN-124](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-124) | AU-04 | [SCRUMBAN-125](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-125) |
+| AU-01 | [SCRUMBAN-126](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-126) | AU-03 | [SCRUMBAN-127](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-127) |  |  |
+
 **Cerradas en Jira (Finalizado, 2026-11-05):** las seis corregidas que estaban abiertas, GR-02 (SCRUMBAN-60), HO-01 (SCRUMBAN-83), CAT-14 (SCRUMBAN-78), CAT-05 (SCRUMBAN-74), CU-05 (SCRUMBAN-69) y CU-03 (SCRUMBAN-67); y las cinco halladas y corregidas el 2026-11-04 y 05 (CU-06, CU-07, DE-01, GR-07, GR-08), creadas en la Epic ya cerradas. Antes de cerrar se comprobó que ninguna de las seis tiene prueba de diagnóstico en rojo y que los 53 hallazgos abiertos siguen con la suya en rojo. Quedan 53 tareas en «Por hacer».
+
+**Revisión contra el backend nuevo (2026-11-05):**
+
+- **Cerradas en Jira, con un comentario que explica la corrección:** IN-13 (SCRUMBAN-53), ES-05 (SCRUMBAN-58), GR-06 (SCRUMBAN-64) y CL-01 (SCRUMBAN-79). Las cuatro las corrigió el backend y sus pruebas están en verde.
+- **Creadas en la Epic, en «Por hacer»:** los 15 hallazgos confirmados contra el backend nuevo que no tenían tarea. La severidad A se pasó a prioridad High.
+- **Creadas después, en «Por hacer»:** los ocho hallazgos abiertos de autenticación (AU-01, AU-03 a AU-06, AU-08 a AU-10).
+- **Cerrada después:** FA-04 (SCRUMBAN-96), que estaba corregida en la app y seguía abierta en Jira.
+- **Sin tarea:** BK-01 y BK-03, ya corregidos, y AU-B01, corregido en la app y pendiente de probar con una cuenta real.
+
+**Sprint 1 (SCRUM Sprint 1, 2026-11-05):** se revisaron sus seis tareas contra el backend nuevo. IN-08, IN-09, IN-10 e IN-13 siguen resueltas; IN-09 e IN-10 se comprobaron también contra el backend real (401 real y sin conexión; POST 201 real con revalidación 401 real). IN-11 (SCRUMBAN-51) e IN-12 (SCRUMBAN-52) se corrigieron y se cerraron. Sin backend: 357 en verde. Queda abierto fuera del sprint BK-09 (SCRUMBAN-117), que deja el mismo síntoma visible de IN-10 por otra causa: el backend responde `false` sin error. La suite remota dio 13 rojos a las 23:09: los 7 de la tabla, 3 de BK-09 según la corrida, y 3 de clases y estadísticas sin explicar (se sospecha de la hora, por el cambio de día en UTC; sin comprobar).
+
+**Corrección de BK-08 (2026-11-05):** sin backend, 365 en verde. La suite remota da 100 en verde y 13 en rojo a las 23:45: BK-05 ×2, la expectativa vieja de prueba3, BK-06, BK-07 ×2, 3 según la corrida por BK-09, y 4 de clases y estadísticas que aparecen desde las 19:00 hora local (CL-07; en estadísticas, inferido). La tarea SCRUMBAN-116 sigue abierta en Jira.
+
+**Corrección de CL-07 (2026-11-05, 23:43):** sin backend, 366 en verde. Remota: 106 en verde y 7 en rojo: BK-05 ×2, la expectativa vieja de prueba3, BK-06, BK-07 ×2 y `Cargar estados`, que varía según la corrida por BK-09.
+
+| ID | Módulo | Síntoma observable | Prueba | Origen de la evidencia | Sev. | Resp. | Estado |
+|---|---|---|---|---|---|---|---|
+| CL-07 | Clases | Desde las 19:00 hora local, la fecha de la clase salta al día siguiente. Con la fecha por defecto del formulario (`DateTime.now()`), registrar la clase de hoy da 422 `GC-0018`: «La fecha de la clase (2026-11-06) no puede ser posterior a hoy (2026-11-05)». Causa: `Clasemodelo.toJson` envía `fecha.toUtc()` (corrección de CL-06), y el backend nuevo recibe `fecha` como `LocalDate` y toma la parte de fecha tal cual. La corrección de CL-06 era válida para el backend anterior | `VmClaseDiagnosticoTest` · prueba1 (`Expected: '2026-11-04'`, `Actual: '2026-11-05'`), prueba2 (el 422 citado) y prueba3 (caso 23:30). Corrida a las 23:37 | **Prueba contra el backend real** + `ClaseDto.java`. **Inferido al registrarlo, comprobado al corregir:** el rojo de estadísticas «un rango de un solo día» venía de lo mismo. El selector de fecha entrega 00:00, así que elegir un día a mano no se veía afectado | A | app | **corregido** (2026-11-05): `Clasemodelo.toJson` envía solo el día local (`yyyy-MM-dd`), sin hora ni zona. Esto reemplaza la corrección de CL-06. A las 23:43, contra el backend real, prueba1, prueba2, prueba3 y estadísticas pasaron a verde; un caso nuevo en `integracion/clases_integracion_test.dart` fija 23:30. Sin tarea en Jira |

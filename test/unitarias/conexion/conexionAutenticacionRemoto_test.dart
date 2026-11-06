@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.dart';
 import 'package:dpt_movil/data/models/perfilModelo.dart';
+import 'package:dpt_movil/data/models/tokenModelo.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../contratos/leerContrato.dart';
@@ -32,6 +33,9 @@ void main() {
       sexo: json['sexo'],
       facultad: json['facultad'],
       tipoAlumno: json['tipoAlumno'],
+      alumnoCodigo: json['alumnoCodigo'],
+      programa: json['programa'],
+      dependencia: json['dependencia'],
     );
   }
 
@@ -67,6 +71,15 @@ void main() {
       expect(respuesta.error, isNotNull);
     });
 
+    //antes AU-02: fromJson no leia la facultad
+    test('$capa - $tipo - Login - la facultad del perfil llega al modelo', () async {
+      adaptador.responder('GET', '/login', 200, leerContrato('autenticacion', 'login_200'));
+
+      final respuesta = await conexion.login('ana@unicauca.edu.co');
+
+      expect((respuesta.datos as Perfilmodelo).facultad, 'fiet');
+    });
+
     test('$capa - $tipo - Registro - envia el perfil del formulario como json y 201 devuelve el perfil', () async {
       adaptador.responder('POST', '/RegistroPerfilAlumno', 201, leerContrato('autenticacion', 'registro_201'));
 
@@ -85,6 +98,36 @@ void main() {
 
       expect(respuesta.codigoHttp, 409);
       expect(respuesta.datos, isNull);
+    });
+
+    test('$capa - $tipo - Intercambiar token - el ID Token de Google va en Authorization y 200 devuelve el JWT y el perfil', () async {
+      adaptador.responder('POST', '/auth/token', 200, leerContrato('autenticacion', 'token_200'));
+
+      final respuesta = await conexion.intercambiarToken('id-token-de-google');
+
+      final peticion = adaptador.peticionesA('POST', '/auth/token').single;
+      expect(peticion.autorizacion, 'Bearer id-token-de-google');
+      expect(peticion.cuerpo, isNull);
+      expect(respuesta.codigoHttp, 200);
+      final modelo = respuesta.datos as Tokenmodelo;
+      expect([modelo.token, modelo.perfil.correo, modelo.perfil.role], ['jwt-del-sistema', 'ana@unicauca.edu.co', 'Coordinador']);
+    });
+
+    test('$capa - $tipo - Intercambiar token - 404 de correo no registrado y 401 de token invalido llegan con su codigo', () async {
+      adaptador.responder('POST', '/auth/token', 404);
+      expect((await conexion.intercambiarToken('t')).codigoHttp, 404);
+
+      adaptador.responder('POST', '/auth/token', 401);
+      expect((await conexion.intercambiarToken('t')).codigoHttp, 401);
+    });
+
+    test('$capa - $tipo - Intercambiar token - un 200 sin perfil se devuelve como error, sin lanzar', () async {
+      adaptador.responder('POST', '/auth/token', 200, {'token': 'jwt'});
+
+      final respuesta = await conexion.intercambiarToken('t');
+
+      expect(respuesta.codigoHttp, isNot(200));
+      expect(respuesta.error, isNotNull);
     });
   });
 }

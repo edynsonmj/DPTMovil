@@ -3,6 +3,7 @@ import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/presentation/viewmodels/facultadesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../datosPruebas.dart';
 
 //diagnostico del modulo 9b contra el backend real (plan-diagnostico-
 //instructores-facultades.md): InstructoresViewModel con su cadena real, el
@@ -32,7 +33,7 @@ class VmInstructorDiagnosticoTest {
         facultad: vmFacultades.facultades.first,
         tipoAlumno: 'Estudiante',
       );
-      final r = await servicioAutenticacion.registro(_alumno);
+      final r = await servicioAutenticacion.registro(await completarRegistro(_alumno));
       expect(r.codigoHttp, 201, reason: 'no se registro $id');
     });
   }

@@ -12,6 +12,7 @@ import 'package:dpt_movil/presentation/view/widgets/menuLateral.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/deporteViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart';
+import 'package:dpt_movil/presentation/view/widgets/imagenRemota.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -200,10 +201,10 @@ class _FormularioCursoState extends State<FormularioCurso> {
     if (_estado.curso?.imagen == null && _imagen == null) {
       return Text('No se ha seleccionado ninguna imagen');
     }
-    Image img;
+    Widget img;
     //Si hay imagen en a cargar
     if (_estado.curso?.imagen != null && _imagen == null) {
-      img = Image.network(
+      img = ImagenRemota(
         _vmCurso.urlImagen(_estado.curso!.imagen!),
         fit: BoxFit.cover,
       );

@@ -24,6 +24,7 @@ import '../../dobles/conexiongruposFalsa.dart';
 import '../../dobles/conexionhorariosFalsa.dart';
 import '../../dobles/conexioninscripcionFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //widget test de la pantalla de inscripcion del alumno (fase 6): se monta con
 //los mismos vms que crea la ruta gruposDisponiblesInscripcion, armados con
@@ -82,7 +83,7 @@ void main() {
                 (_) => AutenticacionViewModel(
                   Servicioautenticacion(
                     Autenticacionrepositorio(
-                      conexion: ConexionautenticacionFalsa(),
+                      conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken(),
                     ),
                   ),
                   GoogleSignInFalso(),

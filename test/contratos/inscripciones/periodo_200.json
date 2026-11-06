@@ -1,0 +1,19 @@
+[
+  {
+    "categoria": "prueba_actualizar_20260817183250444203",
+    "curso": "curso prueba",
+    "anio": 2026,
+    "iterable": 2,
+    "imagenGrupo": 388,
+    "cupos": 15,
+    "idInstructor": "2",
+    "fechaCreacion": "2026-09-03",
+    "fechaFinalizacion": null,
+    "fechaInscripcionApertura": "2026-10-29",
+    "fechaIncripcionCierre": "2026-11-30",
+    "periodo": 2,
+    "inscripcionesAbiertas": true,
+    "motivoInscripcion": "ABIERTAS",
+    "inscripcionesCerradasManual": false
+  }
+]

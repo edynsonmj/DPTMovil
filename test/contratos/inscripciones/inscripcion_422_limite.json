@@ -1,0 +1,7 @@
+{
+  "codigoError": "GC-0014",
+  "mensaje": "El alumno ha alcanzado el limite de cursos activos, El alumno ya esta inscrito en el maximo de 3 cursos activos",
+  "codigoHttp": 422,
+  "url": "http://localhost:8082/api/v2/inscripcion",
+  "metodo": "POST"
+}

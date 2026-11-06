@@ -206,6 +206,8 @@ class Conexiongruposremoto extends Conexiongrupos {
     }
   }
 
+  //aplica el periodo (PATCH /grupo/periodo). La ruta admite varios grupos y
+  //responde la lista actualizada; aqui va y vuelve uno
   @override
   Future<RespuestaModelo> abrirInscripciones(
     String categoria,
@@ -213,15 +215,35 @@ class Conexiongruposremoto extends Conexiongrupos {
     int anio,
     int iterable,
     PeriodoInscripcionModelo periodo,
-  ) {
-    return _cambiarPeriodo(
-      '/abrirInscripcionesGrupo',
-      categoria,
-      curso,
-      anio,
-      iterable,
-      periodo.toJson(),
-    );
+  ) async {
+    String metodo = "PATCH";
+    String path = '/grupo/periodo';
+    String capa = "conexion";
+    try {
+      final response = await _dio.patch(
+        path,
+        data: periodo.toJson(
+          categoria: categoria,
+          curso: curso,
+          anio: anio,
+          iterable: iterable,
+        ),
+        options: Options(contentType: 'application/json'),
+      );
+      if (response.statusCode != 200) {
+        return RespuestaModelo.fromResponse(response, metodo);
+      }
+      final grupos = response.data as List;
+      return RespuestaModelo(
+        codigoHttp: 200,
+        datos: GrupoModelo.fromJson(grupos.first),
+      );
+    } on DioException catch (dioError) {
+      return RespuestaModelo.fromDioException(dioError, metodo);
+    } catch (error) {
+      //incluye TypeError de un json incompleto: no escapa de la capa
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
+    }
   }
 
   @override
@@ -230,42 +252,38 @@ class Conexiongruposremoto extends Conexiongrupos {
     String curso,
     int anio,
     int iterable,
-  ) {
-    return _cambiarPeriodo(
-      '/cerrarInscripcionesGrupo',
-      categoria,
-      curso,
-      anio,
-      iterable,
-      null,
-    );
-  }
+  ) => _cambiarCierreManual(categoria, curso, anio, iterable, true);
 
-  //abrir y cerrar comparten forma: PUT con la llave del grupo en la query y
-  //el grupo actualizado como respuesta. La llave va en queryParameters para
-  //que Dio la codifique: los titulos llevan espacios, tildes y hasta "&"
-  Future<RespuestaModelo> _cambiarPeriodo(
-    String path,
+  @override
+  Future<RespuestaModelo> reabrirInscripciones(
     String categoria,
     String curso,
     int anio,
     int iterable,
-    Map<String, dynamic>? cuerpo,
+  ) => _cambiarCierreManual(categoria, curso, anio, iterable, false);
+
+  //PATCH /grupo/inscripciones: la llave va en queryParameters para que Dio la
+  //codifique, los titulos llevan espacios, tildes y hasta "&"
+  Future<RespuestaModelo> _cambiarCierreManual(
+    String categoria,
+    String curso,
+    int anio,
+    int iterable,
+    bool cerradas,
   ) async {
-    String metodo = "PUT";
+    String metodo = "PATCH";
+    String path = '/grupo/inscripciones';
     String capa = "conexion";
     try {
-      final response = await _dio.put(
+      final response = await _dio.patch(
         path,
         queryParameters: {
           'categoria': categoria,
           'curso': curso,
           'anio': anio,
           'iterable': iterable,
+          'cerradas': cerradas,
         },
-        data: cuerpo,
-        options:
-            cuerpo == null ? null : Options(contentType: 'application/json'),
       );
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);

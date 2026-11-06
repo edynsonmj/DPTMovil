@@ -30,6 +30,7 @@ import '../../dobles/conexionclasesFalsa.dart';
 import '../../dobles/conexionhorariosFalsa.dart';
 import '../../contratos/leerContrato.dart';
 import '../../dobles/googleSignInFalso.dart';
+import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
 //diagnostico de la escritura de horarios en la pantalla del grupo (plan-
 //diagnostico-horarios-escritura.md): el backend ya tiene POST, PUT y DELETE
@@ -66,7 +67,7 @@ void main() {
           ChangeNotifierProvider(
             create: (_) => AutenticacionViewModel(
               Servicioautenticacion(
-                Autenticacionrepositorio(conexion: ConexionautenticacionFalsa()),
+                Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
               ),
               GoogleSignInFalso(),
             ),

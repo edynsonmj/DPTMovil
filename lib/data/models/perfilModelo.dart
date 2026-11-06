@@ -15,6 +15,12 @@ class Perfilmodelo {
 
   String? tipoAlumno;
 
+  String? alumnoCodigo;
+
+  String? programa;
+
+  String? dependencia;
+
   Perfilmodelo({
     required this.id,
     required this.nombre,
@@ -24,6 +30,9 @@ class Perfilmodelo {
     this.role,
     this.facultad,
     this.tipoAlumno,
+    this.alumnoCodigo,
+    this.programa,
+    this.dependencia,
   });
 
   factory Perfilmodelo.fromJson(dynamic json) {
@@ -35,6 +44,10 @@ class Perfilmodelo {
       sexo: json['sexo'],
       tipoAlumno: json['tipoAlumno'],
       role: json['role'],
+      facultad: json['facultad'],
+      alumnoCodigo: json['alumnoCodigo'],
+      programa: json['programa'],
+      dependencia: json['dependencia'],
     );
   }
   Map<String, dynamic> toJson() {
@@ -52,6 +65,12 @@ class Perfilmodelo {
       'facultad': facultad,
 
       'tipoAlumno': tipoAlumno,
+
+      'alumnoCodigo': alumnoCodigo,
+
+      'programa': programa,
+
+      'dependencia': dependencia,
 
       'role': role,
     };
