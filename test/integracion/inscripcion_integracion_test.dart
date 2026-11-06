@@ -174,7 +174,38 @@ void main() {
       expect((resultado as Fallo).codigo, 503);
       expect(vm.procesando(grupo), isFalse);
     });
-    //los casos rojos de este mismo montaje (IN-08 a IN-11) estan en
-    //test/diagnostico/inscripciones/integracion_diagnostico_test.dart
+
+    //nacio como diagnostico de IN-11: el DateTime no se podia codificar y la
+    //inscripcion no salia. La pantalla no pone fechas; las fija el backend
+    test('$capa - $tipo - Inscribir - una inscripcion con fecha sale con la fecha en ISO 8601', () async {
+      adaptador.responder('POST', '/inscripcion', 201, {'alumnoId': '104619011001'});
+      adaptador.responder('GET', '/validarInscripcion', 200, true);
+      final fecha = DateTime(2026, 10, 29, 8, 30);
+
+      final resultado = await vm.agregarIncripcion(
+        inscripcion()..fechaInscripcion = fecha,
+      );
+
+      expect(resultado, isA<Exito>());
+      final cuerpo =
+          adaptador.peticionesA('POST', '/inscripcion').single.cuerpo as Map;
+      expect(cuerpo['fechaInscripcion'], fecha.toIso8601String());
+    });
+
+    test('$capa - $tipo - Desvincular - la fecha de desvinculacion sale en ISO 8601 y la ausente, nula', () async {
+      adaptador.responder('PUT', '/desvincularInscripcion', 200, {'alumnoId': '104619011001'});
+      adaptador.responder('GET', '/validarInscripcion', 200, false);
+      final fecha = DateTime(2026, 11, 2, 17);
+
+      final resultado = await vm.desvincularInscripcion(
+        inscripcion()..fechaDesvinculacion = fecha,
+      );
+
+      expect(resultado, isA<Exito>());
+      final cuerpo =
+          adaptador.peticionesA('PUT', '/desvincularInscripcion').single.cuerpo as Map;
+      expect(cuerpo['fechaDesvinculacion'], fecha.toIso8601String());
+      expect(cuerpo['fechaInscripcion'], isNull);
+    });
   });
 }

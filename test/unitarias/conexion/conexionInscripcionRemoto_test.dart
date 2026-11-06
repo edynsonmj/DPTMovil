@@ -72,5 +72,25 @@ void main() {
       expect(respuesta.codigoHttp, isNot(200));
       expect(respuesta.error, isNotNull);
     });
+
+    //nacio como diagnostico de IN-12: un 2xx distinto del esperado con cuerpo
+    //JSON hace que fromResponse lance un TypeError (mismo mecanismo que BK-08)
+    test('$capa - $tipo - Agregar inscripcion - un 200 con cuerpo se devuelve como error, sin lanzar', () async {
+      adaptador.responder('POST', '/inscripcion', 200, {'alumnoId': '104619011001'});
+
+      final respuesta = await conexion.agregarInscripcion(inscripcion);
+
+      expect(respuesta.codigoHttp, isNot(201));
+      expect(respuesta.error, isNotNull);
+    });
+
+    test('$capa - $tipo - Eliminar inscripcion - un 201 con cuerpo se devuelve como error, sin lanzar', () async {
+      adaptador.responder('PUT', '/desvincularInscripcion', 201, {'alumnoId': '104619011001'});
+
+      final respuesta = await conexion.eliminarInscripcion(inscripcion);
+
+      expect(respuesta.codigoHttp, isNot(200));
+      expect(respuesta.error, isNotNull);
+    });
   });
 }

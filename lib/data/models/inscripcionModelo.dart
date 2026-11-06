@@ -37,9 +37,10 @@ class Inscripcionmodelo {
 
   Map<String, dynamic> toJson() {
     return {
-      'fechaInscripcion': fechaInscripcion,
+      //un DateTime no se puede codificar en JSON (IN-11)
+      'fechaInscripcion': fechaInscripcion?.toIso8601String(),
 
-      'fechaDesvinculacion': fechaDesvinculacion,
+      'fechaDesvinculacion': fechaDesvinculacion?.toIso8601String(),
 
       'alumnoId': alumnoId,
 

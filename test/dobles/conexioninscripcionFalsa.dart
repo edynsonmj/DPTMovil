@@ -20,9 +20,8 @@ class ConexioninscripcionFalsa implements Conexioninscripcion {
   int llamadasAgregar = 0;
   int llamadasValidar = 0;
   int llamadasEliminar = 0;
-  //si se fija, la conexion lanza esto en vez de responder: la conexion real
-  //solo captura Exception, asi que un TypeError (p. ej. al armar el
-  //ErrorModelo de un 2xx sin cuerpo) le sale hacia el repositorio
+  //si se fija, la conexion lanza esto en vez de responder: la real ya no deja
+  //salir un TypeError, pero el repositorio tampoco debe dejarlo pasar (IN-12)
   Object? lanzarAlAgregar;
   Object? lanzarAlEliminar;
 

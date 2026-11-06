@@ -116,7 +116,24 @@ void main() {
       expect(conexion.ultimaEliminada?.fechaInscripcion, alta);
       expect(conexion.ultimaEliminada?.fechaDesvinculacion, baja);
     });
-    //un TypeError de la conexion escapa del repositorio: BUG IN-12, en
-    //test/diagnostico/inscripciones/repositorio_diagnostico_test.dart
+
+    //nacieron como diagnostico de IN-12: los errores no se lanzan entre capas
+    test('$capa - $tipo - Agregar inscripcion - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
+      conexion.lanzarAlAgregar = TypeError();
+
+      final respuesta = await repositorio.agregarInscripcion(inscripcion());
+
+      expect(respuesta.codigoHttp, isNot(201));
+      expect(respuesta.error, isNotNull);
+    });
+
+    test('$capa - $tipo - Eliminar inscripcion - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
+      conexion.lanzarAlEliminar = TypeError();
+
+      final respuesta = await repositorio.eliminarInscripcion(inscripcion());
+
+      expect(respuesta.codigoHttp, isNot(200));
+      expect(respuesta.error, isNotNull);
+    });
   });
 }

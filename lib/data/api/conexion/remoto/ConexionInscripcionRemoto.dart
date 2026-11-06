@@ -35,6 +35,9 @@ class Conexioninscripcionremoto implements Conexioninscripcion {
       );
     } on Exception catch (error) {
       return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    } catch (error) {
+      //incluye el TypeError de armar el error con un cuerpo JSON (IN-12)
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 
@@ -103,6 +106,9 @@ class Conexioninscripcionremoto implements Conexioninscripcion {
       );
     } on Exception catch (error) {
       return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    } catch (error) {
+      //incluye el TypeError de armar el error con un cuerpo JSON (IN-12)
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 }

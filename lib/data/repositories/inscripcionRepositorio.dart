@@ -29,6 +29,15 @@ class Inscripcionrepositorio {
         'AgregarInscripcion',
         'repositorio',
       );
+    } catch (error) {
+      //los errores se devuelven entre capas, tambien los que no son
+      //Exception, como un TypeError (IN-12)
+      return RespuestaModelo.fromObjectError(
+        error,
+        'POST',
+        'AgregarInscripcion',
+        'repositorio',
+      );
     }
   }
 
@@ -53,6 +62,15 @@ class Inscripcionrepositorio {
         'EliminarInscripcion',
         'repositorio',
       );
+    } catch (error) {
+      //los errores se devuelven entre capas, tambien los que no son
+      //Exception, como un TypeError (IN-12)
+      return RespuestaModelo.fromObjectError(
+        error,
+        'PUT',
+        'EliminarInscripcion',
+        'repositorio',
+      );
     }
   }
 
@@ -70,6 +88,15 @@ class Inscripcionrepositorio {
       );
     } on Exception catch (error) {
       return RespuestaModelo.fromException(
+        error,
+        'GET',
+        'ValidarInscripcion',
+        'repositorio',
+      );
+    } catch (error) {
+      //los errores se devuelven entre capas, tambien los que no son
+      //Exception, como un TypeError (IN-12)
+      return RespuestaModelo.fromObjectError(
         error,
         'GET',
         'ValidarInscripcion',
