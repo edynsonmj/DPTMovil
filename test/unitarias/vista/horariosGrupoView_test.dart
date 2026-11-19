@@ -1,5 +1,3 @@
-@Tags(['diagnostico'])
-library;
 
 import 'package:dpt_movil/data/models/cursoModelo.dart';
 import 'package:dpt_movil/data/models/horarioModelo.dart';
@@ -40,7 +38,7 @@ import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 //comportamiento CORRECTO y se espera que salgan rojas mientras el bug exista
 void main() {
   const String capa = "vista";
-  const String tipo = "diagnostico";
+  const String tipo = "unitaria";
 
   late _Observador observador;
 
@@ -114,10 +112,10 @@ void main() {
     observador.empujes = 0;
   }
 
-  group('Horarios en la pantalla del grupo (diagnostico de la vista):', () {
+  group('Horarios en la pantalla del grupo (escritura):', () {
     //el montaje es valido: la seccion pinta los dos horarios del contrato y
     //el boton de agregar
-    testWidgets('$capa - $tipo - Pantalla del grupo - control HO-04 - pinta los horarios y el boton de agregar', (tester) async {
+    testWidgets('$capa - $tipo - Pantalla del grupo - pinta los horarios y el boton de agregar', (tester) async {
       await montar(tester);
 
       expect(find.text('Lunes - Coliseo'), findsOneWidget);
@@ -126,7 +124,7 @@ void main() {
     });
 
     //widgetListaHorarios.dart: onPressed: () {}
-    testWidgets('$capa - $tipo - Pantalla del grupo - BUG HO-04 - agregar horario abre el formulario', (tester) async {
+    testWidgets('$capa - $tipo - Pantalla del grupo - agregar horario abre el formulario', (tester) async {
       await montar(tester);
 
       await tester.ensureVisible(find.text('AGREGAR HORARIO'));
@@ -137,7 +135,7 @@ void main() {
     });
 
     //MiniTarjeta.iconoAccion: onPressed solo hace print('hola')
-    testWidgets('$capa - $tipo - Pantalla del grupo - BUG HO-05 - cerrar la tarjeta de un horario pide confirmacion para eliminarlo', (tester) async {
+    testWidgets('$capa - $tipo - Pantalla del grupo - cerrar la tarjeta de un horario pide confirmacion para eliminarlo', (tester) async {
       await montar(tester);
       final cerrar = find.descendant(
         of: find.ancestor(of: find.text('Lunes - Coliseo'), matching: find.byType(MiniTarjeta)),

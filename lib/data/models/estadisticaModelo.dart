@@ -34,10 +34,14 @@ class EstadisticaModelo {
       leyenda2: json['leyenda2'],
       leyenda3: json['leyenda3'],
       leyenda4: json['leyenda4'],
-      clases: json['clases'],
-      horas: json['horas'],
-      minutos: json['minutos'],
-      duracion: json['duracion'],
+      clases: _numero(json['clases']),
+      horas: _numero(json['horas']),
+      minutos: _numero(json['minutos']),
+      duracion: _numero(json['duracion']),
     );
   }
+
+  //el json no distingue 2 de 2.0: ambos son validos (ES-03). Un valor que no
+  //es numero sigue siendo un error de formato
+  static double _numero(dynamic valor) => (valor as num).toDouble();
 }

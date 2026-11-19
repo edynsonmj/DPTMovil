@@ -236,16 +236,13 @@ class VmEstadisticasAsistenciaTest {
     });
   }
 
-  //los tres casos siguientes salen rojos: solo los llama
-  //test/diagnostico/estadisticas/remoto_diagnostico_test.dart, no main_test.dart
-
   //ES-06: la consulta suma horas y minutos por separado y no pasa los minutos a
   //horas. La duracion sale bien, pero la app grafica `horas`. Crea su propio
   //grupo, con horario de 1 h 30 cada dia (el backend toma la duracion de ahi)
-  void diagnosticoMinutosAcumulados(EstadisticasViewModel Function() crearVm) {
+  void prueba7MinutosAcumulados(EstadisticasViewModel Function() crearVm) {
     String metodo = "Estadisticas generales";
-    String caso = "BUG ES-06 - tres clases de 1 h 30 dan 4 horas y 30 minutos";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "tres clases de 1 h 30 dan 4 horas y 30 minutos";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final g = _grupoCreado();
       final hoy = DateTime.now();
       final grupo = await _dio.post(
@@ -340,10 +337,10 @@ class VmEstadisticasAsistenciaTest {
   //BK-02: esta clase siembra por PUT /clase/{codigo}/asistencia porque la ruta
   //que usa la app ya no existe. Este caso conserva esa evidencia: antes la daba
   //el fallo del setUpAll. Una lista vacia basta, la peticion no cambia datos
-  void diagnosticoRegistroDesdeLaApp(Conexionatenciones Function() crearConexion) {
+  void prueba8RegistroDesdeLaApp(Conexionatenciones Function() crearConexion) {
     String metodo = "Registrar asistencia";
-    String caso = "BUG BK-02 - la conexion de la app llega a una ruta que existe";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "la conexion de la app llega a una ruta que existe";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final respuesta = await crearConexion().registrarAtencionesClase(
         [],
         _idClase,

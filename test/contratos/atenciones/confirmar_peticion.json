@@ -1,0 +1,17 @@
+{
+  "asistencias": [
+    {
+      "idPerfil": "1061001",
+      "estaAtendido": false
+    },
+    {
+      "idPerfil": "1061002",
+      "estaAtendido": true
+    },
+    {
+      "idPerfil": "1061003",
+      "estaAtendido": true
+    }
+  ],
+  "confirmaTodosAusentes": false
+}

@@ -23,6 +23,9 @@ class MiniTarjeta extends StatelessWidget {
 
   ///habilitar boton de cierre en la parte derecha
   bool existeBotonCierre;
+
+  ///que hace el boton de cierre; sin ella el boton no hace nada
+  final VoidCallback? alCerrar;
   bool existeCampoImagen;
 
   MiniTarjeta({
@@ -35,6 +38,7 @@ class MiniTarjeta extends StatelessWidget {
     this.atrIndicador,
     this.atrIndicadorEstado,
     this.existeBotonCierre = false,
+    this.alCerrar,
     this.atrMargerSuperior = 5,
     this.atrMargerInferior = 5,
     this.atrMargenIzquierdo = 5,
@@ -89,9 +93,7 @@ class MiniTarjeta extends StatelessWidget {
 
   Widget iconoAccion() {
     return IconButton(
-      onPressed: () {
-        print('hola');
-      },
+      onPressed: alCerrar,
       icon: Icon(Icons.close),
     );
   }

@@ -18,10 +18,17 @@ class Conexionclasesremoto implements Conexionclases {
     int iterable,
   ) async {
     String metodo = "GET";
-    String path =
-        '/clasesGrupo?categoria=$categoria&curso=$curso&anio=$anio&iterable=$iterable';
+    String path = '/clasesGrupo';
     try {
-      final response = await _dio.get(path);
+      final response = await _dio.get(
+        path,
+        queryParameters: {
+          'categoria': categoria,
+          'curso': curso,
+          'anio': anio,
+          'iterable': iterable,
+        },
+      );
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
@@ -50,8 +57,8 @@ class Conexionclasesremoto implements Conexionclases {
         path,
         'conexion',
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 
@@ -80,8 +87,8 @@ class Conexionclasesremoto implements Conexionclases {
         path,
         'conexion',
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 
@@ -104,8 +111,8 @@ class Conexionclasesremoto implements Conexionclases {
         path,
         'conexion',
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 }

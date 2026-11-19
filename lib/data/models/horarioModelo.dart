@@ -34,4 +34,18 @@ class HorarioModelo {
       escenario: json['escenario'],
     );
   }
+
+  //cuerpo de POST /horario (HorarioDto): el grupo viaja en el cuerpo
+  Map<String, dynamic> toJson() {
+    return {
+      'categoria': categoria,
+      'curso': curso,
+      'anio': anio,
+      'iterable': iterable,
+      'dia': dia,
+      'horaInicio': horaInicio,
+      'horaFin': horaFin,
+      'escenario': escenario,
+    };
+  }
 }

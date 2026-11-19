@@ -1,5 +1,3 @@
-@Tags(['diagnostico'])
-library;
 
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionHorariosRemoto.dart';
 import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
@@ -8,8 +6,8 @@ import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
 import 'package:dpt_movil/presentation/viewmodels/horariosViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../contratos/leerContrato.dart';
-import '../../dobles/adaptadorHttpFalso.dart';
+import '../contratos/leerContrato.dart';
+import '../dobles/adaptadorHttpFalso.dart';
 
 //diagnostico de horarios de punta a punta sin backend (plan-diagnostico-
 //horarios.md): el mismo montaje que test/integracion/horarios_integracion_test.dart.
@@ -17,7 +15,7 @@ import '../../dobles/adaptadorHttpFalso.dart';
 //bug exista
 void main() {
   const String capa = "integracion";
-  const String tipo = "diagnostico";
+  const String tipo = "local";
 
   late AdaptadorHttpFalso adaptador;
   late Horariosviewmodel vm;
@@ -40,13 +38,13 @@ void main() {
     );
   });
 
-  group('Horarios (diagnostico de punta a punta):', () {
+  group('Horarios (errores de punta a punta):', () {
     //HO-01 (corregido) paso a test/integracion/horarios_integracion_test.dart
 
     //un horario sin dia: fromJson lanza un TypeError que atraviesa la
     //conexion, el repositorio y listarHorariosGrupo del vm (solo capturan
     //Exception, o la llamada esta fuera del try)
-    test('$capa - $tipo - Cargar horarios de - BUG HO-03 - un horario incompleto llega como error con codigo, no como excepcion', () async {
+    test('$capa - $tipo - Cargar horarios de - un horario incompleto llega como error con codigo, no como excepcion', () async {
       final incompleto = Map<String, dynamic>.from(
         (leerContrato('horarios', 'horarios_200') as List).first,
       )..['dia'] = null;
@@ -60,7 +58,7 @@ void main() {
     });
 
     //GR-05 en la conexion de horarios: el mismo defecto, sin ID nuevo
-    test('$capa - $tipo - Cargar horarios de - BUG GR-05 - categoria y curso llegan completos a la query de /horarios', () async {
+    test('$capa - $tipo - Cargar horarios de - categoria y curso llegan completos a la query de /horarios', () async {
       adaptador.responder('GET', '/horarios', 200, []);
 
       await vm.cargarHorariosDe([grupo('Fútbol & Voleibol', 'Nivel 1 + 2')]);

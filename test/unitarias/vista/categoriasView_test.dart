@@ -97,13 +97,13 @@ void main() {
   ) async {
     vmSesion.perfilSesion = perfil(Roles.alumno);
     await montar(tester);
-    expect(find.text('Agregar categoria'), findsNothing);
+    expect(find.text('Nueva categoría'), findsNothing);
 
     vmSesion.perfilSesion = perfil(Roles.coordinador);
     //perfilSesion es un campo: la vista se entera cuando el vm notifica
     vmSesion.notifyListeners();
     await tester.pumpAndSettle();
-    expect(find.text('Agregar categoria'), findsOneWidget);
+    expect(find.text('Nueva categoría'), findsOneWidget);
   });
 
   //CAT-12 / T-04 (descartado 2026-11-05): iniciar sesion por el vm, sin
@@ -129,13 +129,13 @@ void main() {
       GoogleSignInFalso(),
     );
     await montar(tester);
-    expect(find.text('Agregar categoria'), findsNothing);
+    expect(find.text('Nueva categoría'), findsNothing);
 
     vmSesion.prepararLoginConCorreo('ana@unicauca.edu.co');
     await vmSesion.login();
     await tester.pumpAndSettle();
 
-    expect(find.text('Agregar categoria'), findsOneWidget);
+    expect(find.text('Nueva categoría'), findsOneWidget);
   });
 
   //con el backend que exige JWT: la lista salia a la vez que verificarSesion,

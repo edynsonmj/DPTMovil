@@ -48,8 +48,8 @@ class Conexionestadisticasremoto implements ConexionEstadisticas {
         path,
         capa,
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, capa);
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 
@@ -91,8 +91,8 @@ class Conexionestadisticasremoto implements ConexionEstadisticas {
         path,
         capa,
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, capa);
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 
@@ -134,8 +134,8 @@ class Conexionestadisticasremoto implements ConexionEstadisticas {
         path,
         capa,
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, capa);
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 

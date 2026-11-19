@@ -1,6 +1,3 @@
-@Tags(['diagnostico'])
-library;
-
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionImagenRemoto.dart';
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
@@ -9,8 +6,8 @@ import 'package:dpt_movil/domain/servicios/servicioCurso.dart';
 import 'package:dpt_movil/presentation/viewmodels/cursosViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../contratos/leerContrato.dart';
-import '../../dobles/adaptadorHttpFalso.dart';
+import '../contratos/leerContrato.dart';
+import '../dobles/adaptadorHttpFalso.dart';
 
 //diagnostico de cursos de punta a punta sin backend (plan-diagnostico-
 //cursos.md): el mismo montaje que test/integracion/cursos_integracion_test.dart.
@@ -18,7 +15,7 @@ import '../../dobles/adaptadorHttpFalso.dart';
 //bug exista
 void main() {
   const String capa = "integracion";
-  const String tipo = "diagnostico";
+  const String tipo = "local";
 
   late AdaptadorHttpFalso adaptador;
   late CursoRepositorio repositorio;
@@ -33,9 +30,9 @@ void main() {
     vm = CursosViewModel(ServicioCurso(repositorio));
   });
 
-  group('Cursos (diagnostico de punta a punta):', () {
+  group('Cursos (errores de punta a punta):', () {
     //el "&" corta el valor en la query: el backend recibe otra categoria
-    test('$capa - $tipo - Listar y obtener curso - BUG CU-02 - categoria y curso llegan completos a la query', () async {
+    test('$capa - $tipo - Listar y obtener curso - categoria y curso llegan completos a la query', () async {
       adaptador.responder('GET', '/cursosbycategoria', 200, []);
       adaptador.responder('GET', '/curso', 200, leerContrato('cursos', 'curso_200'));
 
@@ -54,7 +51,7 @@ void main() {
 
     //un curso sin "deporte": CursoModelo.fromJson lanza un TypeError y las
     //dos lecturas solo capturan Exception
-    test('$capa - $tipo - Listar y obtener curso - BUG CU-04 - un curso incompleto vuelve como error de la conexion, sin lanzar', () async {
+    test('$capa - $tipo - Listar y obtener curso - un curso incompleto vuelve como error de la conexion, sin lanzar', () async {
       final incompleto = Map<String, dynamic>.from(
         leerContrato('cursos', 'curso_200') as Map,
       )..remove('deporte');

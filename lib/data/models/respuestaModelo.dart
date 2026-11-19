@@ -144,6 +144,7 @@ class RespuestaModelo {
           ),
         );
       case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
         return RespuestaModelo(
           codigoHttp: 408,
           datos: null,

@@ -133,6 +133,37 @@ class VmInscripcionTest {
     });
   }
 
+  //BK-09 contra el backend, sin pasar por el vm (el vm ya cubre el falso con el
+  //201): inscribir en la segunda mitad del segundo y validar enseguida. El
+  //backend redondeaba fechaInscripcion hacia arriba y validarInscripcion exigia
+  //fechaInscripcion <= CURRENT_TIMESTAMP; quito esa condicion el 2026-11-06.
+  //Si vuelve a fallar, el backend volvio a depender del instante del envio
+  void prueba14BackendValidaAlInstante() {
+    String metodo = "Validar tras inscribir";
+    test('$capa - $tipo - $metodo - el backend responde inscrito sin esperar al segundo siguiente', () async {
+      await _comoAlumno(_alumnoA);
+      final dio = crearDioPruebas(_baseUrl);
+      final g = _grupoCreado();
+      final llave = {
+        'alumnoId': _alumnoA,
+        'categoria': g.categoria,
+        'curso': g.curso,
+        'anio': g.anio,
+        'iterable': g.iterable,
+      };
+      await _esperarFraccion(600, 850);
+      final alta = await dio.post('/inscripcion', data: llave);
+      expect(alta.statusCode, 201);
+
+      final respuesta = await dio.get('/validarInscripcion', queryParameters: llave);
+
+      expect(respuesta.data, isTrue);
+      //deja al alumno A fuera del grupo para los casos siguientes
+      actuarComoAlumno(_alumnoA);
+      await dio.put('/desvincularInscripcion', data: llave);
+    });
+  }
+
   //H-07: el mismo alumno dos veces en el mismo grupo
   void prueba1InscribirDosVeces(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscribir";
@@ -143,8 +174,12 @@ class VmInscripcionTest {
 
       final primera = await vm.agregarIncripcion(inscripcion);
       expect(primera, isA<Exito>(), reason: _texto(primera));
+      //BK-09: la consulta directa responde "no inscrito" durante menos de un
+      //segundo; la pantalla ya lo cubre con el 201
+      await Future.delayed(_pasaElSegundo);
       expect(await vm.validarInscripcion(inscripcion), isTrue);
 
+      //la segunda ni sale de la app (IN-14, BK-07): el backend la aceptaria
       final segunda = await vm.agregarIncripcion(inscripcion);
       expect(segunda, isA<Fallo>(), reason: _texto(segunda));
       expect((segunda as Fallo).codigo, 409);
@@ -167,6 +202,7 @@ class VmInscripcionTest {
 
       final alta = await vm.agregarIncripcion(inscripcion);
       expect(alta, isA<Exito>(), reason: _texto(alta));
+      await Future.delayed(_pasaElSegundo);
       expect(await vm.validarInscripcion(inscripcion), isTrue);
 
       //deja al alumno A fuera del grupo para el caso siguiente
@@ -210,9 +246,7 @@ class VmInscripcionTest {
     });
   }
 
-  //los casos siguientes son de diagnostico contra el backend nuevo: solo los
-  //llama test/diagnostico/inscripciones/remoto_diagnostico_test.dart, no
-  //main_test.dart. Actuan con el JWT del alumno, como la pantalla, y cada uno
+  //los casos siguientes actuan con el JWT del alumno, como la pantalla, y cada uno
   //parte de los dos alumnos fuera de sus grupos (sin depender del orden). Los
   //grupos y alumnos salen del setUpAll
 
@@ -220,9 +254,9 @@ class VmInscripcionTest {
   //hacia arriba: una inscripcion hecha en .500 o despues queda en el segundo
   //siguiente y `fechaInscripcion <= CURRENT_TIMESTAMP` da falso hasta entonces.
   //Por eso era intermitente; aqui se fija el momento del envio
-  void diagnosticoValidarTrasInscribir(Inscripcionviewmodel Function() crearVm) {
+  void prueba11ValidarTrasInscribir(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscribir";
-    test('$capa - diagnostico - $metodo - control BK-09 - enviada en la primera mitad del segundo, el boton queda en inscrito', () async {
+    test('$capa - $tipo - $metodo - enviada en la primera mitad del segundo, el boton queda en inscrito', () async {
       await _comoAlumno(_alumnoA);
       final vm = crearVm();
       final inscripcion = _inscripcion(_alumnoA, _grupoCreado());
@@ -234,7 +268,7 @@ class VmInscripcionTest {
       expect(vm.estadoDe(_grupoCreado()).datos, isTrue);
     });
 
-    test('$capa - diagnostico - $metodo - BUG BK-09 - enviada en la segunda mitad del segundo, el boton queda en inscrito', () async {
+    test('$capa - $tipo - $metodo - enviada en la segunda mitad del segundo, el boton queda en inscrito', () async {
       await _comoAlumno(_alumnoA);
       final vm = crearVm();
       final inscripcion = _inscripcion(_alumnoA, _grupoCreado());
@@ -252,10 +286,10 @@ class VmInscripcionTest {
   //activa. Con el grupo lleno entra por la rama de lista de espera y pisa el
   //estado INSCRITO. Con BK-09 el alumno ve Matricular justo despues de
   //inscribirse, asi que puede repetir desde la pantalla
-  void diagnosticoRepetirConGrupoLleno(Inscripcionviewmodel Function() crearVm) {
+  void prueba12RepetirConGrupoLleno(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscribir";
-    String caso = "BUG IN-14 - repetir con el grupo lleno no quita el cupo al alumno inscrito";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "repetir con el grupo lleno no quita el cupo al alumno inscrito";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final inscripcion = _inscripcion(_alumnoA, _grupoUno());
       await _comoAlumno(_alumnoA);
       final vm = crearVm();
@@ -270,11 +304,10 @@ class VmInscripcionTest {
     });
   }
 
-  void diagnosticoRepetirYAlumnoInexistente(Inscripcionviewmodel Function() crearVm) {
+  //BK-07 (a): repetir una inscripcion activa. La app no la envia
+  void prueba13RepetirInscripcionActiva(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscribir";
-    //con cupos entra por la misma rama de IN-14: responde 201 y reescribe la
-    //fecha de inscripcion de una fila activa
-    test('$capa - diagnostico - $metodo - BUG BK-07 - repetir la inscripcion activa es rechazado', () async {
+    test('$capa - $tipo - $metodo - repetir la inscripcion activa es rechazado', () async {
       final inscripcion = _inscripcion(_alumnoA, _grupoCreado());
       await _comoAlumno(_alumnoA);
       final vm = crearVm();
@@ -285,9 +318,13 @@ class VmInscripcionTest {
 
       expect(segunda, isA<Fallo>(), reason: _texto(segunda));
     });
+  }
 
+  //BK-07 (b): corregido por el backend, 404 y no 500 con la traza
+  void prueba15AlumnoInexistente(Inscripcionviewmodel Function() crearVm) {
+    String metodo = "Inscribir";
     //solo llega con rol distinto de alumno: el alumno recibe 403 antes
-    test('$capa - diagnostico - $metodo - BUG BK-07 - un alumno inexistente es 404, no un 500 con la traza', () async {
+    test('$capa - $tipo - $metodo - un alumno inexistente es 404, no un 500 con la traza', () async {
       actuarComoCoordinador();
       final resultado = await crearVm().agregarIncripcion(
         _inscripcion('000000000', _grupoCreado()),
@@ -432,16 +469,12 @@ class VmInscripcionTest {
   //H-09
   void prueba5Inexistentes(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscribir";
-    String caso = "un alumno o un grupo que no existen es Fallo 404";
+    //el alumno inexistente da 500 con la traza (BK-07 b, del backend) y se prueba
+    //aparte en prueba15AlumnoInexistente
+    String caso = "un grupo que no existe es Fallo 404";
     test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
       final g = _grupoCreado();
-
-      final sinAlumno = await vm.agregarIncripcion(
-        _inscripcion('000000000', g),
-      );
-      expect(sinAlumno, isA<Fallo>(), reason: _texto(sinAlumno));
-      expect((sinAlumno as Fallo).codigo, 404);
 
       final sinGrupo = await vm.agregarIncripcion(
         Inscripcionentidad(

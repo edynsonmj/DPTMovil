@@ -155,7 +155,7 @@ class VmGruposInscripcionTest {
   //estan abiertas. El grupo recien creado nunca se abrio
   void prueba3SinInscripcionesAbiertas(Inscripcionviewmodel Function() crearVm) {
     String metodo = "Inscripcion de alumno";
-    String caso = "un grupo sin inscripciones abiertas responde 409 GC-0012";
+    String caso = "un grupo sin inscripciones abiertas responde 422 GC-0012";
     test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
 
@@ -163,8 +163,9 @@ class VmGruposInscripcionTest {
 
       expect(inscribir, isA<Fallo>());
       final fallo = inscribir as Fallo;
-      expect(fallo.codigo, 409);
-      expect(fallo.mensaje, contains('cerradas'));
+      //el backend nuevo responde 422, no 409
+      expect(fallo.codigo, 422);
+      expect(fallo.mensaje, contains('no esta disponible'));
       expect(await vm.validarInscripcion(_inscripcion()), isFalse);
     });
   }
@@ -190,6 +191,9 @@ class VmGruposInscripcionTest {
       Resultado<void> inscribir = await vm.agregarIncripcion(inscripcion);
       if (inscribir is Fallo) print('error al inscribir: ${inscribir.mensaje}');
       expect(inscribir, isA<Exito>());
+      //BK-09: el backend responde "no inscrito" durante menos de un segundo a
+      //quien acaba de inscribirse; esta es una consulta directa, no la pantalla
+      await Future.delayed(const Duration(milliseconds: 1200));
       expect(await vm.validarInscripcion(inscripcion), isTrue);
 
       expect(await vm.desvincularInscripcion(inscripcion), isA<Exito>());

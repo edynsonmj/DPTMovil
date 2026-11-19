@@ -82,6 +82,20 @@ class Inscripcionviewmodel with ChangeNotifier, NotificacionSegura {
     required bool inscritoTras,
   }) async {
     final clave = _clave(entidad);
+    //quien ya esta inscrito no repite la inscripcion: el backend la acepta (201)
+    //y, con el grupo lleno, le quita el cupo (IN-14, BK-07). Un segundo toque
+    //con el estado desactualizado no sale de la app
+    final estadoActual = _estados[clave];
+    if (inscritoTras &&
+        estadoActual != null &&
+        estadoActual.error == null &&
+        estadoActual.datos) {
+      return Fallo(
+        409,
+        'Ya estás inscrito en este grupo',
+        origen: 'ViewModel',
+      );
+    }
     _procesando.add(clave);
     notifyListeners();
     try {
@@ -98,7 +112,13 @@ class Inscripcionviewmodel with ChangeNotifier, NotificacionSegura {
           _estados[clave] = const EstadoSeccion(false);
         } else {
           _enEspera.remove(clave);
-          await _actualizarEstado(entidad, siFalla: inscritoTras);
+          //el 201 ya dijo que quedo inscrito: un "no inscrito" que llega
+          //enseguida no lo contradice (BK-09), ver _consultar
+          await _actualizarEstado(
+            entidad,
+            siFalla: inscritoTras,
+            recienInscrito: inscritoTras,
+          );
         }
         return Exito(quedoEnEspera);
       }
@@ -113,13 +133,19 @@ class Inscripcionviewmodel with ChangeNotifier, NotificacionSegura {
 
   //[siFalla]: lo que se sabe del grupo si la consulta no se puede hacer.
   //[espera]: la lista de espera ya consultada; sin ella no se toca _enEspera
+  //[recienInscrito]: se acaba de recibir un 201 de inscripcion
   Future<void> _actualizarEstado(
     Inscripcionentidad entidad, {
     bool siFalla = false,
+    bool recienInscrito = false,
     ({Set<String> claves, String? error})? espera,
   }) async {
     final clave = _clave(entidad);
-    var estado = await _consultar(entidad, siFalla);
+    var estado = await _consultar(
+      entidad,
+      siFalla,
+      recienInscrito: recienInscrito,
+    );
     if (espera != null && estado.error == null) {
       _enEspera.remove(clave);
       if (!estado.datos && espera.error != null) {
@@ -163,14 +189,19 @@ class Inscripcionviewmodel with ChangeNotifier, NotificacionSegura {
 
   //una consulta que falla deja el error en el estado del grupo, para que la
   //pantalla no pinte "Matricular" como si no estuviera inscrito (IN-09)
+  //BK-09: el backend guarda fechaInscripcion redondeada hacia arriba y
+  //validar exige fechaInscripcion <= ahora, asi que durante menos de un segundo
+  //responde "no inscrito" a quien acaba de inscribirse. Con [recienInscrito]
+  //ese falso no se toma en cuenta: el 201 es la fuente de la verdad
   Future<EstadoSeccion<bool>> _consultar(
     Inscripcionentidad entidad,
-    bool siFalla,
-  ) async {
+    bool siFalla, {
+    bool recienInscrito = false,
+  }) async {
     try {
       final respuesta = await _servicio.validarInscripcion(entidad);
       if (respuesta.codigoHttp == 200 && respuesta.datos is bool) {
-        return EstadoSeccion(respuesta.datos as bool);
+        return EstadoSeccion((respuesta.datos as bool) || recienInscrito);
       }
       return EstadoSeccion(siFalla, error: _fallo(respuesta).mensaje);
     } catch (e) {

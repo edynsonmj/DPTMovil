@@ -1,7 +1,6 @@
 @Tags(['diagnostico'])
 library;
 
-import 'package:dpt_movil/data/mappers/atencionMapper.dart';
 import 'package:dpt_movil/data/models/errorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/atencionesRepositorio.dart';
@@ -49,35 +48,6 @@ void main() {
   });
 
   group('Atenciones (diagnostico de repositorio y vm):', () {
-    for (final codigo in [201, 204]) {
-      test('viewModel - $tipo - Registrar atenciones - BUG AS-07 - $codigo es Exito', () async {
-        conexion.respuestaRegistrar = RespuestaModelo(codigoHttp: codigo);
-        await vm.cargarAtenciones(grupo, clase);
-
-        final resultado = await vm.registrarAtenciones();
-
-        //la asistencia se guardo: mostrar error invita a reintentar y duplicar
-        expect(resultado, isA<Exito>(), reason: '$resultado');
-      });
-    }
-
-    test('repositorio - $tipo - Registrar atenciones - BUG AS-08 - una atencion de otra clase se rechaza antes de la red', () async {
-      final atenciones =
-          atencionesDelContrato('listar_200')
-              .map(AtencionMapper.aEntidad)
-              .toList();
-      atenciones[1].idClase = 999;
-
-      final respuesta = await repositorio.registrarAtencionesClase(
-        atenciones,
-        210,
-      );
-
-      expect(conexion.llamadasRegistrar, 0);
-      expect(respuesta.codigoHttp, isNot(200));
-      expect(respuesta.error, isNotNull);
-    });
-
     test('viewModel - $tipo - Registrar atenciones - BUG AS-09 - tras un fallo se sabe que hay cambios sin guardar', () async {
       conexion.respuestaRegistrar = RespuestaModelo(
         codigoHttp: 500,

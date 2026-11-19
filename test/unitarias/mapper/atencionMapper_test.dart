@@ -25,14 +25,14 @@ void main() {
 
     test('$capa - $tipo - aModelo - ida y vuelta da el cuerpo del registro', () {
       final listar = leerContrato('atenciones', 'listar_200') as List;
-      final peticion = leerContrato('atenciones', 'registrar_peticion') as List;
+      final peticion = (leerContrato('atenciones', 'confirmar_peticion') as Map)['asistencias'] as List;
 
       //se marcan como en la peticion del contrato y se vuelve a modelo
       final enviados = [
         for (var i = 0; i < peticion.length; i++)
           AtencionMapper.aModelo(
             AtencionMapper.aEntidad(Atencionmodelo.fromJson(listar[i], 7))
-              ..estaAtendido = peticion[i]['asistio'],
+              ..estaAtendido = peticion[i]['estaAtendido'],
           ).toJson(),
       ];
 

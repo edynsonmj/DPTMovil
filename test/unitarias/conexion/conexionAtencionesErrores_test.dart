@@ -1,6 +1,3 @@
-@Tags(['diagnostico'])
-library;
-
 import 'package:dio/dio.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAtencionesRemoto.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
@@ -10,12 +7,11 @@ import '../../contratos/leerContrato.dart';
 import '../../dobles/adaptadorHttpFalso.dart';
 import '../../dobles/conexionatencionesFalsa.dart';
 
-//pruebas de diagnostico (fase 4): afirman el comportamiento CORRECTO y se
-//espera que salgan rojas mientras el bug exista. Un verde descarta la
-//hipotesis. Registro: auditoria-mvvm/registro-bugs.md
+//errores de la conexion de atenciones (AS-06, AS-07, AS-12). Registro:
+//auditoria-mvvm/registro-bugs.md
 void main() {
   const String capa = "conexion";
-  const String tipo = "diagnostico";
+  const String tipo = "unitaria";
 
   late AdaptadorHttpFalso adaptador;
   late Conexionatencionesremoto conexion;
@@ -25,14 +21,12 @@ void main() {
     conexion = Conexionatencionesremoto(crearDioFalso(adaptador));
   });
 
-  //AS-04 y AS-05 salieron de aqui el 2026-10-29: con /asistenciasClase la
-  //app solo envia idClase (no hay texto que escapar) y el POST lleva
-  //{idPerfil, asistio}, asi que ya no se reenvia el alumno completo
-  group('Atenciones (diagnostico de la conexion):', () {
-    test('$capa - $tipo - Listar atenciones - BUG AS-06 - json incompleto se devuelve como error, sin lanzar', () async {
-      final incompleto = (leerContrato('atenciones', 'listar_200') as List).first;
-      incompleto['asistio'] = null;
-      adaptador.responder('GET', '/asistenciasClase', 200, [incompleto]);
+  group('Atenciones (errores de la conexion):', () {
+    test('$capa - $tipo - Listar atenciones - json incompleto se devuelve como error, sin lanzar', () async {
+      final alumnos = leerContrato('atenciones', 'alumnosGrupo_200') as List;
+      alumnos.first['nombre'] = null;
+      adaptador.responder('GET', '/alumnosGrupo', 200, alumnos);
+      adaptador.responder('GET', '/atencionesporclase', 200, []);
 
       final resultado = await sinLanzar(
         () => conexion.obtenerAtencionesClase('Deportes', 'Iniciacion', 2026, 1, 210),
@@ -45,8 +39,8 @@ void main() {
     });
 
     for (final codigo in [201, 204]) {
-      test('$capa - $tipo - Registrar atenciones - BUG AS-07 - $codigo es exito', () async {
-        adaptador.responder('POST', '/asistenciasClase', codigo);
+      test('$capa - $tipo - Registrar atenciones - $codigo es exito', () async {
+        adaptador.responder('PUT', '/clase/210/asistencia', codigo);
 
         final resultado = await sinLanzar(
           () => conexion.registrarAtencionesClase(
@@ -61,10 +55,10 @@ void main() {
       });
     }
 
-    test('$capa - $tipo - Listar atenciones - BUG AS-12 - receiveTimeout responde 408', () async {
+    test('$capa - $tipo - Listar atenciones - receiveTimeout responde 408', () async {
       adaptador.fallar(
         'GET',
-        '/asistenciasClase',
+        '/alumnosGrupo',
         DioExceptionType.receiveTimeout,
       );
 

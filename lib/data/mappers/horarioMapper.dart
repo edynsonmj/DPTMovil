@@ -1,8 +1,7 @@
 import 'package:dpt_movil/data/models/horarioModelo.dart';
 import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
 
-//conversion modelo -> entidad de horarios. Solo hay este sentido porque la
-//app solo lista; el backend ya tiene POST, PUT y DELETE /horario (HO-04)
+//conversion de horarios. La app lista, crea y elimina; editar (PUT) no existe
 class HorarioMapper {
   static Horarioentidad aEntidad(HorarioModelo modelo) {
     return Horarioentidad(
@@ -15,6 +14,20 @@ class HorarioMapper {
       horaInicio: modelo.horaInicio,
       horaFin: modelo.horaFin,
       escenario: modelo.escenario,
+    );
+  }
+
+  static HorarioModelo aModelo(Horarioentidad entidad) {
+    return HorarioModelo(
+      id: entidad.id,
+      categoria: entidad.categoria,
+      curso: entidad.curso,
+      anio: entidad.anio,
+      iterable: entidad.iterable,
+      dia: entidad.dia,
+      horaInicio: entidad.horaInicio,
+      horaFin: entidad.horaFin,
+      escenario: entidad.escenario,
     );
   }
 }

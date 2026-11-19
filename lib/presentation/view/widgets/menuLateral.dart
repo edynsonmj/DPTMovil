@@ -24,95 +24,379 @@ class Menulateral extends StatelessWidget {
   Widget _contenido(BuildContext context) {
     return Consumer<AutenticacionViewModel>(
       builder: (context, vm, _) {
-        return ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: ColorTheme.primary),
-              child: Text(
-                'Menu de navegacion',
-                style: Tipografia.h3(color: Colors.white),
-              ),
-            ),
-            (vm.perfilSesion == null)
-                ? _iniciarSesion(vm, context)
-                : _mostrarSesion(vm),
-            ListTile(
-              leading: Icon(Icons.home_rounded),
-              title: Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, AppRutas.inicio);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.category_rounded),
-              title: Text('Categorias'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, AppRutas.categorias);
-              },
-            ),
-            if (vm.perfilSesion?.role == Roles.alumno)
-              ListTile(
-                leading: Icon(Icons.check_box_rounded),
-                title: Text('Inscripciones'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(
-                    context,
-                    AppRutas.gruposDisponiblesInscripcion,
-                    arguments: vm.perfilSesion!.id,
-                  );
-                },
-              ),
-            if (vm.perfilSesion?.role == Roles.instructor)
-              ListTile(
-                leading: Icon(Icons.check_box_rounded),
-                title: Text('Grupos asignados'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(
-                    context,
-                    AppRutas.gruposAsignados,
-                    arguments: vm.perfilSesion!.id,
-                  );
-                },
-              ),
-            if (vm.perfilSesion?.role == Roles.coordinador)
-              ListTile(
-                leading: Icon(Icons.person_rounded),
-                title: Text('Instructores'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, AppRutas.instructores);
-                },
-              ),
-            if (vm.perfilSesion?.role == Roles.coordinador)
-              ListTile(
-                leading: Icon(Icons.how_to_reg_rounded),
-                title: Text('Inscripciones'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, AppRutas.InscripcionesGenerales);
-                },
-              ),
-            if (vm.perfilSesion?.role == Roles.coordinador)
-              ListTile(
-                leading: Icon(Icons.bar_chart_rounded),
-                title: Text('Estadisticas'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, AppRutas.estadisticasGenerales);
-                },
-              ),
-            if (vm.perfilSesion != null) _cerrarSesion(vm, context),
-          ],
+        return Container(
+            color: const Color(0xFF000066),
+            child: Column(
+            children: [
+              _encabezado(vm),
+              _separador(),
+
+
+              // AQUÍ: perfil o inicio de sesión
+
+
+              _separador(),
+              Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 12,
+                    ),
+                    children: [
+                      _itemMenu(
+                        icon: Icons.home_outlined,
+                        titulo: 'Inicio',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(
+                            context,
+                            AppRutas.inicio,
+                          );
+                        },
+                      ),
+
+                      _itemMenu(
+                        icon: Icons.grid_view_rounded,
+                        titulo: 'Categorías',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(
+                            context,
+                            AppRutas.categorias,
+                          );
+                        },
+                      ),
+
+                      if (vm.perfilSesion?.role == Roles.alumno)
+                        _itemMenu(
+                          icon: Icons.chat_bubble_outline,
+                          titulo: 'Inscripciones',
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(
+                              context,
+                              AppRutas.gruposDisponiblesInscripcion,
+                              arguments: vm.perfilSesion!.id,
+                            );
+                          },
+                        ),
+
+                      if (vm.perfilSesion?.role == Roles.instructor)
+                        _itemMenu(
+                          icon: Icons.groups_outlined,
+                          titulo: 'Grupos asignados',
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(
+                              context,
+                              AppRutas.gruposAsignados,
+                              arguments: vm.perfilSesion!.id,
+                            );
+                          },
+                        ),
+
+                      if (vm.perfilSesion?.role == Roles.coordinador) ...[
+                        _itemMenu(
+                          icon: Icons.groups_outlined,
+                          titulo: 'Instructores',
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(
+                              context,
+                              AppRutas.instructores,
+                            );
+                          },
+                        ),
+
+                        _itemMenu(
+                          icon: Icons.assignment_ind_outlined,
+                          titulo: 'Inscripciones',
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(
+                              context,
+                              AppRutas.InscripcionesGenerales,
+                            );
+                          },
+                        ),
+
+                        _itemMenu(
+                          icon: Icons.bar_chart_rounded,
+                          titulo: 'Estadísticas',
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(
+                              context,
+                              AppRutas.estadisticasGenerales,
+                            );
+                          },
+                        ),
+                      ],
+
+
+
+
+
+                    ],
+
+              ),),
+
+              if (vm.perfilSesion != null)
+                _piePerfil(vm, context)
+              else
+                _iniciarSesion(vm, context)
+
+
+            ],
+
+          ),
         );
       },
     );
   }
 
+  Widget _encabezado(AutenticacionViewModel vm) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(15, 14, 15, 15),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'U',
+              style: TextStyle(
+                color: Color(0xFF08086B),
+                fontSize: 21,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 9),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  vm.perfilSesion?.role.toString() ?? 'Invitado',
+                  style: const TextStyle(
+                    color: Color(0xFFB5B5E8),
+                    fontSize: 9,
+                  ),
+                ),
+                const Text(
+                  'Deporte Para Todos',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _itemMenu({
+    required IconData icon,
+    required String titulo,
+    String? descripcion,
+    required VoidCallback onTap,
+    bool seleccionado = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: seleccionado
+            ? const Color(0xFFFFFFFF)
+            : const Color(0xFF000066),
+        borderRadius: BorderRadius.circular(9),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(9),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 9,
+              vertical: 8,
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 31,
+                  height: 31,
+
+                  child: Icon(
+                    icon,
+                    size: 17,
+                    color: seleccionado
+                        ? const Color(0xFF08086B)
+                        : Colors.white,
+                  ),
+                ),
+
+                const SizedBox(width: 9),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        titulo,
+                        style: TextStyle(
+                          color: seleccionado
+                              ? const Color(0xFF08086B)
+                              : Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+
+                      if (descripcion != null)
+                        Text(
+                          descripcion,
+                          style: TextStyle(
+                            color: seleccionado
+                                ? const Color(0xFF55558A)
+                                : const Color(0xFFB5B5D8),
+                            fontSize: 8,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                if (!seleccionado)
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _separador() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 9),
+      child: Container(
+        height: 0.7,
+        color: const Color(0xFF25257D),
+      ),
+    );
+  }
+
+  Widget _piePerfil(
+      AutenticacionViewModel vm,
+      BuildContext context,
+      ) {
+    final perfil = vm.perfilSesion;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(15, 13, 15, 13),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 14,
+            backgroundColor: const Color(0xFFE6E6FF),
+            backgroundImage: vm.fotoPerfil != null
+                ? NetworkImage('${vm.fotoPerfil!}=s200')
+                : null,
+            child: vm.fotoPerfil == null
+                ? const Text(
+              'U',
+              style: TextStyle(
+                color: Color(0xFF08086B),
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+                : null,
+          ),
+
+          const SizedBox(width: 9),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  perfil?.nombre ?? 'Invitado',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  perfil?.role.toString() ?? 'Sin sesión',
+                  style: const TextStyle(
+                    color: Color(0xFFB5B5D8),
+                    fontSize: 8,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (perfil != null)
+            PopupMenuButton<String>(
+              icon: const Icon(
+                Icons.more_vert,
+                color: Colors.white70,
+                size: 17,
+              ),
+
+              color: const Color(0xFF17176F),
+              onSelected: (value) async {
+                if (value == 'logout') {
+                  await vm.logout();
+
+                  if (!context.mounted) return;
+
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    AppRutas.categorias,
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'logout',
+                  child: Text(
+                    'Cerrar sesión',
+                    style: TextStyle(color: Colors.white),
+
+                  ),
+
+                ),
+
+              ],
+            ),
+        ],
+      ),
+    );
+  }
   Widget _cerrarSesion(AutenticacionViewModel vm, BuildContext context) {
     return ListTile(
       leading: Icon(Icons.login_rounded),
@@ -146,8 +430,15 @@ class Menulateral extends StatelessWidget {
 
   Widget _iniciarSesion(AutenticacionViewModel vm, BuildContext context) {
     return ListTile(
-      leading: Icon(Icons.account_circle_rounded),
-      title: Text('Iniciar sesion'),
+      leading: Icon(Icons.account_circle_rounded, color: Colors.white,),
+      title: const Text(
+        'Iniciar Sesión',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600
+        ),
+      ),
       onTap: () async {
         final metodo = await _seleccionarMetodoInicioSesion(context);
         if (!context.mounted || metodo == null) {

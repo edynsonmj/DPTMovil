@@ -93,9 +93,7 @@ void main() {
       await m.abrir(tester, ruta: AppRutas.InscripcionesGenerales);
       expect(find.text('configuracion general'), findsOneWidget);
 
-      await m.abrirMenu(tester);
-      await tester.tap(find.text('Cerrar sesion'));
-      await tester.pumpAndSettle();
+      await m.cerrarSesion(tester);
 
       expect(m.sesion.perfilSesion, isNull);
       expect(find.text('configuracion general', skipOffstage: false), findsNothing);

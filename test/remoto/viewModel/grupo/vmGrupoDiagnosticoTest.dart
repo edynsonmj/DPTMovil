@@ -226,9 +226,7 @@ class VmGrupoDiagnosticoTest {
     });
   }
 
-  //los tres siguientes salen rojos: son de diagnostico y solo los llama
-  //test/diagnostico/grupos/remoto_diagnostico_test.dart, no main_test.dart.
-  //No cambian datos
+  //los casos con & no cambian datos
 
   //H-10: es la lista a la que se toma asistencia
   void prueba8AlumnoDesvinculado(DetalleGrupoViewModel Function(Grupoentidad) crearVm) {
@@ -245,10 +243,10 @@ class VmGrupoDiagnosticoTest {
   }
 
   //H-01 contra el backend
-  void diagnosticoGruposConAmpersand(Gruposviewmodel Function() crearVm) {
+  void prueba9GruposConAmpersand(Gruposviewmodel Function() crearVm) {
     String metodo = "Listar grupos de";
-    String caso = "BUG GR-03 - una categoria y un curso con & traen su grupo";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "una categoria y un curso con & traen su grupo";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
       await vm.listarGruposDe(_cursoE.tituloCategoria, _cursoE.nombreCurso);
 
@@ -258,10 +256,10 @@ class VmGrupoDiagnosticoTest {
   }
 
   //H-02 contra el backend
-  void diagnosticoPantallaConAmpersand(DetalleGrupoViewModel Function(Grupoentidad) crearVm) {
+  void prueba10PantallaConAmpersand(DetalleGrupoViewModel Function(Grupoentidad) crearVm) {
     String metodo = "Pantalla del grupo";
-    String caso = "BUG GR-05 - un grupo con & en el nombre ve su curso, su clase y su alumno";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "un grupo con & en el nombre ve su curso, su clase y su alumno";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm(_grupoE!);
       await vm.cargar();
 

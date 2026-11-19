@@ -1,5 +1,3 @@
-@Tags(['diagnostico'])
-library;
 
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,7 +9,7 @@ import '../../dobles/conexiongruposFalsa.dart';
 //exista. Registro: auditoria-mvvm/registro-bugs.md
 void main() {
   const String capa = "repositorio";
-  const String tipo = "diagnostico";
+  const String tipo = "unitaria";
 
   late ConexiongruposFalsa conexion;
   late Gruporepositorio repositorio;
@@ -21,10 +19,10 @@ void main() {
     repositorio = Gruporepositorio(conexion: conexion);
   });
 
-  group('Grupos (diagnostico del repositorio):', () {
+  group('Grupos (errores del repositorio):', () {
     //los errores no se lanzan entre capas, se devuelven. El repositorio no
     //tiene ningun try en las listas
-    test('$capa - $tipo - Listar grupos (curso, instructor, disponibles) - BUG GR-01 - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
+    test('$capa - $tipo - Listar grupos (curso, instructor, disponibles) - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
       conexion.lanzarAlListar = TypeError();
 
       for (final pedir in <Future Function()>[

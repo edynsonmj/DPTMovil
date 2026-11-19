@@ -1,6 +1,3 @@
-@Tags(['diagnostico'])
-library;
-
 import 'dart:io';
 
 import 'package:dpt_movil/data/repositories/cursoRepositorio.dart';
@@ -15,7 +12,7 @@ import '../../dobles/conexionCursoFalsa.dart';
 //exista. Registro: auditoria-mvvm/registro-bugs.md
 void main() {
   const String capa = "repositorio";
-  const String tipo = "diagnostico";
+  const String tipo = "unitaria";
 
   late ConexionCursoFalsa conexion;
   late CursoRepositorio repositorio;
@@ -25,11 +22,11 @@ void main() {
     repositorio = CursoRepositorio(cliente: conexion);
   });
 
-  group('Cursos (diagnostico del repositorio):', () {
+  group('Cursos (errores del repositorio):', () {
     //los errores no se lanzan entre capas, se devuelven. El repositorio no
     //tiene ningun try; la conexion real deja pasar el TypeError de fromJson y
     //el de imagenFile! (CU-03, CU-04)
-    test('$capa - $tipo - Listar, obtener y guardar curso - BUG CU-01 - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
+    test('$capa - $tipo - Listar, obtener y guardar curso - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
       conexion.lanzar = TypeError();
 
       for (final pedir in <Future<dynamic> Function()>[

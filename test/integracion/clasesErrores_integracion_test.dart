@@ -1,5 +1,3 @@
-@Tags(['diagnostico'])
-library;
 
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionAlumnosRemoto.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionClasesRemoto.dart';
@@ -18,8 +16,8 @@ import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
 import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../contratos/leerContrato.dart';
-import '../../dobles/adaptadorHttpFalso.dart';
+import '../contratos/leerContrato.dart';
+import '../dobles/adaptadorHttpFalso.dart';
 
 //diagnostico de clases de punta a punta sin backend (plan-diagnostico-
 //clases.md): el mismo montaje que test/integracion/clases_integracion_test.dart.
@@ -27,7 +25,7 @@ import '../../dobles/adaptadorHttpFalso.dart';
 //bug exista
 void main() {
   const String capa = "integracion";
-  const String tipo = "diagnostico";
+  const String tipo = "local";
 
   late AdaptadorHttpFalso adaptador;
 
@@ -53,11 +51,11 @@ void main() {
 
   setUp(() => adaptador = AdaptadorHttpFalso());
 
-  group('Clases (diagnostico de punta a punta):', () {
+  group('Clases (errores de punta a punta):', () {
     //una clase sin fecha: DateTime.parse(null) en fromJson lanza un TypeError
     //que atraviesa la conexion (solo captura Exception) y el repositorio (la
     //llamada a la conexion esta fuera de su try)
-    test('$capa - $tipo - Cargar clases - BUG CL-05 - una clase incompleta llega como error con codigo, no como excepcion', () async {
+    test('$capa - $tipo - Cargar clases - una clase incompleta llega como error con codigo, no como excepcion', () async {
       final incompleta = Map<String, dynamic>.from(
         (leerContrato('clases', 'clasesGrupo_200') as List).first,
       )..['fecha'] = null;
@@ -72,7 +70,7 @@ void main() {
     });
 
     //GR-05 en la conexion de clases: el mismo defecto, sin ID nuevo
-    test('$capa - $tipo - Cargar clases - BUG GR-05 - categoria y curso llegan completos a la query de /clasesGrupo', () async {
+    test('$capa - $tipo - Cargar clases - categoria y curso llegan completos a la query de /clasesGrupo', () async {
       adaptador.responder('GET', '/clasesGrupo', 200, []);
       final vm = pantallaGrupo(grupo('Fútbol & Voleibol', 'Nivel 1 + 2'));
 

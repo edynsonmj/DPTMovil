@@ -152,10 +152,24 @@ class MontajeAutenticacion {
     await tester.pumpAndSettle();
   }
 
-  //menu lateral → "Iniciar sesion" → "Continuar con correo" → correo
+  //textos del menu lateral que las pruebas buscan, en un solo lugar
+  static const String textoIniciarSesion = 'Iniciar Sesión';
+  static const String textoCerrarSesion = 'Cerrar sesión';
+
+  //menu lateral → pie del perfil → "⋮" → "Cerrar sesión". Cerrar sesion va
+  //dentro de un PopupMenuButton: no se ve hasta abrirlo
+  Future<void> cerrarSesion(WidgetTester tester) async {
+    await abrirMenu(tester);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(textoCerrarSesion));
+    await tester.pumpAndSettle();
+  }
+
+  //menu lateral → "Iniciar Sesión" → "Continuar con correo" → correo
   Future<void> iniciarSesionConCorreo(WidgetTester tester, String correo) async {
     await abrirMenu(tester);
-    await tester.tap(find.text('Iniciar sesion'));
+    await tester.tap(find.text(textoIniciarSesion));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Continuar con correo'));
     await tester.pumpAndSettle();
@@ -164,11 +178,11 @@ class MontajeAutenticacion {
     await tester.pumpAndSettle();
   }
 
-  //menu lateral → "Iniciar sesion" → "Continuar con Google"; la cuenta y su
+  //menu lateral → "Iniciar Sesión" → "Continuar con Google"; la cuenta y su
   //ID Token salen de google.cuenta
   Future<void> iniciarSesionConGoogle(WidgetTester tester) async {
     await abrirMenu(tester);
-    await tester.tap(find.text('Iniciar sesion'));
+    await tester.tap(find.text(textoIniciarSesion));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Continuar con Google'));
     await tester.pumpAndSettle();

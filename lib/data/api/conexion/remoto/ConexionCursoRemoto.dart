@@ -55,8 +55,8 @@ class ConexionCursoRemoto implements ConexionCurso {
       return RespuestaModelo.fromDioException(dioExc, metodo);
     } on FormatException catch (exception) {
       return RespuestaModelo.fromFormatException(exception, metodo, path, capa);
-    } on Exception catch (exception) {
-      return RespuestaModelo.fromException(exception, metodo, path, capa);
+    } catch (exception) {
+      return RespuestaModelo.fromObjectError(exception, metodo, path, capa);
     }
   }
 
@@ -71,8 +71,10 @@ class ConexionCursoRemoto implements ConexionCurso {
     String metodo = "GET";
     //intentar hacer la peticion
     try {
+      //la categoria viaja como parametro: un "&" o un "+" en el titulo no la corta (CU-02)
       final response = await _dio.get(
-        '/cursosbycategoria?prmCategoria=$tituloCategoria',
+        '/cursosbycategoria',
+        queryParameters: {'prmCategoria': tituloCategoria},
       );
 
       //se espera codigo 200 para la peticion, si no manejar error
@@ -100,16 +102,12 @@ class ConexionCursoRemoto implements ConexionCurso {
       return RespuestaModelo(codigoHttp: 200, datos: cursos, error: null);
     } on DioException catch (dioError) {
       return RespuestaModelo.fromDioException(dioError, metodo);
-    } on Exception catch (exc) {
-      return RespuestaModelo(
-        codigoHttp: 0,
-        datos: null,
-        error: ErrorModelo(
-          codigoHttp: 0,
-          mensaje: 'Error fuera de la conexion: ${exc.toString()}',
-          url: '',
-          metodo: metodo,
-        ),
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        metodo,
+        'cursos',
+        'conexion',
       );
     }
   }
@@ -118,8 +116,11 @@ class ConexionCursoRemoto implements ConexionCurso {
   Future<RespuestaModelo> obtenerCurso(String categoria, String curso) async {
     final String metodo = "GET";
     try {
-      String path = '/curso?prmCategoria=$categoria&prmCurso=$curso';
-      final response = await _dio.get(path);
+      String path = '/curso';
+      final response = await _dio.get(
+        path,
+        queryParameters: {'prmCategoria': categoria, 'prmCurso': curso},
+      );
       //se espera codigo 200 para la peticion, si no manejar error
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
@@ -128,16 +129,12 @@ class ConexionCursoRemoto implements ConexionCurso {
       return RespuestaModelo(codigoHttp: 200, datos: modelo);
     } on DioException catch (dioError) {
       return RespuestaModelo.fromDioException(dioError, metodo);
-    } on Exception catch (exc) {
-      return RespuestaModelo(
-        codigoHttp: 0,
-        datos: null,
-        error: ErrorModelo(
-          codigoHttp: 0,
-          mensaje: 'Error fuera de la conexion: ${exc.toString()}',
-          url: '',
-          metodo: metodo,
-        ),
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        metodo,
+        'cursos',
+        'conexion',
       );
     }
   }

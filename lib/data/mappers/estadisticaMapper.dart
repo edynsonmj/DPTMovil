@@ -11,8 +11,10 @@ class EstadisticaMapper {
       leyenda3: modelo.leyenda3,
       leyenda4: modelo.leyenda4,
       clases: modelo.clases,
-      horas: modelo.horas,
-      minutos: modelo.minutos,
+      //el backend suma horas y minutos por separado (3 clases de 1 h 30 llegan
+      //como horas 3 y minutos 90): se normaliza desde la duracion total (ES-06)
+      horas: (modelo.duracion ~/ 60).toDouble(),
+      minutos: modelo.duracion % 60,
       duracion: modelo.duracion,
     );
   }

@@ -109,12 +109,10 @@ class VmCategoriaDiagnosticoTest {
     });
   }
 
-  //sale rojo: solo lo llama
-  //test/diagnostico/categorias/remoto_diagnostico_test.dart, no main_test.dart
-  void diagnosticoTituloConAmpersand(CategoriaViewModel Function() crearVm) {
+  void prueba4TituloConAmpersand(CategoriaViewModel Function() crearVm) {
     String metodo = "Actualizar y eliminar categoria";
-    String caso = "BUG CAT-03 - una categoria con & se edita y se elimina";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "una categoria con & se edita y se elimina";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final editar = await crearVm().guardarCategoria(
         titulo: _conAmpersand.titulo,
         descripcion: 'descripcion editada',

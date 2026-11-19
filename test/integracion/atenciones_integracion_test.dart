@@ -32,8 +32,8 @@ void main() {
 
     //la ruta clase creo el vm y cargo una vez, con los datos del grupo
     expect(find.byType(Claseview), findsOneWidget);
-    final pedida = app.adaptador.peticionesA('GET', '/asistenciasClase').single;
-    expect(pedida.uri.queryParameters, {'idClase': '210'});
+    final pedida = app.adaptador.peticionesA('GET', '/atencionesporclase').single;
+    expect(pedida.uri.queryParameters, {'claseid': '210'});
     expect(marcas(tester), [false, false, true]);
 
     //marca a Ana y a Luis y desmarca a Marta
@@ -49,15 +49,17 @@ void main() {
     //una sola peticion de cada tipo, en orden: cargar y despues registrar
     expect(
       app.adaptador.peticiones.map((p) => '${p.metodo} ${p.ruta}'),
-      ['GET /asistenciasClase', 'POST /asistenciasClase'],
+      ['GET /alumnosGrupo', 'GET /atencionesporclase', 'PUT /clase/210/asistencia'],
     );
-    final enviada = app.adaptador.peticionesA('POST', '/asistenciasClase').single;
-    expect(enviada.uri.queryParameters, {'idClase': '210'});
-    expect(enviada.cuerpo, [
-      {'idPerfil': '1061001', 'asistio': true},
-      {'idPerfil': '1061002', 'asistio': true},
-      {'idPerfil': '1061003', 'asistio': false},
-    ]);
+    final enviada = app.adaptador.peticionesA('PUT', '/clase/210/asistencia').single;
+    expect(enviada.cuerpo, {
+      'asistencias': [
+        {'idPerfil': '1061001', 'estaAtendido': true},
+        {'idPerfil': '1061002', 'estaAtendido': true},
+        {'idPerfil': '1061003', 'estaAtendido': false},
+      ],
+      'confirmaTodosAusentes': false,
+    });
 
     //aviso de exito y regreso a la pantalla del grupo
     expect(find.text('Atenciones registradas'), findsOneWidget);
@@ -71,8 +73,8 @@ void main() {
     tester,
   ) async {
     app.adaptador.fallar(
-      'POST',
-      '/asistenciasClase',
+      'PUT',
+      '/clase/210/asistencia',
       DioExceptionType.connectionError,
     );
     await app.abrirClase(tester);
@@ -97,7 +99,7 @@ void main() {
   ) async {
     app.adaptador.responder(
       'GET',
-      '/asistenciasClase',
+      '/alumnosGrupo',
       404,
       'No se encontro la clase',
     );

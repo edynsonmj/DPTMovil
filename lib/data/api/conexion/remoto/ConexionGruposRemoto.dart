@@ -22,10 +22,15 @@ class Conexiongruposremoto extends Conexiongrupos {
     String nombreCurso,
   ) async {
     String metodo = "GET";
+    String path = '/gruposCurso';
     try {
-      String path =
-          '/gruposCurso?prmCategoria=$categoriaTitulo&prmCurso=$nombreCurso';
-      final response = await _dio.get(path);
+      final response = await _dio.get(
+        path,
+        queryParameters: {
+          'prmCategoria': categoriaTitulo,
+          'prmCurso': nombreCurso,
+        },
+      );
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
@@ -47,25 +52,16 @@ class Conexiongruposremoto extends Conexiongrupos {
       return RespuestaModelo(codigoHttp: 200, datos: grupos, error: null);
     } on DioException catch (dioError) {
       return RespuestaModelo.fromDioException(dioError, metodo);
-    } on Exception catch (exc) {
-      return RespuestaModelo(
-        codigoHttp: 0,
-        datos: null,
-        error: ErrorModelo(
-          codigoHttp: 0,
-          mensaje: 'Error fuera de la conexion: ${exc.toString()}',
-          url: '',
-          metodo: metodo,
-        ),
-      );
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 
   @override
   Future<RespuestaModelo> obtenerGruposInscripcionDisponible() async {
     String metodo = "GET";
+    String path = '/gruposInscripcion';
     try {
-      String path = '/gruposInscripcion';
       final response = await _dio.get(path);
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
@@ -88,26 +84,20 @@ class Conexiongruposremoto extends Conexiongrupos {
       return RespuestaModelo(codigoHttp: 200, datos: grupos, error: null);
     } on DioException catch (dioError) {
       return RespuestaModelo.fromDioException(dioError, metodo);
-    } on Exception catch (exc) {
-      return RespuestaModelo(
-        codigoHttp: 0,
-        datos: null,
-        error: ErrorModelo(
-          codigoHttp: 0,
-          mensaje: 'Error fuera de la conexion: ${exc.toString()}',
-          url: '',
-          metodo: metodo,
-        ),
-      );
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 
   @override
   Future<RespuestaModelo> obtenerGruposInstructor(String idInstructor) async {
     String metodo = "GET";
-    String path = '/gruposInstructor?idInstructor=$idInstructor';
+    String path = '/gruposInstructor';
     try {
-      final response = await _dio.get(path);
+      final response = await _dio.get(
+        path,
+        queryParameters: {'idInstructor': idInstructor},
+      );
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
@@ -129,17 +119,8 @@ class Conexiongruposremoto extends Conexiongrupos {
       return RespuestaModelo(codigoHttp: 200, datos: grupos, error: null);
     } on DioException catch (dioError) {
       return RespuestaModelo.fromDioException(dioError, metodo);
-    } on Exception catch (exc) {
-      return RespuestaModelo(
-        codigoHttp: 0,
-        datos: null,
-        error: ErrorModelo(
-          codigoHttp: 0,
-          mensaje: 'Error fuera de la conexion: ${exc.toString()}',
-          url: '',
-          metodo: metodo,
-        ),
-      );
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 

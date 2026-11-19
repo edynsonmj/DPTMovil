@@ -11,36 +11,57 @@ class CursoRepositorio {
 
   String urlImagen(int idImagen) => cliente.urlImagen(idImagen);
 
+  //los errores no se lanzan entre capas, se devuelven (CU-01)
   Future<RespuestaModelo> listarCursosDe(CategoriaEntidad categoria) async {
-    RespuestaModelo respuesta = await cliente.enconcontrarCursosDe(
-      categoria.titulo,
-    );
-
-    if (respuesta.codigoHttp == 200) {
+    try {
+      RespuestaModelo respuesta = await cliente.enconcontrarCursosDe(
+        categoria.titulo,
+      );
+      if (respuesta.codigoHttp != 200) return respuesta;
       List<CursoModelo> listaModelo = respuesta.datos as List<CursoModelo>;
-      List<CursoEntidad> listaEntidad =
-          listaModelo.map(CursoMapper.aEntidad).toList();
-      respuesta.datos = listaEntidad;
+      respuesta.datos = listaModelo.map(CursoMapper.aEntidad).toList();
       return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'GET',
+        'listarCursosDe',
+        'repositorio',
+      );
     }
-    return respuesta;
   }
 
   Future<RespuestaModelo> obtenerCurso(String categoria, String curso) async {
-    RespuestaModelo respuesta = await cliente.obtenerCurso(categoria, curso);
-    if (respuesta.codigoHttp != 200) {
+    try {
+      RespuestaModelo respuesta = await cliente.obtenerCurso(categoria, curso);
+      if (respuesta.codigoHttp != 200) return respuesta;
+      respuesta.datos = CursoMapper.aEntidad(respuesta.datos as CursoModelo);
       return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'GET',
+        'obtenerCurso',
+        'repositorio',
+      );
     }
-    respuesta.datos = CursoMapper.aEntidad(respuesta.datos as CursoModelo);
-    return respuesta;
   }
 
   Future<RespuestaModelo> guardaCurso(CursoEntidad entidad) async {
-    CursoModelo modeloPeticion = CursoMapper.aModelo(entidad);
-    RespuestaModelo respuesta = await cliente.agregarCurso(modeloPeticion);
-    if (respuesta.codigoHttp == 201) {
-      respuesta.datos = CursoMapper.aEntidad(respuesta.datos as CursoModelo);
+    try {
+      CursoModelo modeloPeticion = CursoMapper.aModelo(entidad);
+      RespuestaModelo respuesta = await cliente.agregarCurso(modeloPeticion);
+      if (respuesta.codigoHttp == 201) {
+        respuesta.datos = CursoMapper.aEntidad(respuesta.datos as CursoModelo);
+      }
+      return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'POST',
+        'guardaCurso',
+        'repositorio',
+      );
     }
-    return respuesta;
   }
 }

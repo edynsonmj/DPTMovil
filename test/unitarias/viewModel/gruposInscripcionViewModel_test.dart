@@ -73,6 +73,45 @@ void main() {
       expect(vm.procesando(grupo), isFalse);
     });
 
+    //BK-09: el backend redondea fechaInscripcion hacia arriba y durante menos
+    //de un segundo validar responde false a quien acaba de inscribirse
+    test('$capa - $tipo - Inscribir - un "no inscrito" justo despues del 201 no devuelve el boton a Matricular', () async {
+      conexion.respuestaAgregar = RespuestaModelo(codigoHttp: 201);
+      conexion.respuestaValidar = RespuestaModelo(codigoHttp: 200, datos: false);
+
+      final resultado = await vm.agregarIncripcion(inscripcion());
+
+      expect(resultado, isA<Exito>());
+      expect((resultado as Exito).datos, isFalse);
+      expect(vm.estadoDe(grupo).datos, isTrue);
+      expect(vm.estadoDe(grupo).error, isNull);
+      expect(vm.enEspera(grupo), isFalse);
+    });
+
+    //IN-14 y BK-07: el backend acepta repetir la inscripcion y, con el grupo
+    //lleno, quita el cupo; la app no envia la segunda
+    test('$capa - $tipo - Inscribir - quien ya esta inscrito no repite la inscripcion', () async {
+      conexion.respuestaAgregar = RespuestaModelo(codigoHttp: 201);
+      conexion.respuestaValidar = RespuestaModelo(codigoHttp: 200, datos: true);
+      await vm.agregarIncripcion(inscripcion());
+
+      final segunda = await vm.agregarIncripcion(inscripcion());
+
+      expect(segunda, isA<Fallo>());
+      expect((segunda as Fallo).codigo, 409);
+      expect(conexion.llamadasAgregar, 1);
+      expect(vm.estadoDe(grupo).datos, isTrue);
+    });
+
+    test('$capa - $tipo - Desvincular - un "no inscrito" tras el 200 queda como no inscrito', () async {
+      conexion.respuestaEliminar = RespuestaModelo(codigoHttp: 200);
+      conexion.respuestaValidar = RespuestaModelo(codigoHttp: 200, datos: false);
+
+      await vm.desvincularInscripcion(inscripcion());
+
+      expect(vm.estadoDe(grupo).datos, isFalse);
+    });
+
     test('$capa - $tipo - Inscribir - error del backend es Fallo con su mensaje', () async {
       conexion.respuestaAgregar = RespuestaModelo(
         codigoHttp: 400,

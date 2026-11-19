@@ -142,12 +142,11 @@ class VmCursoDiagnosticoTest {
     });
   }
 
-  //sale rojo: solo lo llama test/diagnostico/cursos/remoto_diagnostico_test.dart,
-  //no main_test.dart. No cambia datos
-  void diagnosticoCursosConAmpersand(CursosViewModel Function() crearVm) {
+  //no cambia datos
+  void prueba6CursosConAmpersand(CursosViewModel Function() crearVm) {
     String metodo = "Listar y obtener curso";
-    String caso = "BUG CU-02 - una categoria y un curso con & se listan y se obtienen";
-    test('$capa - diagnostico - $metodo - $caso', () async {
+    String caso = "una categoria y un curso con & se listan y se obtienen";
+    test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
       await vm.listarCursosDe(_e);
       final uno = await crearVm().obtenerCurso(_e.titulo, _cursoE.nombreCurso);

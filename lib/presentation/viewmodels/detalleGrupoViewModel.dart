@@ -82,6 +82,9 @@ class DetalleGrupoViewModel with ChangeNotifier, NotificacionSegura {
     notifyListeners();
   }
 
+  //publica: se vuelve a llamar tras agregar o eliminar un horario
+  Future<void> cargarHorarios() => _cargarHorarios();
+
   Future<void> _cargarHorarios() async {
     try {
       final respuesta = await _servicioHorario.listarHoariosGrupo(
@@ -131,6 +134,80 @@ class DetalleGrupoViewModel with ChangeNotifier, NotificacionSegura {
       _clases = EstadoSeccion([], error: e.toString());
     }
     notifyListeners();
+  }
+
+  //horaInicio y horaFin como HH:mm. Las reglas del cliente se aplican antes de
+  //enviar; el backend las repite (rango de horas, formato)
+  Future<Resultado<void>> agregarHorario({
+    required String? dia,
+    required String? horaInicio,
+    required String? horaFin,
+    required String escenario,
+  }) async {
+    if (dia == null || dia.isEmpty) {
+      return Fallo(-1, 'Seleccione el dia', origen: 'ViewModel');
+    }
+    if (horaInicio == null || horaFin == null) {
+      return Fallo(
+        -1,
+        'Seleccione la hora de inicio y la de fin',
+        origen: 'ViewModel',
+      );
+    }
+    if (horaFin.compareTo(horaInicio) <= 0) {
+      return Fallo(
+        -1,
+        'La hora de fin debe ser posterior a la de inicio',
+        origen: 'ViewModel',
+      );
+    }
+    if (escenario.trim().isEmpty) {
+      return Fallo(-1, 'Ingrese el escenario', origen: 'ViewModel');
+    }
+    try {
+      final respuesta = await _servicioHorario.agregarHorario(
+        Horarioentidad(
+          categoria: grupo.categoria,
+          curso: grupo.curso,
+          anio: grupo.anio,
+          iterable: grupo.iterable,
+          dia: dia,
+          horaInicio: horaInicio,
+          horaFin: horaFin,
+          escenario: escenario.trim(),
+        ),
+      );
+      return _resultadoYRecarga(respuesta, 201);
+    } catch (e) {
+      return Fallo(-1, e.toString(), origen: 'ViewModel');
+    }
+  }
+
+  Future<Resultado<void>> eliminarHorario(int id) async {
+    try {
+      final respuesta = await _servicioHorario.eliminarHorario(id);
+      return _resultadoYRecarga(respuesta, 200);
+    } catch (e) {
+      return Fallo(-1, e.toString(), origen: 'ViewModel');
+    }
+  }
+
+  Future<Resultado<void>> _resultadoYRecarga(
+    RespuestaModelo respuesta,
+    int exito,
+  ) async {
+    if (respuesta.codigoHttp == exito) {
+      await _cargarHorarios();
+      return Exito();
+    }
+    return Fallo(
+      respuesta.codigoHttp,
+      respuesta.error?.mensaje ?? 'Error desconocido',
+      origen:
+          respuesta.error == null
+              ? null
+              : '${respuesta.error!.metodo} ${respuesta.error!.url}',
+    );
   }
 
   Future<Resultado<void>> eliminarClase(int codigo) async {

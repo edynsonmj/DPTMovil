@@ -89,7 +89,19 @@ class _ClaseviewState extends State<Claseview> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          FilledButton(onPressed: _guardar, child: Text('Guardar')),
+          Builder(
+            builder: (context) {
+              //deshabilitado mientras carga, si la carga fallo, si no hay
+              //alumnos o si ya hay un envio en camino
+              final puede = context.select<Atencionviewmodel, bool>(
+                (vm) => vm.puedeRegistrar,
+              );
+              return FilledButton(
+                onPressed: puede ? _guardar : null,
+                child: Text('Guardar'),
+              );
+            },
+          ),
           FilledButton(
             onPressed: () {
               Navigator.pop(context);

@@ -18,10 +18,17 @@ class Conexionalumnosremoto implements Conexionalumnos {
     int iterable,
   ) async {
     String metodo = "GET";
-    String path =
-        '/alumnosGrupo?categoria=$categoria&curso=$curso&anio=$anio&iterable=$iterable';
+    String path = '/alumnosGrupo';
     try {
-      final response = await _dio.get(path);
+      final response = await _dio.get(
+        path,
+        queryParameters: {
+          'categoria': categoria,
+          'curso': curso,
+          'anio': anio,
+          'iterable': iterable,
+        },
+      );
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }

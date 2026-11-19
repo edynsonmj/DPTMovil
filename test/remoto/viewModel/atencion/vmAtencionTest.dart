@@ -51,17 +51,18 @@ class VmAtencionTest {
     });
   }
 
-  //GET /asistenciasClase (publicado el 2026-10-29, cierra AS-B01): una
-  //clase que no existe responde 404 GC-0003 y la pantalla muestra el error
+  //backend nuevo (BK-02): leer una clase o un grupo inexistente ya no da 404,
+  //responde 200 con un objeto GC-0002 ("listado vacio"). El 404 GC-0003 solo
+  //llega al confirmar (PUT /clase/{codigo}/asistencia)
   void prueba4ClaseInexistente(Atencionviewmodel Function() crearVm) {
-    String caso = "clase inexistente 404";
+    String caso = "clase inexistente: lista vacia sin error";
     test('$capa - $tipo - $metodo - $caso', () async {
       final vm = crearVm();
 
       await vm.cargarAtenciones(_grupo(), _clase(codigo: 999999999));
 
       expect(vm.cargando, isFalse);
-      expect(vm.error, contains('404'));
+      expect(vm.error, isNull);
       expect(vm.atenciones, isEmpty);
     });
   }

@@ -13,42 +13,69 @@ class Gruporepositorio {
   String urlImagen(int idImagen) => conexion.urlImagen(idImagen);
 
   Future<RespuestaModelo> listarGruposDe(String categoria, String curso) async {
-    final RespuestaModelo respuesta = await conexion.obtenerGruposDe(
-      categoria,
-      curso,
-    );
-    if (respuesta.codigoHttp != 200) {
+    try {
+      final RespuestaModelo respuesta = await conexion.obtenerGruposDe(
+        categoria,
+        curso,
+      );
+      if (respuesta.codigoHttp != 200) {
+        return respuesta;
+      }
+      respuesta.datos = GrupoMapper.aEntidades(
+        respuesta.datos as List<GrupoModelo>,
+      );
       return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'GET',
+        'obtenerGruposDe',
+        'repositorio',
+      );
     }
-    respuesta.datos = GrupoMapper.aEntidades(
-      respuesta.datos as List<GrupoModelo>,
-    );
-    return respuesta;
   }
 
   Future<RespuestaModelo> listarGruposDisponiblesInscripcion() async {
-    final RespuestaModelo respuesta =
-        await conexion.obtenerGruposInscripcionDisponible();
-    if (respuesta.codigoHttp != 200) {
+    try {
+      final RespuestaModelo respuesta =
+          await conexion.obtenerGruposInscripcionDisponible();
+      if (respuesta.codigoHttp != 200) {
+        return respuesta;
+      }
+      respuesta.datos = GrupoMapper.aEntidades(
+        respuesta.datos as List<GrupoModelo>,
+      );
       return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'GET',
+        'obtenerGruposInscripcionDisponible',
+        'repositorio',
+      );
     }
-    respuesta.datos = GrupoMapper.aEntidades(
-      respuesta.datos as List<GrupoModelo>,
-    );
-    return respuesta;
   }
 
   Future<RespuestaModelo> listarGruposInstructores(String idInstructor) async {
-    final RespuestaModelo respuesta = await conexion.obtenerGruposInstructor(
-      idInstructor,
-    );
-    if (respuesta.codigoHttp != 200) {
+    try {
+      final RespuestaModelo respuesta = await conexion.obtenerGruposInstructor(
+        idInstructor,
+      );
+      if (respuesta.codigoHttp != 200) {
+        return respuesta;
+      }
+      respuesta.datos = GrupoMapper.aEntidades(
+        respuesta.datos as List<GrupoModelo>,
+      );
       return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'GET',
+        'obtenerGruposInstructor',
+        'repositorio',
+      );
     }
-    respuesta.datos = GrupoMapper.aEntidades(
-      respuesta.datos as List<GrupoModelo>,
-    );
-    return respuesta;
   }
 
   Future<RespuestaModelo> insertarGrupo(Grupoentidad entidad) async {
@@ -58,14 +85,24 @@ class Gruporepositorio {
   }
 
   Future<RespuestaModelo> listarGruposNoEliminados() async {
-    final RespuestaModelo respuesta = await conexion.obtenerGruposNoEliminados();
-    if (respuesta.codigoHttp != 200) {
+    try {
+      final RespuestaModelo respuesta =
+          await conexion.obtenerGruposNoEliminados();
+      if (respuesta.codigoHttp != 200) {
+        return respuesta;
+      }
+      respuesta.datos = GrupoMapper.aEntidades(
+        respuesta.datos as List<GrupoModelo>,
+      );
       return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'GET',
+        'obtenerGruposNoEliminados',
+        'repositorio',
+      );
     }
-    respuesta.datos = GrupoMapper.aEntidades(
-      respuesta.datos as List<GrupoModelo>,
-    );
-    return respuesta;
   }
 
   //las fechas viajan como yyyy-MM-dd; sin apertura el grupo conserva la suya.
@@ -82,7 +119,8 @@ class Gruporepositorio {
       grupo.anio,
       grupo.iterable,
       PeriodoInscripcionModelo(
-        apertura: apertura == null ? null : FormatDate.fechaACadena(apertura, '-'),
+        apertura:
+            apertura == null ? null : FormatDate.fechaACadena(apertura, '-'),
         cierre: FormatDate.fechaACadena(cierre, '-'),
       ),
     );

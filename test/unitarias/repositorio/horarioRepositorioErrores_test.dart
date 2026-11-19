@@ -1,5 +1,3 @@
-@Tags(['diagnostico'])
-library;
 
 import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,7 +9,7 @@ import '../../dobles/conexionhorariosFalsa.dart';
 //bug exista. Registro: auditoria-mvvm/registro-bugs.md
 void main() {
   const String capa = "repositorio";
-  const String tipo = "diagnostico";
+  const String tipo = "unitaria";
 
   late ConexionhorariosFalsa conexion;
   late Horariorepositorio repositorio;
@@ -21,9 +19,9 @@ void main() {
     repositorio = Horariorepositorio(conexion: conexion);
   });
 
-  group('Horarios (diagnostico del repositorio):', () {
+  group('Horarios (errores del repositorio):', () {
     //la llamada a la conexion esta fuera del try del repositorio
-    test('$capa - $tipo - Listar horarios de grupo - BUG HO-02 - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
+    test('$capa - $tipo - Listar horarios de grupo - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
       conexion.lanzar = TypeError();
 
       final respuesta = await repositorio.obtenerHoariosGrupo('Deportes', 'Iniciacion', 2026, 1);

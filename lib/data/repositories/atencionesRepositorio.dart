@@ -49,8 +49,26 @@ class Atencionesrepositorio {
     List<Atencionentidad> atenciones,
     int idClase,
   ) async {
-    List<Atencionmodelo> lista =
-        atenciones.map(AtencionMapper.aModelo).toList();
-    return await conexion.registrarAtencionesClase(lista, idClase);
+    //una atencion de otra clase no se envia: se corregiria la asistencia ajena
+    if (atenciones.any((a) => a.idClase != idClase)) {
+      return RespuestaModelo.fromObjectError(
+        'hay atenciones de otra clase que la $idClase',
+        'PUT',
+        'registrarAtencionesClase',
+        'Repositorio',
+      );
+    }
+    try {
+      List<Atencionmodelo> lista =
+          atenciones.map(AtencionMapper.aModelo).toList();
+      return await conexion.registrarAtencionesClase(lista, idClase);
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'PUT',
+        'registrarAtencionesClase',
+        'Repositorio',
+      );
+    }
   }
 }

@@ -12,8 +12,8 @@ class Claserepositorio {
     try {
       final RespuestaModelo respuesta = await cliente.eliminarClase(id);
       return respuesta;
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
         error,
         'DELETE',
         'Clase',
@@ -34,8 +34,8 @@ class Claserepositorio {
         'agregarClaseGrupo',
         'Repositorio',
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
         error,
         'POST',
         'AgregarClaseGrupo',
@@ -50,16 +50,16 @@ class Claserepositorio {
     int anio,
     int iterable,
   ) async {
-    final RespuestaModelo respuesta = await cliente.obtenerClasesGrupo(
-      categoria,
-      curso,
-      anio,
-      iterable,
-    );
-    if (respuesta.codigoHttp != 200) {
-      return respuesta;
-    }
     try {
+      final RespuestaModelo respuesta = await cliente.obtenerClasesGrupo(
+        categoria,
+        curso,
+        anio,
+        iterable,
+      );
+      if (respuesta.codigoHttp != 200) {
+        return respuesta;
+      }
       List<Clasemodelo> listaModelo = respuesta.datos as List<Clasemodelo>;
       respuesta.datos = listaModelo.map(ClaseMapper.aEntidad).toList();
       return respuesta;
@@ -70,8 +70,8 @@ class Claserepositorio {
         'ObtenerClasesGrupo',
         'Repositorio',
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
         error,
         'GET',
         'ObtenerClasesGrupo',

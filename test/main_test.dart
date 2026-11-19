@@ -198,13 +198,14 @@ probarViewModelEstadisticas(){
     test.prueba4RangoSinLaClase(crearEstadisticasViewModel);
     test.prueba5AsistenciaRepetida(crearEstadisticasViewModel);
     test.prueba6DosAsistencias(crearEstadisticasViewModel);
-    //los casos rojos van en
-    //test/diagnostico/estadisticas/remoto_diagnostico_test.dart
+    test.prueba7MinutosAcumulados(crearEstadisticasViewModel);
+    test.prueba8RegistroDesdeLaApp(
+      () => Conexionatencionesremoto(crearDioPruebas(baseUrlPruebas)),
+    );
     test.pruebaSesionVencida(crearEstadisticasViewModel);
   });
 }
-//datos de apoyo del diagnostico de estadisticas; tambien lo usa
-//test/diagnostico/estadisticas/remoto_diagnostico_test.dart
+//datos de apoyo del diagnostico de estadisticas
 void prepararVmEstadisticasAsistencia(VmEstadisticasAsistenciaTest test) {
   Dio dio = crearDioPruebas(baseUrlPruebas);
   Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
@@ -297,12 +298,14 @@ probarViewModelInscripcion(){
     test.prueba8MensajeDelRechazo(crearInscripcionViewModel);
     test.prueba9RechazoLegible(crearInscripcionViewModel);
     test.prueba10SesionVencida(crearInscripcionViewModel);
-    //el caso rojo (IN-13) va en
-    //test/diagnostico/inscripciones/remoto_diagnostico_test.dart
+    test.prueba11ValidarTrasInscribir(crearInscripcionViewModel);
+    test.prueba12RepetirConGrupoLleno(crearInscripcionViewModel);
+    test.prueba13RepetirInscripcionActiva(crearInscripcionViewModel);
+    test.prueba14BackendValidaAlInstante();
+    test.prueba15AlumnoInexistente(crearInscripcionViewModel);
   });
 }
-//datos de apoyo (categoria, curso, grupos y alumnos); tambien lo usa el
-//diagnostico remoto de inscripciones
+//datos de apoyo (categoria, curso, grupos y alumnos)
 void prepararVmInscripcion(VmInscripcionTest test) {
   Dio dio = crearDioPruebas(baseUrlPruebas);
   Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
@@ -590,11 +593,11 @@ probarViewModelGrupoDiagnostico(){
     test.prueba6DatosInexistentes(crearGruposViewModel);
     test.prueba7FechaFinalizacion(crearGruposViewModel);
     test.prueba8AlumnoDesvinculado(crearDetalleGrupoViewModel);
-    //los casos rojos van en test/diagnostico/grupos/remoto_diagnostico_test.dart
+    test.prueba9GruposConAmpersand(crearGruposViewModel);
+    test.prueba10PantallaConAmpersand(crearDetalleGrupoViewModel);
   });
 }
-//datos de apoyo del diagnostico de grupos; tambien lo usa
-//test/diagnostico/grupos/remoto_diagnostico_test.dart
+//datos de apoyo del diagnostico de grupos
 void prepararVmGrupoDiagnostico(VmGrupoDiagnosticoTest test) {
   Dio dio = crearDioPruebas(baseUrlPruebas);
   Conexionimagenremoto conexionImagen = Conexionimagenremoto(dio);
@@ -634,7 +637,7 @@ probarViewModelCursoDiagnostico(){
     test.prueba3DatosInvalidos(crearCursoViewModelRemoto);
     test.prueba4CategoriaSinCursos(crearCursoViewModelRemoto);
     test.prueba5CursoInexistente(crearCursoViewModelRemoto);
-    //el caso rojo va en test/diagnostico/cursos/remoto_diagnostico_test.dart
+    test.prueba6CursosConAmpersand(crearCursoViewModelRemoto);
   });
 }
 //misma cadena que la raiz para cursos, con el Dio de pruebas; un vm por caso
@@ -671,7 +674,7 @@ probarViewModelCategoriaDiagnostico(){
       crearCursoViewModelRemoto,
       crearDeporteViewModel,
     );
-    //el caso rojo va en test/diagnostico/categorias/remoto_diagnostico_test.dart
+    test.prueba4TituloConAmpersand(crearCategoriaViewModelRemoto);
   });
 }
 //misma cadena que la raiz para categorias, con el Dio de pruebas; un vm por

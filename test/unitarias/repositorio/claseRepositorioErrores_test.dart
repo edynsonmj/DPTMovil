@@ -1,5 +1,3 @@
-@Tags(['diagnostico'])
-library;
 
 import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
@@ -12,7 +10,7 @@ import '../../dobles/conexionclasesFalsa.dart';
 //exista. Registro: auditoria-mvvm/registro-bugs.md
 void main() {
   const String capa = "repositorio";
-  const String tipo = "diagnostico";
+  const String tipo = "unitaria";
 
   late ConexionclasesFalsa conexion;
   late Claserepositorio repositorio;
@@ -34,12 +32,12 @@ void main() {
     repositorio = Claserepositorio(cliente: conexion);
   });
 
-  group('Clases (diagnostico del repositorio):', () {
+  group('Clases (errores del repositorio):', () {
     //los errores no se lanzan entre capas, se devuelven. listarClaseGrupo
     //protege la conversion pero no la llamada a la conexion, y eliminarClase
     //solo captura Exception; la conexion real deja pasar el TypeError de
     //Clasemodelo.fromJson (CL-05)
-    test('$capa - $tipo - Listar, agregar y eliminar - BUG CL-03 - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
+    test('$capa - $tipo - Listar, agregar y eliminar - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
       conexion.lanzar = TypeError();
 
       for (final pedir in <Future<dynamic> Function()>[
@@ -56,7 +54,7 @@ void main() {
     //ClaseMapper.aModelo hace fecha!, horas! y
     //minutos!; agregarClase solo
     //captura Exception
-    test('$capa - $tipo - Agregar clase - BUG CL-04 - una entidad sin fecha u horas devuelve un error, sin lanzar', () async {
+    test('$capa - $tipo - Agregar clase - una entidad sin fecha u horas devuelve un error, sin lanzar', () async {
       for (final incompleta in [clase(fecha: null), clase(fecha: DateTime(2026, 10, 28), horas: null)]) {
         Object? lanzado;
         dynamic respuesta;

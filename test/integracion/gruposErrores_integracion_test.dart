@@ -1,5 +1,3 @@
-@Tags(['diagnostico'])
-library;
 
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionGruposRemoto.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
@@ -7,8 +5,8 @@ import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../contratos/leerContrato.dart';
-import '../../dobles/adaptadorHttpFalso.dart';
+import '../contratos/leerContrato.dart';
+import '../dobles/adaptadorHttpFalso.dart';
 
 //diagnostico de grupos de punta a punta sin backend (plan-diagnostico-
 //grupos.md): el mismo montaje que test/integracion/grupos_integracion_test.dart.
@@ -16,7 +14,7 @@ import '../../dobles/adaptadorHttpFalso.dart';
 //bug exista
 void main() {
   const String capa = "integracion";
-  const String tipo = "diagnostico";
+  const String tipo = "local";
 
   late AdaptadorHttpFalso adaptador;
   late Gruporepositorio repositorio;
@@ -30,9 +28,9 @@ void main() {
     vm = Gruposviewmodel(Serviciogrupo(repositorio));
   });
 
-  group('Grupos (diagnostico de punta a punta):', () {
+  group('Grupos (errores de punta a punta):', () {
     //el "&" corta el valor en la query: el backend recibe otra categoria
-    test('$capa - $tipo - Listar grupos de - BUG GR-03 - categoria y curso llegan completos a la query', () async {
+    test('$capa - $tipo - Listar grupos de - categoria y curso llegan completos a la query', () async {
       adaptador.responder('GET', '/gruposCurso', 200, []);
 
       await vm.listarGruposDe('Fútbol & Voleibol', 'Nivel 1 + 2');
@@ -45,7 +43,7 @@ void main() {
 
     //un grupo sin "cupos": GrupoModelo.fromJson lanza un TypeError y las tres
     //listas solo capturan Exception (/gruposNoEliminados si lo captura)
-    test('$capa - $tipo - Listar grupos (curso e instructor) - BUG GR-04 - un grupo incompleto vuelve como error de la conexion, sin lanzar', () async {
+    test('$capa - $tipo - Listar grupos (curso e instructor) - un grupo incompleto vuelve como error de la conexion, sin lanzar', () async {
       final incompleto = Map<String, dynamic>.from(
         (leerContrato('inscripciones', 'gruposNoEliminados_200') as List).first,
       )..remove('cupos');

@@ -28,6 +28,17 @@ class Atencionviewmodel with ChangeNotifier, NotificacionSegura {
   String? _error;
   String? get error => _error;
 
+  //hay un envio en camino: un segundo toque a Guardar no lo repite (AS-02)
+  bool _registrando = false;
+  bool get registrando => _registrando;
+
+  //solo se puede guardar con la lista cargada y con alumnos (AS-03)
+  bool get puedeRegistrar =>
+      !_registrando &&
+      !_cargando &&
+      _error == null &&
+      (_atenciones?.isNotEmpty ?? false);
+
   //clase a la que pertenecen las atenciones, se fija al cargar y se reutiliza
   //al registrar
   int? _idClase;
@@ -77,21 +88,35 @@ class Atencionviewmodel with ChangeNotifier, NotificacionSegura {
   //registra las atenciones cargadas con su estado actual
   Future<Resultado<void>> registrarAtenciones() async {
     final lista = _atenciones;
+    if (_registrando) {
+      return Fallo(0, 'Ya se esta registrando la asistencia', origen: 'ViewModel');
+    }
+    if (_error != null) {
+      return Fallo(0, _error!, origen: 'ViewModel');
+    }
     if (lista == null || _idClase == null) {
       return Fallo(0, 'No hay atenciones cargadas', origen: 'ViewModel');
     }
     if (lista.isEmpty) {
       return Fallo(0, 'No hay alumnos para registrar', origen: 'ViewModel');
     }
+    _registrando = true;
+    notifyListeners();
     try {
       final respuesta = await _servicioAtencion.registrarAtenciones(
         lista,
         _idClase!,
       );
-      if (respuesta.codigoHttp == 200) return Exito();
+      //cualquier 2xx es exito (AS-07)
+      if (respuesta.codigoHttp >= 200 && respuesta.codigoHttp < 300) {
+        return Exito();
+      }
       return _fallo(respuesta);
     } catch (e) {
       return Fallo(-1, e.toString(), origen: 'ViewModel');
+    } finally {
+      _registrando = false;
+      notifyListeners();
     }
   }
 

@@ -1,19 +1,15 @@
-@Tags(['diagnostico'])
-library;
-
 import 'package:dpt_movil/presentation/view/views/clase/claseView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../integracion/montajeAtenciones.dart';
+import 'montajeAtenciones.dart';
 
-//diagnostico de punta a punta (fase 5): mismo montaje que
-//test/integracion/atenciones_integracion_test.dart (rutas reales y cadena
-//real de atenciones sobre el transporte falso). Afirman el comportamiento
-//CORRECTO; se espera que salgan rojas. Registro: auditoria-mvvm/registro-bugs.md
+//errores de la toma de asistencia de punta a punta (AS-02, AS-07): mismo
+//montaje que atenciones_integracion_test.dart. Registro:
+//auditoria-mvvm/registro-bugs.md
 void main() {
   const String capa = "integracion";
-  const String tipo = "diagnostico";
+  const String tipo = "local";
 
   late MontajeAtenciones app;
 
@@ -21,10 +17,10 @@ void main() {
     app = MontajeAtenciones();
   });
 
-  testWidgets('$capa - $tipo - Toma de asistencia - BUG AS-07 - un POST 201 se muestra como exito', (
+  testWidgets('$capa - $tipo - Toma de asistencia - un POST 201 se muestra como exito', (
     tester,
   ) async {
-    app.adaptador.responder('POST', '/asistenciasClase', 201);
+    app.adaptador.responder('PUT', '/clase/210/asistencia', 201);
     await app.abrirClase(tester);
 
     await tester.tap(find.text('Guardar'));
@@ -43,7 +39,7 @@ void main() {
             .toList();
 
     //la asistencia quedo guardada: el instructor debe verlo asi
-    expect(app.adaptador.peticionesA('POST', '/asistenciasClase').length, 1);
+    expect(app.adaptador.peticionesA('PUT', '/clase/210/asistencia').length, 1);
     expect(
       find.text('Error al registrar atenciones'),
       findsNothing,
@@ -52,10 +48,10 @@ void main() {
     expect(find.text('Atenciones registradas'), findsOneWidget);
   });
 
-  testWidgets('$capa - $tipo - Toma de asistencia - BUG AS-02 - el doble toque no duplica el registro', (
+  testWidgets('$capa - $tipo - Toma de asistencia - el doble toque no duplica el registro', (
     tester,
   ) async {
-    final pausa = app.adaptador.retener('POST', '/asistenciasClase');
+    final pausa = app.adaptador.retener('PUT', '/clase/210/asistencia');
     await app.abrirClase(tester);
 
     await tester.tap(find.text('Guardar'));
@@ -66,7 +62,7 @@ void main() {
     pausa.complete();
     await tester.pumpAndSettle();
 
-    expect(app.adaptador.peticionesA('POST', '/asistenciasClase').length, 1);
+    expect(app.adaptador.peticionesA('PUT', '/clase/210/asistencia').length, 1);
     expect(find.byType(Claseview), findsWidgets);
   });
 }

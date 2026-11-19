@@ -99,9 +99,10 @@ class EstadisticasViewModel with ChangeNotifier, NotificacionSegura {
     notifyListeners();
   }
 
-  //una copia ordenada una sola vez: la vista ya no ordena en build
+  //una copia ordenada una sola vez: la vista ya no ordena en build. Por el
+  //tiempo total en minutos, no solo por las horas (ES-04)
   List<Estadistica> _ordenarPorHoras(List<Estadistica> lista) =>
-      [...lista]..sort((a, b) => b.horas.compareTo(a.horas));
+      [...lista]..sort((a, b) => b.duracion.compareTo(a.duracion));
 
   //el boton de descarga exporta la seccion de grupos
   bool get puedeExportar => !_grupos.cargando && _grupos.datos.isNotEmpty;

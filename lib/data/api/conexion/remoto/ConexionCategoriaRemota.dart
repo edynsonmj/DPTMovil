@@ -66,23 +66,20 @@ class ConexionCategoriaRemota implements ConexionCategoria {
       return RespuestaModelo.fromResponse(response, metodo);
     } on DioException catch (excepcion) {
       return RespuestaModelo.fromDioException(excepcion, metodo);
-    } on Exception catch (exc) {
-      return RespuestaModelo(
-        codigoHttp: 0,
-        datos: null,
-        error: ErrorModelo(
-          codigoHttp: 0,
-          mensaje: 'Error fuera de la conexion: ${exc.toString()}',
-          url: '',
-          metodo: metodo,
-        ),
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        metodo,
+        'categorias',
+        'conexion',
       );
     }
   }
 
   @override
   Future<RespuestaModelo> actualizarCategoria(categoriaModelo categoria) async {
-    String path = "/categoria?titulo=${categoria.titulo}";
+    //el titulo viaja como parametro: un "&" no lo corta (CAT-03)
+    String path = "/categoria";
     String metodo = "PUT";
     String capa = "conexion";
     try {
@@ -100,6 +97,7 @@ class ConexionCategoriaRemota implements ConexionCategoria {
       }
       final response = await _dio.put(
         path,
+        queryParameters: {'titulo': categoria.titulo},
         data: categoria,
         options: Options(contentType: ContentType.json.toString()),
       );
@@ -113,17 +111,12 @@ class ConexionCategoriaRemota implements ConexionCategoria {
       return RespuestaModelo.fromDioException(dioExc, metodo);
     } on FormatException catch (format) {
       return RespuestaModelo.fromFormatException(format, metodo, path, capa);
-    } on Exception catch (exc) {
-      //se ha generado un error desconocido
-      return RespuestaModelo(
-        codigoHttp: 0,
-        datos: null,
-        error: ErrorModelo(
-          codigoHttp: 0,
-          mensaje: 'Error fuera de la conexion: ${exc.toString()}',
-          url: '',
-          metodo: metodo,
-        ),
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        metodo,
+        'categorias',
+        'conexion',
       );
     }
   }
@@ -131,22 +124,23 @@ class ConexionCategoriaRemota implements ConexionCategoria {
   @override
   Future<RespuestaModelo> guardarCategoria(categoriaModelo datos) async {
     final String metodo = 'POST';
-    late String tipoMime;
     try {
-      //se inserta la imagen
-      RespuestaModelo responseImagen = await _conexionImagen.insertarImagenFile(
-        datos.imagenFile!,
-      );
-      if (responseImagen.codigoHttp != 201) {
-        return responseImagen;
+      //con archivo se sube la imagen; sin archivo se usa la que ya existe
+      //(idImagen), no se vuelve a subir (CAT-01)
+      int? imagenId = datos.imagenId;
+      if (datos.imagenFile != null) {
+        RespuestaModelo responseImagen = await _conexionImagen
+            .insertarImagenFile(datos.imagenFile!);
+        if (responseImagen.codigoHttp != 201) {
+          return responseImagen;
+        }
+        imagenId = (responseImagen.datos as ImagenModelo).id;
       }
-      ImagenModelo imagen = responseImagen.datos as ImagenModelo;
       categoriaModelo categoria = categoriaModelo(
         titulo: datos.titulo,
         descripcion: datos.descripcion,
-        imagenId: imagen.id,
+        imagenId: imagenId,
       );
-      //se hace la peticion con el formdata
       final response = await _dio.post(
         '/categoria',
         data: categoria,
@@ -156,26 +150,23 @@ class ConexionCategoriaRemota implements ConexionCategoria {
       if (response.statusCode != 201) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
-      //exito en la peticion
+      //un 201 sin cuerpo tambien es exito: la categoria se guardo (CAT-02)
+      final cuerpo = response.data;
+      final sinCuerpo = cuerpo == null || (cuerpo is String && cuerpo.isEmpty);
       return RespuestaModelo(
         codigoHttp: response.statusCode!,
         error: null,
-        datos: categoriaModelo.fromJson(response.data),
+        datos: sinCuerpo ? null : categoriaModelo.fromJson(cuerpo),
       );
     } on DioException catch (dioExc) {
       //Se ha generado un error en la peticion, generar respuesta segun tipo de excepcion
       return RespuestaModelo.fromDioException(dioExc, metodo);
-    } on Exception catch (exc) {
-      //se ha generado un error desconocido
-      return RespuestaModelo(
-        codigoHttp: 0,
-        datos: null,
-        error: ErrorModelo(
-          codigoHttp: 0,
-          mensaje: 'Error fuera de la conexion: ${exc.toString()}',
-          url: '',
-          metodo: metodo,
-        ),
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        metodo,
+        '/categoria',
+        'conexion',
       );
     }
   }
@@ -183,28 +174,21 @@ class ConexionCategoriaRemota implements ConexionCategoria {
   @override
   Future<RespuestaModelo> eliminarCategoria(String titulo) async {
     String metodo = "DELETE";
-    String path = "/categoria?titulo=$titulo";
+    String path = "/categoria";
     String capa = "CONEXION";
     try {
-      final response = await _dio.delete(path);
+      final response = await _dio.delete(
+        path,
+        queryParameters: {'titulo': titulo},
+      );
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
       return RespuestaModelo(codigoHttp: 200);
     } on DioException catch (excepcion) {
       return RespuestaModelo.fromDioException(excepcion, metodo);
-    } on Exception catch (exc) {
-      return RespuestaModelo(
-        codigoHttp: 0,
-        datos: null,
-        error: ErrorModelo(
-          codigoHttp: 0,
-          mensaje:
-              'Error fuera de la conexion -$capa-$metodo-$path: ${exc.toString()}',
-          url: '',
-          metodo: metodo,
-        ),
-      );
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 }

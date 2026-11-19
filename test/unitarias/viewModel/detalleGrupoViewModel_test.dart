@@ -199,5 +199,66 @@ void main() {
       expect((resultado as Fallo).codigo, 400);
       expect(conexionClases.llamadasClases, 0);
     });
+
+    test('$capa - $tipo - Agregar horario - 201 envia el grupo de la pantalla y recarga', () async {
+      final resultado = await vm.agregarHorario(
+        dia: 'Lunes',
+        horaInicio: '08:00',
+        horaFin: '10:00',
+        escenario: ' Coliseo ',
+      );
+
+      expect(resultado, isA<Exito>());
+      final enviado = conexionHorarios.ultimoAgregado!;
+      expect([enviado.categoria, enviado.curso, enviado.anio, enviado.iterable],
+          ['Deportes', 'Iniciacion', 2026, 1]);
+      expect([enviado.dia, enviado.horaInicio, enviado.horaFin, enviado.escenario],
+          ['Lunes', '08:00', '10:00', 'Coliseo']);
+      expect(conexionHorarios.llamadasHorarios, 1);
+    });
+
+    test('$capa - $tipo - Agregar horario - reglas del cliente: no envia nada', () async {
+      final casos = <Future<Resultado<void>>>[
+        vm.agregarHorario(dia: null, horaInicio: '08:00', horaFin: '10:00', escenario: 'X'),
+        vm.agregarHorario(dia: 'Lunes', horaInicio: null, horaFin: '10:00', escenario: 'X'),
+        vm.agregarHorario(dia: 'Lunes', horaInicio: '10:00', horaFin: '10:00', escenario: 'X'),
+        vm.agregarHorario(dia: 'Lunes', horaInicio: '08:00', horaFin: '10:00', escenario: '  '),
+      ];
+      for (final resultado in await Future.wait(casos)) {
+        expect(resultado, isA<Fallo>());
+      }
+      expect(conexionHorarios.llamadasAgregar, 0);
+    });
+
+    test('$capa - $tipo - Agregar horario - 404 devuelve Fallo y no recarga', () async {
+      conexionHorarios.respuestaAgregar = RespuestaModelo(codigoHttp: 404);
+
+      final resultado = await vm.agregarHorario(
+        dia: 'Lunes',
+        horaInicio: '08:00',
+        horaFin: '10:00',
+        escenario: 'Coliseo',
+      );
+
+      expect((resultado as Fallo).codigo, 404);
+      expect(conexionHorarios.llamadasHorarios, 0);
+    });
+
+    test('$capa - $tipo - Eliminar horario - 200 elimina por id y recarga', () async {
+      final resultado = await vm.eliminarHorario(15);
+
+      expect(resultado, isA<Exito>());
+      expect(conexionHorarios.ultimoEliminado, 15);
+      expect(conexionHorarios.llamadasHorarios, 1);
+    });
+
+    test('$capa - $tipo - Eliminar horario - 404 devuelve Fallo y no recarga', () async {
+      conexionHorarios.respuestaEliminar = RespuestaModelo(codigoHttp: 404);
+
+      final resultado = await vm.eliminarHorario(15);
+
+      expect((resultado as Fallo).codigo, 404);
+      expect(conexionHorarios.llamadasHorarios, 0);
+    });
   });
 }

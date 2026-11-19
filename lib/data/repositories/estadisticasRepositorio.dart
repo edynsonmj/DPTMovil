@@ -9,97 +9,56 @@ class EstadisticasRespositorio {
   EstadisticasRespositorio({required this.conexion});
 
   //AGRUPA LAS ATENCIONES Y HORAS POR CATEGORIA
-  Future<RespuestaModelo> generalCategorias(
-    String fechaInicio,
-    String fechaFin,
-  ) async {
-    RespuestaModelo respuesta = await conexion.generalCategorias(
-      fechaInicio,
-      fechaFin,
+  Future<RespuestaModelo> generalCategorias(String fechaInicio, String fechaFin) {
+    return _consultar(
+      () => conexion.generalCategorias(fechaInicio, fechaFin),
+      '/estadisticas/categorias',
     );
-    if (respuesta.codigoHttp == 200) {
-      //El servidor ha respondido correctamente pero se ha convertido al formato correcto
-      if (respuesta.datos is! List<EstadisticaModelo>) {
-        respuesta.codigoHttp = 0;
-        respuesta.error = ErrorModelo(
-          codigoHttp: 0,
-          mensaje:
-              'El servidor ha respondido correctamente, pero el formato entonctrado no corresponde a una lista de EstadisticaModelo',
-          url: '/estadisticas/categorias',
-          metodo: 'GET',
-        );
-        return respuesta;
-      }
-      //El servidor ha respondido correctamente, se transforman los datos
-      respuesta.datos = EstadisticaMapper.aEntidades(
-        respuesta.datos as List<EstadisticaModelo>,
-      );
-      return respuesta;
-    }
-    //si el codigo no corresponde, se envia la informacion contenida, esta debe llevar el codigo y la informacion relacionada
-    return respuesta;
   }
 
-  //AGRUPA LAS ATENCIONES Y HORAS POR CURSOS SEGUN UNA CATEGORIA DADA
-  Future<RespuestaModelo> generalCursos(
-    String fechaInicio,
-    String fechaFin,
-  ) async {
-    RespuestaModelo respuesta = await conexion.generalCursos(
-      fechaInicio,
-      fechaFin,
+  //AGRUPA LAS ATENCIONES Y HORAS POR CURSOS
+  Future<RespuestaModelo> generalCursos(String fechaInicio, String fechaFin) {
+    return _consultar(
+      () => conexion.generalCursos(fechaInicio, fechaFin),
+      '/estadisticas/cursos',
     );
-    if (respuesta.codigoHttp == 200) {
-      //El servidor ha respondido correctamente pero se ha convertido al formato correcto
-      if (respuesta.datos is! List<EstadisticaModelo>) {
-        respuesta.codigoHttp = 0;
-        respuesta.error = ErrorModelo(
-          codigoHttp: 0,
-          mensaje:
-              'El servidor ha respondido correctamente, pero el formato entonctrado no corresponde a una lista de EstadisticaModelo',
-          url: '/estadisticas/cursos',
-          metodo: 'GET',
-        );
-        return respuesta;
-      }
-      //El servidor ha respondido correctamente, se transforman los datos
-      respuesta.datos = EstadisticaMapper.aEntidades(
-        respuesta.datos as List<EstadisticaModelo>,
-      );
-      return respuesta;
-    }
-    //si no son los codigos evaluados se retorna la informacion contenida que debe tener la informacion del error
-    return respuesta;
   }
 
-  Future<RespuestaModelo> generalGrupos(
-    String fechaInicio,
-    String fechaFin,
-  ) async {
-    RespuestaModelo respuesta = await conexion.generalGrupos(
-      fechaInicio,
-      fechaFin,
+  Future<RespuestaModelo> generalGrupos(String fechaInicio, String fechaFin) {
+    return _consultar(
+      () => conexion.generalGrupos(fechaInicio, fechaFin),
+      '/estadisticas/grupos',
     );
-    if (respuesta.codigoHttp == 200) {
-      //El servidor ha respondido correctamente pero se ha convertido al formato correcto
+  }
+
+  //las tres rutas se convierten igual. Cualquier error de la conexion o de la
+  //conversion se devuelve, no se lanza (ES-01); un codigo distinto de 200 pasa
+  //tal cual porque ya lleva el error
+  Future<RespuestaModelo> _consultar(
+    Future<RespuestaModelo> Function() llamada,
+    String url,
+  ) async {
+    try {
+      final RespuestaModelo respuesta = await llamada();
+      if (respuesta.codigoHttp != 200) return respuesta;
+      //el servidor respondio bien pero la conexion no entrego la lista esperada
       if (respuesta.datos is! List<EstadisticaModelo>) {
         respuesta.codigoHttp = 0;
         respuesta.error = ErrorModelo(
           codigoHttp: 0,
           mensaje:
               'El servidor ha respondido correctamente, pero el formato entonctrado no corresponde a una lista de EstadisticaModelo',
-          url: '/estadisticas/grupos',
+          url: url,
           metodo: 'GET',
         );
         return respuesta;
       }
-      //El servidor ha respondido correctamente, se transforman los datos
       respuesta.datos = EstadisticaMapper.aEntidades(
         respuesta.datos as List<EstadisticaModelo>,
       );
       return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(error, 'GET', url, 'repositorio');
     }
-    //si no son los codigos evaluados se retorna la informacion contenida que debe tener la informacion del error
-    return respuesta;
   }
 }

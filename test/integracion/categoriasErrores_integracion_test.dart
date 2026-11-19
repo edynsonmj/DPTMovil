@@ -1,6 +1,3 @@
-@Tags(['diagnostico'])
-library;
-
 import 'dart:io';
 
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCategoriaRemota.dart';
@@ -12,16 +9,14 @@ import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
 import 'package:dpt_movil/presentation/viewmodels/categoriaViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../contratos/leerContrato.dart';
-import '../../dobles/adaptadorHttpFalso.dart';
+import '../contratos/leerContrato.dart';
+import '../dobles/adaptadorHttpFalso.dart';
 
-//diagnostico de categorias de punta a punta sin backend (plan-diagnostico-
-//categorias.md): el mismo montaje que test/integracion/categorias_integracion_test.dart.
-//Afirman el comportamiento CORRECTO y se espera que salgan rojas mientras el
-//bug exista
+//errores de categorias de punta a punta sin backend (CAT-01, CAT-02, CAT-03,
+//CAT-04, CAT-06, CAT-09): el mismo montaje que categorias_integracion_test.dart
 void main() {
   const String capa = "integracion";
-  const String tipo = "diagnostico";
+  const String tipo = "local";
 
   late AdaptadorHttpFalso adaptador;
   late CategoriaViewModel vm;
@@ -45,10 +40,10 @@ void main() {
     adaptador.responder('GET', '/categorias2', 200, leerContrato('categorias', 'categorias2_200'));
   });
 
-  group('Categorias (diagnostico de punta a punta):', () {
+  group('Categorias (errores de punta a punta):', () {
     //lo mismo que hace la unitaria "Guardar categoria - 201 refresca la
     //lista" (T-01), pero con la conexion real en lugar del doble
-    test('$capa - $tipo - Insertar categoria - BUG CAT-01 - con idImagen y sin archivo no escapa una excepcion hasta el vm', () async {
+    test('$capa - $tipo - Insertar categoria - con idImagen y sin archivo no escapa una excepcion hasta el vm', () async {
       adaptador.responder('POST', '/categoria', 201, leerContrato('categorias', 'categoria_201'));
 
       final resultado = await vm.insertarCategoria(
@@ -64,7 +59,7 @@ void main() {
       expect(escapo, isFalse, reason: texto(resultado));
     });
 
-    test('$capa - $tipo - Insertar categoria - BUG CAT-02 - un 201 sin cuerpo es Exito', () async {
+    test('$capa - $tipo - Insertar categoria - un 201 sin cuerpo es Exito', () async {
       adaptador.responder('POST', '/imagenMultipart', 201, leerContrato('categorias', 'imagenMultipart_201'));
       adaptador.responder('POST', '/categoria', 201);
 
@@ -77,7 +72,7 @@ void main() {
       expect(resultado, isA<Exito>(), reason: texto(resultado));
     });
 
-    test('$capa - $tipo - Actualizar y eliminar - BUG CAT-03 - el titulo llega completo a la query', () async {
+    test('$capa - $tipo - Actualizar y eliminar - el titulo llega completo a la query', () async {
       adaptador.responder('PUT', '/categoria', 200, leerContrato('categorias', 'categoria_201'));
       adaptador.responder('DELETE', '/categoria', 200);
       const titulo = 'Fútbol & Voleibol';
@@ -98,7 +93,7 @@ void main() {
 
     //la ruta crea el vm y lo desecha al salir: una carga que llega despues no
     //debe notificar
-    test('$capa - $tipo - Listar categorias - BUG CAT-04 - una respuesta que llega despues de dispose no lanza', () async {
+    test('$capa - $tipo - Listar categorias - una respuesta que llega despues de dispose no lanza', () async {
       final retenida = adaptador.retener('GET', '/categorias2');
       final carga = vm.listarYNotificarCategorias();
       await _hastaQue(() => adaptador.peticiones.length == 1);
@@ -116,7 +111,7 @@ void main() {
 
     //una categoria sin titulo: fromJson lanza un TypeError que atraviesa la
     //conexion (solo captura Exception) y el repositorio (sin try)
-    test('$capa - $tipo - Listar categorias - BUG CAT-06 - una categoria incompleta llega como error con codigo, no como excepcion', () async {
+    test('$capa - $tipo - Listar categorias - una categoria incompleta llega como error con codigo, no como excepcion', () async {
       adaptador.responder('GET', '/categorias2', 200, [
         {'titulo': null, 'descripcion': 'x', 'imagenId': 1},
       ]);
@@ -128,7 +123,7 @@ void main() {
     });
 
     //la carga del inicio y la del refresco tras guardar pueden solaparse
-    test('$capa - $tipo - Listar categorias - BUG CAT-09 - una respuesta vieja que llega tarde no pisa la nueva', () async {
+    test('$capa - $tipo - Listar categorias - una respuesta vieja que llega tarde no pisa la nueva', () async {
       final vieja = adaptador.retener('GET', '/categorias2');
       final primera = vm.listarYNotificarCategorias();
       //hasta que la primera peticion este de verdad retenida en el adaptador

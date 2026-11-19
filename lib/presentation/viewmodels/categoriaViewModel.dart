@@ -5,8 +5,11 @@ import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioCategoria.dart';
+import 'package:dpt_movil/presentation/viewmodels/estadoSeccion.dart';
 
-class CategoriaViewModel with ChangeNotifier {
+//NotificacionSegura: la ruta desecha el vm al salir y una carga que llega
+//despues no notifica (CAT-04)
+class CategoriaViewModel with ChangeNotifier, NotificacionSegura {
   //servicio en uso
   final ServicioCategoria servicioCategoria;
 
@@ -20,6 +23,9 @@ class CategoriaViewModel with ChangeNotifier {
   //get) para que context.select compare la misma instancia entre notificaciones
   List<String> _titulos = const [];
   List<String> get titulos => _titulos;
+
+  //numero de la ultima carga pedida, para descartar respuestas viejas
+  int _cargaActual = 0;
 
   bool _cargando = false;
   bool get cargando => _cargando;
@@ -35,11 +41,15 @@ class CategoriaViewModel with ChangeNotifier {
   //codigo (InscripcionesGeneralesView); la que pinta vm.error lo ignora
   Future<Resultado<void>> listarYNotificarCategorias() async {
     Resultado<void> resultado = Exito();
+    //cada carga lleva su numero: una respuesta vieja que llega despues de una
+    //mas nueva se descarta y no la pisa (CAT-09)
+    final carga = ++_cargaActual;
     _cargando = true;
     _error = null;
     notifyListeners();
     try {
       final respuesta = await servicioCategoria.encontrarCategorias();
+      if (carga != _cargaActual) return resultado;
       if (respuesta.codigoHttp == 200 && respuesta.datos is List) {
         _establecerCategorias(respuesta.datos as List<CategoriaEntidad>);
       } else if (respuesta.codigoHttp == 204) {
@@ -54,6 +64,7 @@ class CategoriaViewModel with ChangeNotifier {
         resultado = _fallo(respuesta);
       }
     } catch (e) {
+      if (carga != _cargaActual) return resultado;
       _error = e.toString();
       _establecerCategorias([]);
       resultado = Fallo(-1, e.toString(), origen: 'ViewModel');
@@ -99,7 +110,8 @@ class CategoriaViewModel with ChangeNotifier {
   ) async {
     try {
       final respuesta = await servicioCategoria.insertarCategoria(entidad);
-      if (respuesta.codigoHttp == 201) {
+      //204: se guardo pero el backend no devolvio la categoria (CAT-02)
+      if (respuesta.codigoHttp == 201 || respuesta.codigoHttp == 204) {
         await listarYNotificarCategorias();
         return Exito(respuesta.datos as CategoriaEntidad?);
       }
@@ -117,7 +129,7 @@ class CategoriaViewModel with ChangeNotifier {
     try {
       final respuesta = await servicioCategoria.actualizarCategoria(entidad);
       //tras el exito se refresca la lista, la vista consume vm.categorias
-      if (respuesta.codigoHttp == 200) {
+      if (respuesta.codigoHttp == 200 || respuesta.codigoHttp == 204) {
         await listarYNotificarCategorias();
         return Exito(respuesta.datos as CategoriaEntidad?);
       }

@@ -34,4 +34,25 @@ class ConexionhorariosFalsa implements Conexionhorarios {
     //una copia por peticion: la misma respuesta sirve para varios grupos
     return copiaRespuesta(respuestaHorarios);
   }
+
+  RespuestaModelo respuestaAgregar = RespuestaModelo(codigoHttp: 201);
+  RespuestaModelo respuestaEliminar = RespuestaModelo(codigoHttp: 200);
+  HorarioModelo? ultimoAgregado;
+  int? ultimoEliminado;
+  int llamadasAgregar = 0;
+  int llamadasEliminar = 0;
+
+  @override
+  Future<RespuestaModelo> agregarHorario(HorarioModelo modelo) async {
+    llamadasAgregar++;
+    ultimoAgregado = modelo;
+    return copiaRespuesta(respuestaAgregar);
+  }
+
+  @override
+  Future<RespuestaModelo> eliminarHorario(int id) async {
+    llamadasEliminar++;
+    ultimoEliminado = id;
+    return copiaRespuesta(respuestaEliminar);
+  }
 }

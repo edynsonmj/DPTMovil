@@ -115,7 +115,8 @@ class EstadisticasGeneralesView extends StatelessWidget {
     );
   }
 
-  //las listas llegan ya ordenadas por horas desde el vm
+  //las listas llegan ya ordenadas por tiempo total desde el vm; la grafica pinta
+  //horas con decimales (4 h 30 = 4,5)
   static List<EstadisticaGraficoargumentos> formatoDatosCategorias(
     List<Estadistica> lista,
   ) {
@@ -124,7 +125,7 @@ class EstadisticasGeneralesView extends StatelessWidget {
           (estadistica) => EstadisticaGraficoargumentos(
             leyenda: estadistica.leyenda1,
             indice1: estadistica.clases,
-            indice2: estadistica.horas,
+            indice2: estadistica.duracion / 60,
           ),
         )
         .toList();
@@ -138,7 +139,7 @@ class EstadisticasGeneralesView extends StatelessWidget {
           (estadistica) => EstadisticaGraficoargumentos(
             leyenda: '${estadistica.leyenda2} - ${estadistica.leyenda1}',
             indice1: estadistica.clases,
-            indice2: estadistica.horas,
+            indice2: estadistica.duracion / 60,
           ),
         )
         .toList();
@@ -153,7 +154,7 @@ class EstadisticasGeneralesView extends StatelessWidget {
             leyenda:
                 '${estadistica.leyenda3}.${estadistica.leyenda4}:${estadistica.leyenda2} - ${estadistica.leyenda1}',
             indice1: estadistica.clases,
-            indice2: estadistica.horas,
+            indice2: estadistica.duracion / 60,
           ),
         )
         .toList();

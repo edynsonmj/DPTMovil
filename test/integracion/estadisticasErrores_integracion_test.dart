@@ -1,6 +1,3 @@
-@Tags(['diagnostico'])
-library;
-
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionEstadisticasRemoto.dart';
 import 'package:dpt_movil/data/repositories/estadisticasRepositorio.dart';
 import 'package:dpt_movil/domain/servicios/servicioEstadisticas.dart';
@@ -8,16 +5,14 @@ import 'package:dpt_movil/presentation/view/views/estadisticas/estadisticasGener
 import 'package:dpt_movil/presentation/viewmodels/estadisticasViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../contratos/leerContrato.dart';
-import '../../dobles/adaptadorHttpFalso.dart';
+import '../contratos/leerContrato.dart';
+import '../dobles/adaptadorHttpFalso.dart';
 
-//diagnostico de las estadisticas generales de punta a punta sin backend
-//(plan-diagnostico-estadisticas.md, 4.2): el mismo montaje que
-//test/integracion/estadisticas_integracion_test.dart. Afirman el
-//comportamiento CORRECTO y se espera que salgan rojas mientras el bug exista
+//errores de las estadisticas generales de punta a punta sin backend (ES-02,
+//ES-03, ES-04, ES-06): el mismo montaje que estadisticas_integracion_test.dart
 void main() {
   const String capa = "integracion";
-  const String tipo = "diagnostico";
+  const String tipo = "local";
 
   late AdaptadorHttpFalso adaptador;
   late EstadisticasViewModel vm;
@@ -47,11 +42,11 @@ void main() {
     'duracion': horas * 60 + minutos,
   };
 
-  group('Estadisticas generales (diagnostico de punta a punta):', () {
+  group('Estadisticas generales (errores de punta a punta):', () {
     //una fila incompleta: fromJson lanza un TypeError que la conexion (solo
     //captura Exception) y el repositorio (sin try) dejan pasar; el vm lo
     //atrapa y la seccion muestra el texto de la excepcion
-    test('$capa - $tipo - Cargar - BUG ES-02 - una fila sin leyenda1 llega como error de la conexion, no como excepcion', () async {
+    test('$capa - $tipo - Cargar - una fila sin leyenda1 llega como error de la conexion, no como excepcion', () async {
       adaptador.responder('GET', '/estadisticas/categorias', 200, [
         {...fila('x', 1, 0), 'leyenda1': null},
       ]);
@@ -64,7 +59,7 @@ void main() {
     });
 
     //el json no distingue 1 de 1.0: un backend que mande enteros es valido
-    test('$capa - $tipo - Cargar - BUG ES-03 - los numeros enteros en el json se convierten sin error', () async {
+    test('$capa - $tipo - Cargar - los numeros enteros en el json se convierten sin error', () async {
       adaptador.responder('GET', '/estadisticas/categorias', 200, [
         {
           'leyenda1': 'Deportes',
@@ -86,7 +81,7 @@ void main() {
 
     //1 h 10 min y 1 h 50 min tienen las mismas "horas": el orden debe
     //respetar el tiempo total
-    test('$capa - $tipo - Cargar - BUG ES-04 - el orden de mayor a menor tiempo tiene en cuenta los minutos', () async {
+    test('$capa - $tipo - Cargar - el orden de mayor a menor tiempo tiene en cuenta los minutos', () async {
       adaptador.responder('GET', '/estadisticas/categorias', 200, [
         fila('Una hora y diez', 1, 10),
         fila('Una hora y cincuenta', 1, 50),
@@ -103,7 +98,7 @@ void main() {
     //forma observada el 2026-11-05: tres clases de 1 h 30 llegan como horas 3,
     //minutos 90 y duracion 270. La grafica pinta `horas`: 3 en lugar de 4,5,
     //y queda detras de un grupo de 4 h justas
-    test('$capa - $tipo - Cargar - BUG ES-06 - la grafica usa el tiempo total cuando los minutos pasan de 60', () async {
+    test('$capa - $tipo - Cargar - la grafica usa el tiempo total cuando los minutos pasan de 60', () async {
       adaptador.responder('GET', '/estadisticas/categorias', 200, [
         fila('Cuatro horas justas', 4, 0),
         fila('Tres clases de 1 h 30', 3, 90),

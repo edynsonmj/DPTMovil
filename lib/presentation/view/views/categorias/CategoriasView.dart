@@ -75,11 +75,78 @@ class _CategoriasViewState extends State<CategoriasView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: Bar(title: 'Categorias'),
       drawer: Builder(builder: (context) => Menulateral()),
+        appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            toolbarHeight: 58,
+            titleSpacing: 0,
+
+            title: Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF08086B),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'U',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 21,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 9),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    Text(
+                      'Deporte Para Todos',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF08086B),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+        ),
+
       body: Consumer<CategoriaViewModel>(
         builder: (context, viewModel, child) {
           return contenedorSeguro(viewModel);
+        },
+      ),
+
+      floatingActionButton: Consumer<AutenticacionViewModel>(
+        builder: (context, vm, _) {
+          if (vm.perfilSesion?.role != Roles.coordinador) {
+            return const SizedBox.shrink();
+          }
+
+          return FloatingActionButton.extended(
+            onPressed: () => _abrirFormulario(),
+            backgroundColor: const Color(0xFF08086B),
+            foregroundColor: Colors.white,
+            elevation: 5,
+            icon: const Icon(Icons.add),
+            label: const Text(
+              'Nueva categoría',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          );
         },
       ),
     );
@@ -92,12 +159,7 @@ class _CategoriasViewState extends State<CategoriasView> {
           builder: (context, vm, _) {
             return Column(
               children: [
-                if (vm.perfilSesion?.role == Roles.coordinador)
-                  OutlinedButton.icon(
-                    onPressed: () => _abrirFormulario(),
-                    label: Text('Agregar categoria'),
-                    icon: Icon(Icons.add),
-                  ),
+                _encabezado(),
                 listaCategorias(viewModel),
               ],
             );
@@ -106,6 +168,48 @@ class _CategoriasViewState extends State<CategoriasView> {
       ),
     );
   }
+
+  Widget _encabezado() {
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+
+        const SizedBox(height: 1),
+
+        const Text(
+          'Categorías',
+          style: TextStyle(
+            color: const Color(0xFF08086B),
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+
+        const SizedBox(height: 5),
+
+        Container(
+          width: 40,
+          height: 3,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE83C52),
+            borderRadius: BorderRadius.circular(5),
+          ),
+        ),
+
+        const SizedBox(height: 6),
+
+        const Text(
+          '',
+          style: TextStyle(
+            color: Color(0xFF77778A),
+            fontSize: 10,
+          ),
+        ),
+      ],
+    );
+  }
+
 
   Widget listaCategorias(CategoriaViewModel viewModel) {
     if (viewModel.cargando) {

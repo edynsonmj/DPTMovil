@@ -30,9 +30,10 @@ void main() {
       expect(find.text('Email autenticado'), findsOneWidget);
       expect(m.sesion.perfilSesion?.role, Roles.coordinador);
       await m.abrirMenu(tester);
-      expect(find.text('Estadisticas'), findsOneWidget);
-      expect(find.text('Cerrar sesion'), findsOneWidget);
-      expect(find.text('Iniciar sesion'), findsNothing);
+      expect(find.text('Estadísticas'), findsOneWidget);
+      //con sesion el pie muestra el perfil y su menu "⋮" (cerrar sesion)
+      expect(find.byIcon(Icons.more_vert), findsOneWidget);
+      expect(find.text(MontajeAutenticacion.textoIniciarSesion), findsNothing);
     });
 
     testWidgets('$capa - $tipo - Login - 404 abre el registro con el correo escrito', (tester) async {
@@ -180,13 +181,11 @@ void main() {
       await m.abrir(tester);
       await m.iniciarSesionConCorreo(tester, 'ana@unicauca.edu.co');
 
-      await m.abrirMenu(tester);
-      await tester.tap(find.text('Cerrar sesion'));
-      await tester.pumpAndSettle();
+      await m.cerrarSesion(tester);
 
       expect(m.sesion.perfilSesion, isNull);
       expect(m.google.llamadasSalir, 1);
-      expect(find.text('Categorias'), findsWidgets);
+      expect(find.text('Categorías'), findsWidgets);
     });
   
     //backend nuevo (2026-11-05): ID Token de Google → POST /auth/token → JWT
@@ -244,9 +243,7 @@ void main() {
       await m.abrir(tester, ruta: AppRutas.InscripcionesGenerales);
       await m.iniciarSesionConGoogle(tester);
 
-      await m.abrirMenu(tester);
-      await tester.tap(find.text('Cerrar sesion'));
-      await tester.pumpAndSettle();
+      await m.cerrarSesion(tester);
 
       expect(m.almacenToken.hayToken, isFalse);
       expect(m.google.llamadasSalir, 1);

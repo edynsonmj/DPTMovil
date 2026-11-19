@@ -30,7 +30,7 @@ void main() {
 
       expect(
         enviados.map((a) => a.toJson()).toList(),
-        leerContrato('atenciones', 'registrar_peticion'),
+        (leerContrato('atenciones', 'confirmar_peticion') as Map)['asistencias'],
       );
     });
 
