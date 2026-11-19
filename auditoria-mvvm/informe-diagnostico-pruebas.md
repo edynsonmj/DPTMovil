@@ -1,6 +1,6 @@
 # Informe de diagnóstico por pruebas: hallazgos de la app
 
-Fecha: 2026-10-29 · Rama: `refactor/inyeccion-dependencias` (commit `ed5abc7`, que incluye la corrección de CL-06) · Método: [plan-diagnostico-pruebas.md](plan-diagnostico-pruebas.md) · Evidencia detallada, escenario por escenario: [registro-bugs.md](registro-bugs.md)
+Fecha: 2026-10-29 · Rama: `refactor/inyeccion-dependencias` (commit `d637f04`, que incluye la corrección de CL-06) · Método: [plan-diagnostico-pruebas.md](plan-diagnostico-pruebas.md) · Evidencia detallada, escenario por escenario: [registro-bugs.md](registro-bugs.md)
 
 Este informe reúne lo que encontró el diagnóstico de los módulos 1 a 9b, hecho con **pruebas unitarias**, **pruebas de integración local** (la cadena real de la app sobre un transporte HTTP falso) y **pruebas de integración contra el backend real** (BD de pruebas desechable en `localhost:8082`). El módulo 1 (toma de asistencias) tiene su propio informe: [informe-diagnostico-asistencias.md](informe-diagnostico-asistencias.md). Aquí solo se resume.
 

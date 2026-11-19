@@ -1,6 +1,6 @@
 # Informe por fase: refactorización a inyección de dependencias
 
-Rama `refactor/inyeccion-dependencias`, del 2026-10-20 (`2b3aa28`) al 2026-10-23 (`f2141e5`).
+Rama `refactor/inyeccion-dependencias`, del 2026-10-20 (`8c9291c`) al 2026-10-23 (`52aa19a`).
 Fuentes: mensajes de los 22 commits, `plan-inyeccion-dependencias.md`, las notas de cada
 checklist manual y las sesiones de trabajo de cada fase.
 
@@ -27,7 +27,7 @@ Al inicio solo se podían escribir dos tipos de prueba sobre el código sin migr
 | ViewModel | La fábrica en `SERVICIO_REMOTO` + `ConfigServicio.ip = "localhost"` → backend real | No |
 
 El VM no admitía un doble porque construía sus dependencias por dentro. En la línea base
-(`2b3aa28`), `CategoriaViewModel()` creaba `ServicioCategoria()`, y este pedía la conexión a
+(`8c9291c`), `CategoriaViewModel()` creaba `ServicioCategoria()`, y este pedía la conexión a
 `ConexionFabricaAbstracta.obtenerConexionFabrica()`. Sin parámetros en el constructor, el test no
 tenía por dónde meter `ConexionCategoriaFalsa`.
 
@@ -78,15 +78,15 @@ Para cada fase se distinguen:
 
 | Fase | Commits | Tests de caracterización | Hallazgos | Tratados | Fuera de alcance | Regresiones |
 |---|---|---|---|---|---|---|
-| 0 Infraestructura | `81936a1` `a3bd8fb` `a274aeb` | 4 de repositorio de categorías | 4 | 4 | 1 | Ninguna; 1 riesgo evitado |
-| 1 Imagen + Categoría | `f641608` | (los de 0.4 + 24 remotos previos) | 4 | 3 | 7 huecos de casos especiales | Ninguna; 2 riesgos evitados |
-| 2 Autenticación + Facultades | `c8329a2` `120493b` | 4 repo + 3 remotos | 3 | 2 | 1 bug (`registro`) | Ninguna |
-| 3 Cursos + Deporte | `3240a29` `29292fc` | 4 repo + 4 remotos | 4 | 3 | 1 (zona horaria) | Ninguna; 1 reporte descartado |
-| 4 Grupo | `d928e85` `f8b705a` `f5a347d` | 8 repo + 6 remotos | 6 | 4 | 2 (backend) | Ninguna; 1 riesgo evitado; asserts movidos (4c) |
-| 5 Atención | `d4f2985` `9c11f17` | 2 repo + 1 remoto | 2 | 1 | 2 (H1, H3) | Ninguna |
-| 6 Grupos asignados + Inscripción | `e64061a` `30995b5` `cd1d6ce` | 3 repo + 3 remotos | 6 | 4 | 2 (backend/maquetas) | Ninguna; 3 reportes descartados; asserts cambiados (6b, 6c) |
-| 7 Estadísticas | `7fd508b` `cae2b34` `374bfd2` | 3 repo + 4 remotos | 6 | 4 | 2 (K3, permisos) | Ninguna; asserts cambiados (7c) |
-| 8 Limpieza | `62f8532` `f2141e5` | (sin caracterización: solo código sin llamadores) | 2 | 2 | restos conservados | Ninguna |
+| 0 Infraestructura | `4f15af4` `44071f8` `278921e` | 4 de repositorio de categorías | 4 | 4 | 1 | Ninguna; 1 riesgo evitado |
+| 1 Imagen + Categoría | `7f81f9e` | (los de 0.4 + 24 remotos previos) | 4 | 3 | 7 huecos de casos especiales | Ninguna; 2 riesgos evitados |
+| 2 Autenticación + Facultades | `4290c72` `99bd16a` | 4 repo + 3 remotos | 3 | 2 | 1 bug (`registro`) | Ninguna |
+| 3 Cursos + Deporte | `21ab80e` `bd7ab9e` | 4 repo + 4 remotos | 4 | 3 | 1 (zona horaria) | Ninguna; 1 reporte descartado |
+| 4 Grupo | `34b457c` `7453e0d` `5127c97` | 8 repo + 6 remotos | 6 | 4 | 2 (backend) | Ninguna; 1 riesgo evitado; asserts movidos (4c) |
+| 5 Atención | `9e822a1` `4bfeea9` | 2 repo + 1 remoto | 2 | 1 | 2 (H1, H3) | Ninguna |
+| 6 Grupos asignados + Inscripción | `ca30085` `6b24ab7` `7f10367` | 3 repo + 3 remotos | 6 | 4 | 2 (backend/maquetas) | Ninguna; 3 reportes descartados; asserts cambiados (6b, 6c) |
+| 7 Estadísticas | `f9ef680` `8d93960` `6132fc8` | 3 repo + 4 remotos | 6 | 4 | 2 (K3, permisos) | Ninguna; asserts cambiados (7c) |
+| 8 Limpieza | `a70830b` `52aa19a` | (sin caracterización: solo código sin llamadores) | 2 | 2 | restos conservados | Ninguna |
 
 **Ninguna fase cerró con una regresión.** Todas terminaron con la suite completa en verde y el
 checklist manual pasado; los reportes del checklist que parecían fallos se investigaron y

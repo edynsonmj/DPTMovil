@@ -1,6 +1,6 @@
 # Plan de diagnóstico: módulo 4, Inscripciones
 
-Fecha: 2026-10-29 · Rama: `refactor/inyeccion-dependencias` (tras 377c981)
+Fecha: 2026-10-29 · Rama: `refactor/inyeccion-dependencias` (tras eeab45e)
 Método general: [plan-diagnostico-pruebas.md](plan-diagnostico-pruebas.md). Registro: [registro-bugs.md](registro-bugs.md).
 
 > **Estado al 2026-10-29: ejecutado.** 8 pruebas en rojo → 6 hallazgos (IN-08 a IN-13), todos M o B por lo probado. H-06 a H-09 descartadas; H-10 y tres hipótesis nuevas quedan sin verificar. Detalle en [registro-bugs.md](registro-bugs.md), sección «Módulo 4: diagnóstico por pruebas».

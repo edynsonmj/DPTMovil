@@ -1,6 +1,6 @@
 # Plan de diagnóstico por pruebas unitarias y de integración
 
-Fecha: 2026-10-28 · Rama: `refactor/inyeccion-dependencias` (tras f2141e5)
+Fecha: 2026-10-28 · Rama: `refactor/inyeccion-dependencias` (tras 52aa19a)
 Versión 2: el orden de los módulos se decide por **valor para el cliente**. El módulo 1 es la **toma de asistencias**. La versión 1 empezaba por categorías; sus hallazgos se conservan en el anexo A.
 
 Objetivo: usar pruebas para **encontrar y documentar** bugs, módulo por módulo, antes de corregirlos.

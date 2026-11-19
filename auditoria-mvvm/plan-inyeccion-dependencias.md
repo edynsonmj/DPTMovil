@@ -61,7 +61,7 @@ Servicio* → *ViewModel                                         (por ruta, en r
 
 ## Estado actual
 
-| | Línea base (`2b3aa28`) | Fin de fase 2 (`120493b`) | Fin de fase 3 (`29292fc`) | Fin de fase 4 (`f5a347d`) | Fin de fase 5 (`9c11f17`) | Fin de fase 6 (`cd1d6ce`) | Fin de fase 7 (`374bfd2`) | Fin de fase 8 (`f2141e5`) |
+| | Línea base (`8c9291c`) | Fin de fase 2 (`99bd16a`) | Fin de fase 3 (`bd7ab9e`) | Fin de fase 4 (`5127c97`) | Fin de fase 5 (`4bfeea9`) | Fin de fase 6 (`7f10367`) | Fin de fase 7 (`6132fc8`) | Fin de fase 8 (`52aa19a`) |
 |---|---|---|---|---|---|---|---|---|
 | `flutter analyze` | 0 errores, 113 warnings, 321 infos | 0 errores, 99 warnings, 326 infos | 0 errores, 95 warnings, 332 infos | 0 errores, 83 warnings, 329 infos | 0 errores, 83 warnings, 333 infos | 0 errores, 76 warnings, 337 infos | 0 errores, 73 warnings, 332 infos | **0 errores, 31 warnings, 301 infos** |
 | `flutter test` | 35 | 54/54 | 65/65 | 92/92 (43 sin backend) | 101/101 (51 sin backend) | 123/123 (70 sin backend) | 139/139 (82 sin backend) | **139/139** (82 sin backend) |
@@ -76,28 +76,28 @@ y no queda ningún `unused_import`. Los 31 warnings que quedan son de otro tipo:
 Commits de la rama:
 
 ```
-f2141e5 Fase 8b: código muerto de cursos, mixin e imports sin uso
-62f8532 Fase 8a: fuera los tests inactivos de repositorio
-374bfd2 Fase 7c: estadísticas cargadas una vez por rango
-cae2b34 Fase 7b: Estadísticas inyectada y VM por ruta
-7fd508b Fase 7a: tests de caracterización de Estadísticas
-cd1d6ce Fase 6c: horarios e inscripción cargados una vez por grupo
-30995b5 Fase 6b: inscripción inyectada y VMs por ruta en grupos asignados e inscripción
-e64061a Fase 6a: tests de caracterización de grupos asignados e inscripción
-9c11f17 Fase 5b: Atención inyectada y carga al crear la ruta clase
-d4f2985 Fase 5a: tests de caracterización de Atención
-f5a347d Fase 4c: pantalla de grupo con un solo VM (DetalleGrupoViewModel)
-f8b705a Fase 4b: módulo grupo inyectado y VMs por ruta en grupo y formularios
-d928e85 Fase 4a: tests de caracterización del módulo grupo
-29292fc Fase 3b: Curso, Deporte e Imagen inyectados y VMs de cursos por ruta
-3240a29 Fase 3a: tests de caracterización de Cursos y Deporte
-120493b Fase 2b: Autenticación y Facultades inyectadas, Facultades por ruta
-c8329a2 Fase 2a: tests de caracterización de Autenticación y Facultades
-f641608 Fase 1: Imagen y Categoría inyectadas y VM de categorías por ruta
-a274aeb Fase 0.4: dobles de prueba y tests de repositorio de categorías
-a3bd8fb Fase 0.3: raíz de composición en dependencias.dart y test de humo
-81936a1 Fase 0.2: URL única con --dart-define y arranque sin page1
-2b3aa28 Corrección MVVM de categorías, clase, curso y cursos con tests de ViewModel
+52aa19a Fase 8b: código muerto de cursos, mixin e imports sin uso
+a70830b Fase 8a: fuera los tests inactivos de repositorio
+6132fc8 Fase 7c: estadísticas cargadas una vez por rango
+8d93960 Fase 7b: Estadísticas inyectada y VM por ruta
+f9ef680 Fase 7a: tests de caracterización de Estadísticas
+7f10367 Fase 6c: horarios e inscripción cargados una vez por grupo
+6b24ab7 Fase 6b: inscripción inyectada y VMs por ruta en grupos asignados e inscripción
+ca30085 Fase 6a: tests de caracterización de grupos asignados e inscripción
+4bfeea9 Fase 5b: Atención inyectada y carga al crear la ruta clase
+9e822a1 Fase 5a: tests de caracterización de Atención
+5127c97 Fase 4c: pantalla de grupo con un solo VM (DetalleGrupoViewModel)
+7453e0d Fase 4b: módulo grupo inyectado y VMs por ruta en grupo y formularios
+34b457c Fase 4a: tests de caracterización del módulo grupo
+bd7ab9e Fase 3b: Curso, Deporte e Imagen inyectados y VMs de cursos por ruta
+21ab80e Fase 3a: tests de caracterización de Cursos y Deporte
+99bd16a Fase 2b: Autenticación y Facultades inyectadas, Facultades por ruta
+4290c72 Fase 2a: tests de caracterización de Autenticación y Facultades
+7f81f9e Fase 1: Imagen y Categoría inyectadas y VM de categorías por ruta
+278921e Fase 0.4: dobles de prueba y tests de repositorio de categorías
+44071f8 Fase 0.3: raíz de composición en dependencias.dart y test de humo
+4f15af4 Fase 0.2: URL única con --dart-define y arranque sin page1
+8c9291c Corrección MVVM de categorías, clase, curso y cursos con tests de ViewModel
 ```
 
 Piezas de infraestructura ya disponibles:
@@ -155,7 +155,7 @@ Piezas de infraestructura ya disponibles:
   petición), `Conexionfacultadremoto(Dio)`, `AutenticacionViewModel(servicio, GoogleSignIn)`
   global, `Facultadesviewmodel(servicio)` por ruta en `autenticacionRegistro`. Sale
   `crearConexionAutenticacion`. Primer widget test (`CategoriasView`).
-- **Fase 3 — Cursos + Deporte** (`3240a29` tests, `29292fc` refactor; checklist manual
+- **Fase 3 — Cursos + Deporte** (`21ab80e` tests, `bd7ab9e` refactor; checklist manual
   pasado). `ConexionCursoRemoto(Dio, Conexionimagen)`, `Conexiondeporteremoto(Dio)`,
   `Conexionimagenremoto(Dio)` obligatorio (sin respaldo). `ServicioCurso`,
   `Serviciodeporte` y `Servicioimagen` reciben su repositorio y están en la raíz.
@@ -167,8 +167,8 @@ Piezas de infraestructura ya disponibles:
   `FormularioCurso`, `cursos.dart` y `CategoriasView` ya no arman la URL. Tests: doble
   `ConexionCursoFalsa`, 4 de repositorio, 3 unitarios de VM y 4 remotos (deportes,
   agregar, listar de categoría, obtener).
-- **Fase 4 — Grupo + Horarios, Alumnos, Instructores, Clases** (`d928e85` tests, `f8b705a`
-  inyección, `f5a347d` fusión; checklist manual pasado en 4b y 4c). Se hizo en tres commits
+- **Fase 4 — Grupo + Horarios, Alumnos, Instructores, Clases** (`34b457c` tests, `7453e0d`
+  inyección, `5127c97` fusión; checklist manual pasado en 4b y 4c). Se hizo en tres commits
   para separar la inyección de la fusión.
   - 4a: 5 dobles, 8 tests de repositorio y remotos sobre un grupo real creado en la prueba
     (incluye el caso de éxito de registrar clase, pendiente desde septiembre).
@@ -184,7 +184,7 @@ Piezas de infraestructura ya disponibles:
     no notifica tras `dispose`). Los widgets de la pantalla quedan sin estado ni
     `FutureBuilder`. `Clasesviewmodel` queda solo para registrar; `prueba5GrupoNoInicializado`
     perdió 2 asserts de la lista que pasó al VM nuevo. `Alumnosviewmodel` se conserva sin uso.
-- **Fase 5 — Atención** (`d4f2985` tests, `9c11f17` inyección; checklist manual pasado,
+- **Fase 5 — Atención** (`9e822a1` tests, `4bfeea9` inyección; checklist manual pasado,
   aunque la pantalla solo puede mostrar el 404). `Conexionatencionesremoto(Dio)`,
   `Servicioatencion(repositorio)` en la raíz, `Atencionviewmodel(servicio)`. La ruta `clase`
   crea el VM y carga en su `create` (H2); `claseView` ya no carga en `initState`. El VM no
@@ -192,8 +192,8 @@ Piezas de infraestructura ya disponibles:
   repositorio, 1 remoto que fija el 404, 4 unitarios de VM y widget test de la pantalla. El
   caso de éxito con un alumno inscrito (H1) y la lista vacía (H3) quedan para cuando existan
   los endpoints; el registro y la inscripción de un alumno de prueba sí funcionan.
-- **Fase 6 — Grupos asignados + Grupos de inscripción** (`e64061a` tests, `30995b5`
-  inyección, `cd1d6ce` carga por grupo; checklist manual pasado). Las pantallas de
+- **Fase 6 — Grupos asignados + Grupos de inscripción** (`ca30085` tests, `6b24ab7`
+  inyección, `7f10367` carga por grupo; checklist manual pasado). Las pantallas de
   inscripciones generales y particulares son maquetas con `CategoriaViewModel` y quedaron
   fuera.
   - 6a: doble de inscripción, 3 tests de repositorio y remotos sobre un grupo y un alumno de
@@ -210,7 +210,7 @@ Piezas de infraestructura ya disponibles:
     se revalida ese grupo (J3) y su botón se deshabilita mientras tanto (J4); `EstadoSeccion`
     y `NotificacionSegura` en `estadoSeccion.dart` (J2). Cambiaron 2 asserts de
     notificaciones del 6b por comprobaciones del estado del grupo.
-- **Fase 7 — Estadísticas** (`7fd508b` tests, `cae2b34` inyección, `374bfd2` carga por
+- **Fase 7 — Estadísticas** (`f9ef680` tests, `8d93960` inyección, `6132fc8` carga por
   rango; checklist manual pasado en 7b y 7c). Endpoints `/estadisticas/{categorias,cursos,grupos}`
   comprobados: con datos dan `200 [...]` con números `double`; un rango sin clases (o
   invertido) **no da lista vacía**, sino todas las categorías en `0.0` (K4); una fecha vacía o
@@ -233,7 +233,7 @@ Piezas de infraestructura ya disponibles:
     la app no usa `/estadisticas/alumnos` ni `/instructores` (K3). `guardarArchivoExcel` pide
     `Permission.storage`, que Android 13+ siempre niega: la exportación probablemente falla en
     emuladores recientes.
-- **Fase 8 — Limpieza** (`62f8532` tests, `f2141e5` lib). Sin commit de caracterización
+- **Fase 8 — Limpieza** (`a70830b` tests, `52aa19a` lib). Sin commit de caracterización
   previo: solo se borró código sin llamadores, y los 139 tests pasaron sin cambiar asserts.
   - Hallazgo: desde la fase 7 nadie lee `ConfigServicio` (`obtenerBaseApi()` sin llamadores),
     así que los tres modos de `page1` ya no tienen efecto y `page1` es inalcanzable.
