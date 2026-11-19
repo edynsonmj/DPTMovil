@@ -7,7 +7,6 @@ import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/instructores_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../contratos/leerContrato.dart';
 import '../../dobles/adaptadorHttpFalso.dart';
 
 //diagnostico de la lista de instructores del formulario de grupo de punta a
@@ -44,30 +43,8 @@ void main() {
       expect(vm.instructores, isEmpty);
     });
 
-    //la ruta grupoFormulario crea el vm y lo desecha al salir: una carga que
-    //llega despues no debe notificar
-    test('$capa - $tipo - Listar instructores - BUG IT-02 - una respuesta que llega despues de dispose no lanza', () async {
-      adaptador.responder('GET', '/instructores', 200, leerContrato('instructores', 'instructores_200'));
-      final retenida = adaptador.retener('GET', '/instructores');
-      final carga = vm.listarYNotificarInstructores();
-      await _hastaQue(() => adaptador.peticiones.length == 1);
-      vm.dispose();
-      retenida.complete();
-
-      Object? lanzado;
-      try {
-        await carga;
-      } catch (e) {
-        lanzado = e;
-      }
-      expect(lanzado, isNull, reason: '$lanzado');
-    });
+    //IT-02 (corregido el 2026-11-19) paso a
+    //integracion/instructores_integracion_test.dart
   });
 }
 
-Future<void> _hastaQue(bool Function() condicion) async {
-  for (var i = 0; i < 200 && !condicion(); i++) {
-    await Future.delayed(const Duration(milliseconds: 5));
-  }
-  expect(condicion(), isTrue, reason: 'la peticion no llego al adaptador');
-}

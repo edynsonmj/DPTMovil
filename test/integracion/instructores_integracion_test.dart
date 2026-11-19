@@ -84,7 +84,34 @@ void main() {
       expect(vm.error, startsWith('Código: '));
       expect(vm.instructores, isEmpty);
     });
-    //los casos rojos de este montaje (IT-01, IT-02) estan en
+
+    //antes diagnostico de IT-02: las rutas grupoFormulario e instructores
+    //crean el vm y lo desechan al salir; una carga que llega despues no
+    //debe notificar
+    test('$capa - $tipo - Listar instructores - una respuesta que llega despues de dispose no lanza', () async {
+      adaptador.responder('GET', '/instructores', 200, leerContrato('instructores', 'instructores_200'));
+      final retenida = adaptador.retener('GET', '/instructores');
+      final carga = vm.listarYNotificarInstructores();
+      await _hastaQue(() => adaptador.peticiones.length == 1);
+      vm.dispose();
+      retenida.complete();
+
+      Object? lanzado;
+      try {
+        await carga;
+      } catch (e) {
+        lanzado = e;
+      }
+      expect(lanzado, isNull, reason: '$lanzado');
+    });
+    //el caso rojo de este montaje (IT-01) esta en
     //test/diagnostico/instructores/integracion_diagnostico_test.dart
   });
+}
+
+Future<void> _hastaQue(bool Function() condicion) async {
+  for (var i = 0; i < 200 && !condicion(); i++) {
+    await Future.delayed(const Duration(milliseconds: 5));
+  }
+  expect(condicion(), isTrue, reason: 'la peticion no llego al adaptador');
 }

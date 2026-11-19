@@ -139,7 +139,17 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => Alumnoview(alumno: datos));
 
     case AppRutas.instructores:
-      return MaterialPageRoute(builder: (_) => Instructoresview());
+      //vm por pantalla: carga los instructores del backend al abrir (IT-03)
+      return MaterialPageRoute(
+        builder:
+            (_) => ChangeNotifierProvider(
+              create:
+                  (c) =>
+                      InstructoresViewModel(c.read())
+                        ..listarYNotificarInstructores(),
+              child: const Instructoresview(),
+            ),
+      );
 
     case AppRutas.instructor:
       String datos = settings.arguments.toString();
