@@ -18,17 +18,19 @@ class Imagenrepositorio {
       respuesta.datos = ImagenMapper.aEntidad(respuesta.datos as ImagenModelo);
       return respuesta;
     } on FormatException catch (formatError) {
+      //base64 invalido
       return RespuestaModelo.fromFormatException(
         formatError,
-        'POST',
-        'agregarClaseGrupo',
-        'Repositorio',
+        'GET',
+        'obtenerImagen',
+        'repositorio',
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(
+    } catch (error) {
+      //sin datosBase64 el mapper falla con un Error, no una Exception (IM-01)
+      return RespuestaModelo.fromObjectError(
         error,
-        'POST',
-        'AgregarClaseGrupo',
+        'GET',
+        'obtenerImagen',
         'repositorio',
       );
     }

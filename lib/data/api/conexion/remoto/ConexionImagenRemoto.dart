@@ -89,6 +89,10 @@ class Conexionimagenremoto implements Conexionimagen {
       );
     } on Exception catch (error) {
       return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    } catch (error) {
+      //una imagen con un campo obligatorio nulo hace lanzar un TypeError a
+      //fromJson (IM-01)
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 }

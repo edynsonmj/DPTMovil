@@ -1165,6 +1165,18 @@ Ninguna prueba actúa todavía con rol de alumno o instructor. Hay ayudantes (`a
 
 **Siembras de la suite remota (2026-11-19):** el `setUpAll` de Grupos y Alumnos no fallaba por BK-04 sino porque reusaba un mismo `Inscripcionviewmodel` para varios alumnos: el vm recuerda el estado por grupo y bloquea al segundo (409 de la propia app). Ahora usan un vm por inscripción, como en la app. La suite remota queda en verde: 129 (130 con HO-06).
 
+## Pruebas de los VMs y repositorios que faltaban (PR-003.2b y PR-003.3, 2026-11-19)
+
+`Deporteviewmodel`, `Alumnosviewmodel`, `Deporterepositorio` e `Imagenrepositorio` no tenían pruebas unitarias. Se agregaron con la cadena real y dos dobles nuevos (`test/dobles/conexiondeporteFalsa.dart`, `conexionimagenFalsa.dart`), más una prueba de la conexión real de imágenes sobre el transporte falso. Al probar la lectura de una imagen salió un hallazgo.
+
+### Hallazgos (prueba en rojo)
+
+| ID | Capa | Síntoma observable (evidencia del rojo) | Prueba que lo demuestra | Origen de la evidencia | Sev. | Resp. | Estado |
+|---|---|---|---|---|---|---|---|
+| IM-01 ([SCRUMBAN-141](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-141)) | Conexión / Repositorio | Una imagen incompleta deja escapar un error al leerla por id. Con un campo obligatorio nulo, `ImagenModelo.fromJson` lanza un `TypeError`, y `Conexionimagenremoto.obtenerImagen` solo captura `Exception`. Sin `datosBase64`, `ImagenMapper.aEntidad` falla en `datosBase64!` y `Imagenrepositorio.obtenerImagen` tampoco lo captura. Mismo caso que AL-04 y AU-03 | `conexionImagenRemoto_test` · IM-01 (`type 'Null' is not a subtype of type 'String'`) e `imagenRepositorio_test` · IM-01 (`Null check operator used on a null value`) | **Prueba.** El JSON incompleto lo fabrica la prueba. Hoy `Servicioimagen` no tiene consumidores, así que no se ve en la app | B | app | **confirmado** (latente); **corregido** (2026-11-19): la conexión y el repositorio capturan cualquier error (`fromObjectError`). Las dos pruebas quedaron en verde en `unitarias/conexion/conexionImagenRemoto_test.dart` y `unitarias/repositorio/imagenRepositorio_test.dart` |
+
+Resultado: sin backend, **516 en verde** y 1 omitida (antes 498).
+
 ## Seguimiento en Jira (2026-10-29)
 
 Los 57 hallazgos abiertos del 2026-10-29, más HO-04 y HO-05 (módulo 6b, 2026-11-04), están en el backlog del proyecto **SCRUMBAN** (DEPORTE PARA TODOS; la clave era SCRUM hasta el 2026-11-05 y Jira redirige las claves viejas), como tareas de la Epic [SCRUMBAN-39](https://unicauca-team-nqfpise2.atlassian.net/browse/SCRUMBAN-39) «MP — Corrección de hallazgos del diagnóstico por pruebas». Cada tarea lleva las etiquetas `backlog`, `diagnostico`, el módulo y su ID (más `latente` o `backend` cuando aplica). La prioridad sale de la severidad: M → Medium, B → Low. Al corregir un hallazgo, se cierra también su tarea.
