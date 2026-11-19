@@ -39,6 +39,10 @@ void main() {
     fechaCreacion: '2026-10-22',
   );
 
+  Map<String, dynamic> alumnoDelContrato() => Map<String, dynamic>.from(
+    (leerContrato('alumnos', 'alumnosGrupo_200') as List).first,
+  );
+
   setUp(() {
     adaptador = AdaptadorHttpFalso();
     final dio = crearDioFalso(adaptador);
@@ -90,7 +94,41 @@ void main() {
       expect(vm.alumnos.error, startsWith('Código: 503'));
       expect(vm.alumnos.datos, isEmpty);
     });
-    //los casos rojos de este montaje (AL-01, AL-03, AL-04) estan en
-    //test/diagnostico/alumnos/integracion_diagnostico_test.dart
+
+    //AL-01, AL-03 y AL-04 (corregidos el 2026-11-19) salieron del diagnostico
+    test('$capa - $tipo - Cargar alumnos - el codigo y la imagen del alumno llegan a la pantalla', () async {
+      adaptador.responder('GET', '/alumnosGrupo', 200, [
+        alumnoDelContrato()
+          ..['codigo'] = '104619011001'
+          ..['imagen'] = 33,
+      ]);
+
+      await vm.cargar();
+
+      final a = vm.alumnos.datos.single;
+      expect([a.codigo, a.imagen], ['104619011001', 33]);
+    });
+
+    ///v3/api-docs documenta 404 "No existen alumnos para el grupo consultado"
+    test('$capa - $tipo - Cargar alumnos - el 404 documentado de grupo sin alumnos es lista vacia sin error', () async {
+      adaptador.responder('GET', '/alumnosGrupo', 404, {
+        'codigoError': 'GC-0003',
+        'mensaje': 'No existen alumnos para el grupo consultado',
+      });
+
+      await vm.cargar();
+
+      expect(vm.alumnos.error, isNull, reason: '${vm.alumnos.error}');
+      expect(vm.alumnos.datos, isEmpty);
+    });
+
+    test('$capa - $tipo - Cargar alumnos - un alumno incompleto llega como error con codigo, no como excepcion', () async {
+      adaptador.responder('GET', '/alumnosGrupo', 200, [alumnoDelContrato()..['nombre'] = null]);
+
+      await vm.cargar();
+
+      expect(vm.alumnos.error, startsWith('Código: '));
+      expect(vm.alumnos.datos, isEmpty);
+    });
   });
 }

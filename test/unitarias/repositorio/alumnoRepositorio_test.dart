@@ -71,7 +71,16 @@ void main() {
         'ana@unicauca.edu.co', 'F', 'CC', 33,
       ]);
     });
-    //el caso rojo (AL-02) esta en
-    //test/diagnostico/alumnos/repositorio_diagnostico_test.dart
+
+    //AL-02 (corregido el 2026-11-19): la llamada a la conexion esta en el try
+    test('$capa - $tipo - Listar alumnos de grupo - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
+      final conexion = ConexionalumnosFalsa()..lanzar = TypeError();
+      final repositorio = Alumnosrepositorio(cliente: conexion);
+
+      final respuesta = await repositorio.listarAlumnosGrupo('Deportes', 'Iniciacion', 2026, 1);
+
+      expect(respuesta.codigoHttp, isNot(200));
+      expect(respuesta.error, isNotNull);
+    });
   });
 }

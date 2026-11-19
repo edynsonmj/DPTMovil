@@ -24,6 +24,8 @@ class Alumnomodelo {
   factory Alumnomodelo.fromJson(dynamic json) {
     return Alumnomodelo(
       id: json['id'],
+      codigo: json['codigo'],
+      imagen: json['imagen'],
       tipo: json['tipo'],
       nombre: json['nombre'],
       correo: json['correo'],

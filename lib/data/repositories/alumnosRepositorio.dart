@@ -13,16 +13,18 @@ class Alumnosrepositorio {
     int anio,
     int iterable,
   ) async {
-    final RespuestaModelo respuesta = await cliente.obtenerAlumnosGrupo(
-      categoria,
-      curso,
-      anio,
-      iterable,
-    );
-    if (respuesta.codigoHttp != 200) {
-      return respuesta;
-    }
+    //la llamada va dentro del try: nada que lance la conexion atraviesa esta
+    //capa (AL-02)
     try {
+      final RespuestaModelo respuesta = await cliente.obtenerAlumnosGrupo(
+        categoria,
+        curso,
+        anio,
+        iterable,
+      );
+      if (respuesta.codigoHttp != 200) {
+        return respuesta;
+      }
       List<Alumnomodelo> listaModelo = respuesta.datos as List<Alumnomodelo>;
       respuesta.datos = listaModelo.map(AlumnoMapper.aEntidad).toList();
       return respuesta;
@@ -33,8 +35,8 @@ class Alumnosrepositorio {
         'ObtenerAlumnosGrupo',
         'Repositorio',
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
         error,
         'GET',
         'ObtenerAlumnosGrupo',

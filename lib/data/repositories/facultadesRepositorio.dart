@@ -7,18 +7,25 @@ class Facultadesrepositorio {
   Conexionfacultades conexion;
   Facultadesrepositorio({required this.conexion});
 
+  //nada que lance la conexion o la conversion atraviesa esta capa (FA-02)
   Future<RespuestaModelo> listarFacultades() async {
-    RespuestaModelo respuesta = await conexion.obtenerFacultades();
-    if (respuesta.codigoHttp != 200) {
+    try {
+      RespuestaModelo respuesta = await conexion.obtenerFacultades();
+      if (respuesta.codigoHttp != 200) {
+        return respuesta;
+      }
+      List<Facultadmodelo> listaModelo =
+          respuesta.datos as List<Facultadmodelo>;
+      respuesta.datos = listaModelo.map((f) => f.nombre).toList();
       return respuesta;
+    } catch (error) {
+      return RespuestaModelo.fromObjectError(
+        error,
+        'GET',
+        'listarFacultades',
+        'repositorio',
+      );
     }
-    List<Facultadmodelo> listaModelo = respuesta.datos as List<Facultadmodelo>;
-    List<String> lista = [];
-    for (Facultadmodelo item in listaModelo) {
-      lista.add(item.nombre);
-    }
-    respuesta.datos = lista;
-    return respuesta;
   }
 
   //el desplegable solo usa el nombre del programa

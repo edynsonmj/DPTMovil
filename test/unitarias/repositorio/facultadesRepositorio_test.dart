@@ -31,8 +31,7 @@ void main() {
     expect(respuesta.datos, ['Ingenieria', 'Salud']);
   });
 
-  //modulo 9b (plan-diagnostico-instructores-facultades.md); el caso rojo
-  //(FA-02) esta en test/diagnostico/facultades/repositorio_diagnostico_test.dart
+  //modulo 9b (plan-diagnostico-instructores-facultades.md)
   test('$capa - $tipo - Listar facultades - un error y el 406 pasan sin cambios', () async {
     final e503 = RespuestaModelo(
       codigoHttp: 503,
@@ -45,5 +44,16 @@ void main() {
     final e406 = RespuestaModelo(codigoHttp: 406);
     conexion.respuestaListar = e406;
     expect(await repositorio.listarFacultades(), same(e406));
+  });
+
+  //FA-02 (corregido el 2026-11-19): listarFacultades tiene try
+  test('$capa - $tipo - Listar facultades - un TypeError de la conexion se devuelve como error, sin lanzar', () async {
+    final conexion = ConexionfacultadesFalsa()..lanzar = TypeError();
+    final repositorio = Facultadesrepositorio(conexion: conexion);
+
+    final respuesta = await repositorio.listarFacultades();
+
+    expect(respuesta.codigoHttp, isNot(200));
+    expect(respuesta.error, isNotNull);
   });
 }

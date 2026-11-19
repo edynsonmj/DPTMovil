@@ -49,6 +49,11 @@ class Conexionalumnosremoto implements Conexionalumnos {
           data.map((json) => Alumnomodelo.fromJson(json)).toList();
       return RespuestaModelo(codigoHttp: 200, datos: alumnos);
     } on DioException catch (dioError) {
+      //404 documentado en /v3/api-docs: "No existen alumnos para el grupo
+      //consultado". Un grupo sin alumnos no es un error (AL-03)
+      if (dioError.response?.statusCode == 404) {
+        return RespuestaModelo(codigoHttp: 200, datos: <Alumnomodelo>[]);
+      }
       return RespuestaModelo.fromDioException(dioError, metodo);
     } on FormatException catch (formatError) {
       return RespuestaModelo.fromFormatException(
@@ -57,8 +62,9 @@ class Conexionalumnosremoto implements Conexionalumnos {
         path,
         'conexion',
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    } catch (error) {
+      //un alumno incompleto hace lanzar un TypeError a fromJson (AL-04)
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 }

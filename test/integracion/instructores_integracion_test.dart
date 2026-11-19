@@ -104,8 +104,20 @@ void main() {
       }
       expect(lanzado, isNull, reason: '$lanzado');
     });
-    //el caso rojo de este montaje (IT-01) esta en
-    //test/diagnostico/instructores/integracion_diagnostico_test.dart
+
+    //IT-01 (corregido el 2026-11-19) salio del diagnostico.
+    ///v3/api-docs documenta 404 "No existen instructores registrados"
+    test('$capa - $tipo - Listar instructores - el 404 documentado de no hay instructores es lista vacia sin error', () async {
+      adaptador.responder('GET', '/instructores', 404, {
+        'codigoError': 'GC-0003',
+        'mensaje': 'No existen instructores registrados',
+      });
+
+      await vm.listarYNotificarInstructores();
+
+      expect(vm.error, isNull, reason: '${vm.error}');
+      expect(vm.instructores, isEmpty);
+    });
   });
 }
 

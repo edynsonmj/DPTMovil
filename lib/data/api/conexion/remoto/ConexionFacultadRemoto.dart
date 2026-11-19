@@ -38,6 +38,11 @@ class Conexionfacultadremoto implements Conexionfacultades {
           data.map((json) => Facultadmodelo.fromJson(json)).toList();
       return RespuestaModelo(codigoHttp: 200, datos: facultades);
     } on DioException catch (dioError) {
+      //404 documentado en /v3/api-docs: "No existen facultades registradas".
+      //No hay facultades: lista vacia, no un error (FA-03)
+      if (dioError.response?.statusCode == 404) {
+        return RespuestaModelo(codigoHttp: 200, datos: <Facultadmodelo>[]);
+      }
       return RespuestaModelo.fromDioException(dioError, metodo);
     } on FormatException catch (formatError) {
       return RespuestaModelo.fromFormatException(
@@ -46,8 +51,9 @@ class Conexionfacultadremoto implements Conexionfacultades {
         path,
         capa,
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, capa);
+    } catch (error) {
+      //un elemento incompleto hace lanzar un TypeError a fromJson (FA-01)
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 
@@ -93,8 +99,9 @@ class Conexionfacultadremoto implements Conexionfacultades {
         path,
         capa,
       );
-    } on Exception catch (error) {
-      return RespuestaModelo.fromException(error, metodo, path, capa);
+    } catch (error) {
+      //un elemento incompleto hace lanzar un TypeError a fromJson (FA-01)
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 }

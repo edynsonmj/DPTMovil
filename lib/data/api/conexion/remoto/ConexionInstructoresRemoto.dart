@@ -36,6 +36,11 @@ class Conexioninstructoresremoto implements Conexioninstructores {
           data.map((json) => Instructormodelo.fromJson(json)).toList();
       return RespuestaModelo(codigoHttp: 200, datos: instructores);
     } on DioException catch (dioError) {
+      //404 documentado en /v3/api-docs: "No existen instructores
+      //registrados". No hay instructores: lista vacia, no un error (IT-01)
+      if (dioError.response?.statusCode == 404) {
+        return RespuestaModelo(codigoHttp: 200, datos: <Instructormodelo>[]);
+      }
       return RespuestaModelo.fromDioException(dioError, metodo);
     } on FormatException catch (formatError) {
       return RespuestaModelo.fromFormatException(

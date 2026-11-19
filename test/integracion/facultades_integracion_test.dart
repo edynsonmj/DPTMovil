@@ -108,8 +108,29 @@ void main() {
       expect(vm.programas.datos, isEmpty);
     });
 
-    //los casos rojos de este montaje (FA-01, FA-03, FA-04) estan en
-    //test/diagnostico/facultades/integracion_diagnostico_test.dart
+    //FA-01 y FA-03 (corregidos el 2026-11-19) salieron del diagnostico
+    test('$capa - $tipo - Listar facultades - una facultad incompleta llega como error con codigo, no como excepcion', () async {
+      adaptador.responder('GET', '/facultades', 200, [
+        {'nombre': null},
+      ]);
+
+      await vm.listarYNotificarFacultades();
+
+      expect(vm.error, startsWith('Código: '));
+    });
+
+    ///v3/api-docs documenta 404 "No existen facultades registradas"
+    test('$capa - $tipo - Listar facultades - el 404 documentado de no hay facultades es lista vacia sin error', () async {
+      adaptador.responder('GET', '/facultades', 404, {
+        'codigoError': 'GC-0003',
+        'mensaje': 'No existen facultades registradas',
+      });
+
+      await vm.listarYNotificarFacultades();
+
+      expect(vm.error, isNull, reason: '${vm.error}');
+      expect(vm.facultades, isEmpty);
+    });
   });
 }
 
