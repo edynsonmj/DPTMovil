@@ -91,8 +91,12 @@ class AutenticacionViewModel with ChangeNotifier {
   Future<void> logout() async {
     //primero el JWT: sin el, ninguna peticion sale autenticada
     _servicio.cerrarSesion();
-    await _googleSignIn.signOut();
-    //await _googleSignIn.disconnect();
+    try {
+      await _googleSignIn.signOut();
+    } catch (_) {
+      //si el plugin falla, la sesion local se borra igual (AU-04): la de
+      //Google se renueva en verificarSesion o en el proximo inicio
+    }
     cuenta = null;
     perfilSesion = null;
     _correoAutenticado = null;

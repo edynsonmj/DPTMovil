@@ -1,16 +1,14 @@
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/routes/roles.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
-import 'package:dpt_movil/config/theme/tipografia.dart';
-import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+//menu lateral de la app: encabezado con el rol, opciones segun el rol de la
+//sesion y, abajo, el perfil con "⋮ Cerrar sesión" o el inicio de sesion
 class Menulateral extends StatelessWidget {
-  final PerfilEntidad? perfil;
-
-  const Menulateral({super.key, this.perfil});
+  const Menulateral({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,130 +23,108 @@ class Menulateral extends StatelessWidget {
     return Consumer<AutenticacionViewModel>(
       builder: (context, vm, _) {
         return Container(
-            color: const Color(0xFF000066),
-            child: Column(
+          color: ColorTheme.primary,
+          child: Column(
             children: [
               _encabezado(vm),
               _separador(),
-
-
-              // AQUÍ: perfil o inicio de sesión
-
-
               _separador(),
               Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 12,
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 12,
+                  ),
+                  children: [
+                    _itemMenu(
+                      icon: Icons.home_outlined,
+                      titulo: 'Inicio',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, AppRutas.inicio);
+                      },
                     ),
-                    children: [
+
+                    _itemMenu(
+                      icon: Icons.grid_view_rounded,
+                      titulo: 'Categorías',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, AppRutas.categorias);
+                      },
+                    ),
+
+                    if (vm.perfilSesion?.role == Roles.alumno)
                       _itemMenu(
-                        icon: Icons.home_outlined,
-                        titulo: 'Inicio',
+                        icon: Icons.chat_bubble_outline,
+                        titulo: 'Inscripciones',
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.pushNamed(
                             context,
-                            AppRutas.inicio,
+                            AppRutas.gruposDisponiblesInscripcion,
+                            arguments: vm.perfilSesion!.id,
+                          );
+                        },
+                      ),
+
+                    if (vm.perfilSesion?.role == Roles.instructor)
+                      _itemMenu(
+                        icon: Icons.groups_outlined,
+                        titulo: 'Grupos asignados',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(
+                            context,
+                            AppRutas.gruposAsignados,
+                            arguments: vm.perfilSesion!.id,
+                          );
+                        },
+                      ),
+
+                    if (vm.perfilSesion?.role == Roles.coordinador) ...[
+                      _itemMenu(
+                        icon: Icons.groups_outlined,
+                        titulo: 'Instructores',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, AppRutas.instructores);
+                        },
+                      ),
+
+                      _itemMenu(
+                        icon: Icons.assignment_ind_outlined,
+                        titulo: 'Inscripciones',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(
+                            context,
+                            AppRutas.InscripcionesGenerales,
                           );
                         },
                       ),
 
                       _itemMenu(
-                        icon: Icons.grid_view_rounded,
-                        titulo: 'Categorías',
+                        icon: Icons.bar_chart_rounded,
+                        titulo: 'Estadísticas',
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.pushNamed(
                             context,
-                            AppRutas.categorias,
+                            AppRutas.estadisticasGenerales,
                           );
                         },
                       ),
-
-                      if (vm.perfilSesion?.role == Roles.alumno)
-                        _itemMenu(
-                          icon: Icons.chat_bubble_outline,
-                          titulo: 'Inscripciones',
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.pushNamed(
-                              context,
-                              AppRutas.gruposDisponiblesInscripcion,
-                              arguments: vm.perfilSesion!.id,
-                            );
-                          },
-                        ),
-
-                      if (vm.perfilSesion?.role == Roles.instructor)
-                        _itemMenu(
-                          icon: Icons.groups_outlined,
-                          titulo: 'Grupos asignados',
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.pushNamed(
-                              context,
-                              AppRutas.gruposAsignados,
-                              arguments: vm.perfilSesion!.id,
-                            );
-                          },
-                        ),
-
-                      if (vm.perfilSesion?.role == Roles.coordinador) ...[
-                        _itemMenu(
-                          icon: Icons.groups_outlined,
-                          titulo: 'Instructores',
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.pushNamed(
-                              context,
-                              AppRutas.instructores,
-                            );
-                          },
-                        ),
-
-                        _itemMenu(
-                          icon: Icons.assignment_ind_outlined,
-                          titulo: 'Inscripciones',
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.pushNamed(
-                              context,
-                              AppRutas.InscripcionesGenerales,
-                            );
-                          },
-                        ),
-
-                        _itemMenu(
-                          icon: Icons.bar_chart_rounded,
-                          titulo: 'Estadísticas',
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.pushNamed(
-                              context,
-                              AppRutas.estadisticasGenerales,
-                            );
-                          },
-                        ),
-                      ],
-
-
-
-
-
                     ],
-
-              ),),
+                  ],
+                ),
+              ),
 
               if (vm.perfilSesion != null)
                 _piePerfil(vm, context)
               else
-                _iniciarSesion(vm, context)
-
-
+                _iniciarSesion(vm, context),
             ],
-
           ),
         );
       },
@@ -171,7 +147,7 @@ class Menulateral extends StatelessWidget {
             child: const Text(
               'U',
               style: TextStyle(
-                color: Color(0xFF08086B),
+                color: ColorTheme.menuAcento,
                 fontSize: 21,
                 fontWeight: FontWeight.w900,
               ),
@@ -188,7 +164,7 @@ class Menulateral extends StatelessWidget {
                 Text(
                   vm.perfilSesion?.role.toString() ?? 'Invitado',
                   style: const TextStyle(
-                    color: Color(0xFFB5B5E8),
+                    color: ColorTheme.menuTextoRol,
                     fontSize: 9,
                   ),
                 ),
@@ -220,18 +196,13 @@ class Menulateral extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: seleccionado
-            ? const Color(0xFFFFFFFF)
-            : const Color(0xFF000066),
+        color: seleccionado ? Colors.white : ColorTheme.primary,
         borderRadius: BorderRadius.circular(9),
         child: InkWell(
           borderRadius: BorderRadius.circular(9),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 9,
-              vertical: 8,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
             child: Row(
               children: [
                 SizedBox(
@@ -241,9 +212,7 @@ class Menulateral extends StatelessWidget {
                   child: Icon(
                     icon,
                     size: 17,
-                    color: seleccionado
-                        ? const Color(0xFF08086B)
-                        : Colors.white,
+                    color: seleccionado ? ColorTheme.menuAcento : Colors.white,
                   ),
                 ),
 
@@ -257,9 +226,10 @@ class Menulateral extends StatelessWidget {
                       Text(
                         titulo,
                         style: TextStyle(
-                          color: seleccionado
-                              ? const Color(0xFF08086B)
-                              : Colors.white,
+                          color:
+                              seleccionado
+                                  ? ColorTheme.menuAcento
+                                  : Colors.white,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
@@ -269,9 +239,10 @@ class Menulateral extends StatelessWidget {
                         Text(
                           descripcion,
                           style: TextStyle(
-                            color: seleccionado
-                                ? const Color(0xFF55558A)
-                                : const Color(0xFFB5B5D8),
+                            color:
+                                seleccionado
+                                    ? ColorTheme.menuTextoSeleccionado
+                                    : ColorTheme.menuTextoTenue,
                             fontSize: 8,
                           ),
                         ),
@@ -296,17 +267,11 @@ class Menulateral extends StatelessWidget {
   Widget _separador() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 9),
-      child: Container(
-        height: 0.7,
-        color: const Color(0xFF25257D),
-      ),
+      child: Container(height: 0.7, color: ColorTheme.menuSeparador),
     );
   }
 
-  Widget _piePerfil(
-      AutenticacionViewModel vm,
-      BuildContext context,
-      ) {
+  Widget _piePerfil(AutenticacionViewModel vm, BuildContext context) {
     final perfil = vm.perfilSesion;
 
     return Padding(
@@ -315,20 +280,22 @@ class Menulateral extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 14,
-            backgroundColor: const Color(0xFFE6E6FF),
-            backgroundImage: vm.fotoPerfil != null
-                ? NetworkImage('${vm.fotoPerfil!}=s200')
-                : null,
-            child: vm.fotoPerfil == null
-                ? const Text(
-              'U',
-              style: TextStyle(
-                color: Color(0xFF08086B),
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-              ),
-            )
-                : null,
+            backgroundColor: ColorTheme.menuAvatar,
+            backgroundImage:
+                vm.fotoPerfil != null
+                    ? NetworkImage('${vm.fotoPerfil!}=s200')
+                    : null,
+            child:
+                vm.fotoPerfil == null
+                    ? const Text(
+                      'U',
+                      style: TextStyle(
+                        color: ColorTheme.menuAcento,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                    : null,
           ),
 
           const SizedBox(width: 9),
@@ -350,7 +317,7 @@ class Menulateral extends StatelessWidget {
                 Text(
                   perfil?.role.toString() ?? 'Sin sesión',
                   style: const TextStyle(
-                    color: Color(0xFFB5B5D8),
+                    color: ColorTheme.menuTextoTenue,
                     fontSize: 8,
                   ),
                 ),
@@ -366,77 +333,46 @@ class Menulateral extends StatelessWidget {
                 size: 17,
               ),
 
-              color: const Color(0xFF17176F),
+              color: ColorTheme.menuEmergente,
               onSelected: (value) async {
                 if (value == 'logout') {
+                  //el navegador se toma antes: al cerrar el drawer este
+                  //context deja de servir
+                  final navegador = Navigator.of(context);
                   await vm.logout();
-
-                  if (!context.mounted) return;
-
-                  Navigator.pop(context);
-                  Navigator.pushNamed(
-                    context,
+                  //categorias queda sola en la pila: "atras" no vuelve a
+                  //pantallas del rol anterior (AU-09)
+                  navegador.pushNamedAndRemoveUntil(
                     AppRutas.categorias,
+                    (_) => false,
                   );
                 }
               },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'logout',
-                  child: Text(
-                    'Cerrar sesión',
-                    style: TextStyle(color: Colors.white),
-
-                  ),
-
-                ),
-
-              ],
+              itemBuilder:
+                  (context) => [
+                    const PopupMenuItem(
+                      value: 'logout',
+                      child: Text(
+                        'Cerrar sesión',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
             ),
         ],
       ),
     );
   }
-  Widget _cerrarSesion(AutenticacionViewModel vm, BuildContext context) {
-    return ListTile(
-      leading: Icon(Icons.login_rounded),
-      title: Text('Cerrar sesion'),
-      onTap: () async {
-        await vm.logout();
-        if (!context.mounted) return;
-        Navigator.pop(context);
-        Navigator.pushNamed(context, AppRutas.categorias);
-      },
-    );
-  }
-
-  Widget _mostrarSesion(AutenticacionViewModel vm) {
-    return ListTile(
-      leading: CircleAvatar(
-        radius: 25,
-        backgroundImage: vm.fotoPerfil != null
-            ? NetworkImage(vm.fotoPerfil! + "=s200")
-            : null,
-        child: vm.fotoPerfil == null
-            ? Icon(Icons.account_circle_rounded)
-            : null,
-      ),
-      title: Text(
-        '${vm.perfilSesion!.nombre} - ${vm.perfilSesion!.correo} - ${vm.perfilSesion?.role}',
-      ),
-      onTap: () {},
-    );
-  }
 
   Widget _iniciarSesion(AutenticacionViewModel vm, BuildContext context) {
     return ListTile(
-      leading: Icon(Icons.account_circle_rounded, color: Colors.white,),
+      leading: Icon(Icons.account_circle_rounded, color: Colors.white),
       title: const Text(
         'Iniciar Sesión',
         style: TextStyle(
           color: Colors.white,
           fontSize: 12,
-          fontWeight: FontWeight.w600
+          fontWeight: FontWeight.w600,
         ),
       ),
       onTap: () async {
@@ -451,7 +387,8 @@ class Menulateral extends StatelessWidget {
 
           if (!resultado) {
             final mensajeError =
-                vm.error ?? 'No fue posible iniciar con Google o el acceso fue cancelado.';
+                vm.error ??
+                'No fue posible iniciar con Google o el acceso fue cancelado.';
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(mensajeError)));
@@ -522,9 +459,9 @@ class Menulateral extends StatelessWidget {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: ${respuesta.codigoHttp}')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Error: ${respuesta.codigoHttp}')));
   }
 
   Future<_MetodoInicioSesion?> _seleccionarMetodoInicioSesion(

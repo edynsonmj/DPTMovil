@@ -43,4 +43,26 @@ class ColorTheme {
   static const Color three = Color(0xFF5BAE40);
   static const Color four = Color(0xFF00AAE5);
   static const Color five = Color(0xFF5A00BA);
+
+  //menu lateral: fondo primary y estos tonos del rediseño
+  ///fondo del logo y texto de la opcion seleccionada del menu lateral
+  static const Color menuAcento = Color(0xFF08086B);
+
+  ///texto secundario del menu lateral (descripciones, rol en el pie)
+  static const Color menuTextoTenue = Color(0xFFB5B5D8);
+
+  ///rol en el encabezado del menu lateral
+  static const Color menuTextoRol = Color(0xFFB5B5E8);
+
+  ///descripcion de la opcion seleccionada del menu lateral
+  static const Color menuTextoSeleccionado = Color(0xFF55558A);
+
+  ///lineas separadoras del menu lateral
+  static const Color menuSeparador = Color(0xFF25257D);
+
+  ///fondo del avatar sin foto del menu lateral
+  static const Color menuAvatar = Color(0xFFE6E6FF);
+
+  ///fondo del menu emergente del pie del menu lateral
+  static const Color menuEmergente = Color(0xFF17176F);
 }

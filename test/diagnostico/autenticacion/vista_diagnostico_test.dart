@@ -86,18 +86,8 @@ void main() {
       expect(find.text('Error: 401'), findsNothing);
     });
 
-    //cerrar sesion hace pushNamed(categorias) encima de lo que habia: la
-    //pantalla del coordinador sigue en la pila y "atras" vuelve a ella
-    testWidgets('$capa - $tipo - Cerrar sesion - BUG AU-09 - no quedan pantallas del rol anterior debajo de categorias', (tester) async {
-      m.sesion.perfilSesion = perfil(Roles.coordinador);
-      await m.abrir(tester, ruta: AppRutas.InscripcionesGenerales);
-      expect(find.text('configuracion general'), findsOneWidget);
-
-      await m.cerrarSesion(tester);
-
-      expect(m.sesion.perfilSesion, isNull);
-      expect(find.text('configuracion general', skipOffstage: false), findsNothing);
-    });
+    //AU-09 (corregido el 2026-11-19) paso a
+    //integracion/autenticacion_integracion_test.dart
 
     testWidgets('$capa - $tipo - Rutas - control AU-10 - el coordinador abre las inscripciones generales', (tester) async {
       m.sesion.perfilSesion = perfil(Roles.coordinador);

@@ -33,7 +33,7 @@ jobs:
       TZ: America/Bogota
       # linea base de avisos de flutter analyze. Si una correccion la baja,
       # bajar tambien este numero; nunca subirlo para que el CI pase
-      LIMITE_AVISOS: 33
+      LIMITE_AVISOS: 30
 
     steps:
       - name: Obtener el codigo

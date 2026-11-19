@@ -1,5 +1,6 @@
 import 'package:dpt_movil/config/routes/roles.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
+import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
 import 'package:dpt_movil/presentation/view/views/autenticacion/AutenticacionView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -187,7 +188,30 @@ void main() {
       expect(m.google.llamadasSalir, 1);
       expect(find.text('Categorías'), findsWidgets);
     });
-  
+
+    //antes diagnostico de AU-09: cerrar sesion hacia pushNamed(categorias)
+    //encima de lo que habia, y "atras" volvia a la pantalla del coordinador
+    testWidgets('$capa - $tipo - Cerrar sesion - no quedan pantallas del rol anterior debajo de categorias', (tester) async {
+      m.sesion.perfilSesion = PerfilEntidad(
+        id: 'p1',
+        nombre: 'Persona',
+        correo: 'persona@unicauca.edu.co',
+        tipoId: 'CC',
+        sexo: 'F',
+        role: Roles.coordinador,
+      );
+      await m.abrir(tester, ruta: AppRutas.InscripcionesGenerales);
+      expect(find.text('configuracion general'), findsOneWidget);
+
+      await m.cerrarSesion(tester);
+
+      expect(m.sesion.perfilSesion, isNull);
+      expect(find.text('configuracion general', skipOffstage: false), findsNothing);
+      //categorias es la unica ruta: no hay a donde volver
+      final navegador = tester.state<NavigatorState>(find.byType(Navigator).first);
+      expect(navegador.canPop(), isFalse);
+    });
+
     //backend nuevo (2026-11-05): ID Token de Google → POST /auth/token → JWT
     //que el Dio compartido envia en cada peticion
     testWidgets('$capa - $tipo - Login con Google - cambia el ID Token por el JWT y las peticiones siguientes lo llevan', (tester) async {
