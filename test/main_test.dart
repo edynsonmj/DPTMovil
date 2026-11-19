@@ -704,6 +704,7 @@ probarViewModelClaseDiagnostico(){
     test.prueba5EliminarInexistente(crearDetalleGrupoViewModel);
     test.prueba6EliminarClase(crearClasesViewModel, crearDetalleGrupoViewModel);
     test.prueba8Justificacion(crearClasesViewModel);
+    test.prueba9DiaConTilde(crearClasesViewModel, crearDetalleGrupoViewModel);
   });
 }
 //datos de apoyo del diagnostico de clases

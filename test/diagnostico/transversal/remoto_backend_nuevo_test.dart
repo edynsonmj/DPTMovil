@@ -6,10 +6,8 @@ import 'package:dpt_movil/data/api/conexion/remoto/ConexionAutenticacionRemoto.d
 import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 import 'package:dpt_movil/data/repositories/autenticacionRepositorio.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
-import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioAutenticacion.dart';
 import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
-import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../dobles/googleSignInFalso.dart';
@@ -17,7 +15,6 @@ import '../../main_test.dart'
     show
         baseUrlPruebas,
         crearAtencionViewModel,
-        crearClasesViewModel,
         crearDetalleGrupoViewModel,
         crearHorariosViewModel,
         prepararVmEstadisticasAsistencia;
@@ -32,12 +29,6 @@ import '../../remoto/viewModel/estadisticas/vmEstadisticasAsistenciaTest.dart';
 void main() {
   const String capa = "viewModel";
   const String tipo = "diagnostico";
-
-  String texto(Resultado<void> r) => switch (r) {
-    Exito() => 'Exito',
-    Fallo(:final codigo, :final mensaje, :final origen) =>
-      'Fallo $codigo $mensaje ($origen)',
-  };
 
   group('Modulos restantes contra el backend nuevo (diagnostico):', () {
     final semilla = VmEstadisticasAsistenciaTest();
@@ -74,15 +65,6 @@ void main() {
       );
     }
 
-    Clasesviewmodel vmClaseDe(Grupoentidad g) =>
-        crearClasesViewModel()..inicializarGrupo(
-          g.categoria,
-          g.curso,
-          g.anio,
-          g.iterable,
-          g.idInstructor!,
-        );
-
     //prueba4ClaseInexistente de la suite remota sigue en verde por casualidad:
     //su 404 es el de una ruta que no existe, no el de la clase
     test('$capa - $tipo - Asistencias - BUG BK-02 - la lista de una clase real carga', () async {
@@ -100,49 +82,8 @@ void main() {
     //BK-04 (corregido el 2026-11-18) paso a la suite remota:
     //VmClaseDiagnosticoTest.prueba8Justificacion
 
-    //HO-06: el formulario de horarios guarda 'Miércoles' con tilde y el
-    //backend compara el dia con equalsIgnoreCase contra 'MIERCOLES'. Un
-    //horario creado desde la app el miercoles deberia contar como horario:
-    //la clase de ese dia no deberia pedir justificacion
-    test('$capa - $tipo - Registrar clase - BUG HO-06 - un horario del miercoles creado desde la app cuenta como horario', () async {
-      final g = await grupoVacio();
-      final detalle = crearDetalleGrupoViewModel(g);
-      final h = await detalle.agregarHorario(
-        dia: 'Miércoles',
-        horaInicio: '08:00',
-        horaFin: '10:00',
-        escenario: 'Escenario prueba',
-      );
-      expect(h, isA<Exito>(), reason: texto(h));
-
-      //el miercoles mas reciente que no sea futuro
-      final hoy = DateTime.now();
-      final atras = (hoy.weekday - DateTime.wednesday) % 7;
-      final miercoles = DateTime(hoy.year, hoy.month, hoy.day - atras);
-
-      final r = await vmClaseDe(g).registrarClase(fecha: miercoles, horasTexto: '2');
-
-      expect(r, isA<Exito>(), reason: texto(r));
-    });
-
-    test('$capa - $tipo - Registrar clase - control HO-06 - un horario del miercoles sin tilde si cuenta', () async {
-      final g = await grupoVacio();
-      final detalle = crearDetalleGrupoViewModel(g);
-      final h = await detalle.agregarHorario(
-        dia: 'MIERCOLES',
-        horaInicio: '08:00',
-        horaFin: '10:00',
-        escenario: 'Escenario prueba',
-      );
-      expect(h, isA<Exito>(), reason: texto(h));
-      final hoy = DateTime.now();
-      final atras = (hoy.weekday - DateTime.wednesday) % 7;
-      final miercoles = DateTime(hoy.year, hoy.month, hoy.day - atras);
-
-      final r = await vmClaseDe(g).registrarClase(fecha: miercoles, horasTexto: '2');
-
-      expect(r, isA<Exito>(), reason: texto(r));
-    });
+    //HO-06 (corregido el 2026-11-19) paso a la suite remota:
+    //VmClaseDiagnosticoTest.prueba9DiaConTilde
 
     //con horarios el grupo funciona; solo falla la lista vacia
     test('$capa - $tipo - Horarios - BUG BK-05 - un grupo sin horarios queda vacio y sin error', () async {

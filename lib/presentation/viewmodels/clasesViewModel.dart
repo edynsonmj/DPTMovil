@@ -1,5 +1,6 @@
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
+import 'package:dpt_movil/domain/entities/diaSemana.dart';
 import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
@@ -66,7 +67,7 @@ class Clasesviewmodel with ChangeNotifier, NotificacionSegura {
         _diasConHorario =
             (respuesta.datos as List)
                 .whereType<Horarioentidad>()
-                .map((h) => numeroDia(h.dia))
+                .map((h) => DiaSemana.numero(h.dia))
                 .whereType<int>()
                 .toSet();
       }
@@ -78,30 +79,13 @@ class Clasesviewmodel with ChangeNotifier, NotificacionSegura {
   }
 
   //true: ese dia no hay horario y la justificacion es obligatoria; false: hay
-  //horario y el backend calcula la duracion; null: no se sabe todavia
+  //horario y el backend calcula la duracion; null: no se sabe todavia. Los
+  //dias se leen con la regla del backend (DiaSemana.numero): un horario viejo
+  //guardado con tilde no cuenta, porque el backend tampoco lo cuenta (HO-06)
   bool? requiereJustificacion(DateTime? fecha) {
     final dias = _diasConHorario;
     if (fecha == null || dias == null) return null;
     return !dias.contains(fecha.weekday);
-  }
-
-  //dia de un horario → DateTime.weekday, con la misma regla del backend
-  //(CalculadoraDuracionClase: equalsIgnoreCase contra 'LUNES'..'DOMINGO', sin
-  //tildes). Asi la app pide justificacion justo cuando el backend la exige.
-  //Por eso 'Miércoles' y 'Sábado', que envia el formulario de horarios, no
-  //cuentan como horario (bug HO-06 en registro-bugs.md)
-  static int? numeroDia(String dia) {
-    const dias = [
-      'LUNES',
-      'MARTES',
-      'MIERCOLES',
-      'JUEVES',
-      'VIERNES',
-      'SABADO',
-      'DOMINGO',
-    ];
-    final i = dias.indexOf(dia.toUpperCase());
-    return i < 0 ? null : i + 1;
   }
 
   //punto de entrada del formulario: valida, arma la clase con el grupo que se

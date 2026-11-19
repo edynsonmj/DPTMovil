@@ -1,3 +1,4 @@
+import 'package:dpt_movil/domain/entities/diaSemana.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
@@ -136,7 +137,7 @@ class _GrupoAsignadosState extends State<GruposAsignados> {
     for (Horarioentidad horario in horarios) {
       descripcion =
           descripcion +
-          '${horario.dia}: ${horario.horaInicio} - ${horario.horaFin} \n';
+          '${DiaSemana.etiqueta(horario.dia)}: ${horario.horaInicio} - ${horario.horaFin} \n';
     }
     return descripcion;
   }

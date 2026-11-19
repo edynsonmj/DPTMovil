@@ -349,6 +349,41 @@ class VmClaseDiagnosticoTest {
     });
   }
 
+  //antes diagnostico de HO-06 (transversal/remoto_backend_nuevo): el
+  //formulario de horarios guardaba 'Miércoles' y el backend compara contra
+  //MIERCOLES, sin tilde, asi que la clase de ese dia pedia justificacion.
+  //Usa el grupo sin horarios de prueba8 y un miercoles de la semana pasada,
+  //para no chocar con la clase de ayer
+  void prueba9DiaConTilde(
+    Clasesviewmodel Function() crearVm,
+    DetalleGrupoViewModel Function(Grupoentidad) crearVmGrupo,
+  ) {
+    String metodo = "Agregar horario";
+    String caso = "un horario del miercoles elegido como 'Miércoles' cuenta: la clase de ese dia no pide justificacion";
+    test('$capa - $tipo - $metodo - $caso', () async {
+      final g = _grupoSinHorario;
+      expect(g, isNotNull, reason: 'el setUpAll no creo el grupo sin horarios');
+      final h = await crearVmGrupo(g!).agregarHorario(
+        dia: 'Miércoles',
+        horaInicio: '08:00',
+        horaFin: '10:00',
+        escenario: 'Escenario prueba',
+      );
+      expect(h, isA<Exito>(), reason: _texto(h));
+
+      final hoy = DateTime.now();
+      final atras = (hoy.weekday - DateTime.wednesday) % 7 + 7;
+      final miercoles = DateTime(hoy.year, hoy.month, hoy.day - atras);
+      final vm = crearVm()..inicializarGrupo(g.categoria, g.curso, g.anio, g.iterable, _idInstructor);
+      await vm.cargarHorarios();
+      expect(vm.requiereJustificacion(miercoles), isFalse);
+
+      final r = await vm.registrarClase(fecha: miercoles, horasTexto: '2');
+      expect(r, isA<Exito<bool>>(), reason: _texto(r));
+      expect((r as Exito<bool>).datos, isTrue);
+    });
+  }
+
   Grupoentidad _grupoCreado() {
     expect(_grupo, isNotNull, reason: 'el setUpAll no creo el grupo');
     return _grupo!;

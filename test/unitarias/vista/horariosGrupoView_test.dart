@@ -52,12 +52,12 @@ void main() {
     fechaCreacion: '2026-10-22',
   );
 
-  Future<void> montar(WidgetTester tester) async {
+  Future<void> montar(WidgetTester tester, {List<Map<String, dynamic>>? horarios}) async {
     observador = _Observador();
     final conexionHorarios = ConexionhorariosFalsa()
       ..respuestaHorarios = RespuestaModelo(
         codigoHttp: 200,
-        datos: (leerContrato('horarios', 'horarios_200') as List).map(HorarioModelo.fromJson).toList(),
+        datos: (horarios ?? leerContrato('horarios', 'horarios_200') as List).map(HorarioModelo.fromJson).toList(),
       );
     await tester.pumpWidget(
       MultiProvider(
@@ -121,6 +121,34 @@ void main() {
       expect(find.text('Lunes - Coliseo'), findsOneWidget);
       expect(find.text('Miércoles - Piscina'), findsOneWidget);
       expect(find.text('AGREGAR HORARIO'), findsOneWidget);
+    });
+
+    //HO-06: se guardan como LUNES..DOMINGO y se muestran con su etiqueta; los
+    //viejos guardados con tilde se siguen viendo igual
+    testWidgets('$capa - $tipo - Pantalla del grupo - el dia guardado sin tilde se muestra con tilde', (tester) async {
+      final base = Map<String, dynamic>.from((leerContrato('horarios', 'horarios_200') as List).first as Map);
+      await montar(tester, horarios: [
+        {...base, 'id': 40, 'dia': 'MIERCOLES', 'escenario': 'Piscina'},
+        {...base, 'id': 41, 'dia': 'SABADO', 'escenario': 'Coliseo'},
+      ]);
+
+      expect(find.text('Miércoles - Piscina'), findsOneWidget);
+      expect(find.text('Sábado - Coliseo'), findsOneWidget);
+    });
+
+    testWidgets('$capa - $tipo - Formulario de horario - ofrece los dias con su etiqueta', (tester) async {
+      await montar(tester);
+
+      await tester.ensureVisible(find.text('AGREGAR HORARIO'));
+      await tester.tap(find.text('AGREGAR HORARIO'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+
+      for (final etiqueta in ['Lunes', 'Miércoles', 'Sábado', 'Domingo']) {
+        expect(find.text(etiqueta), findsWidgets);
+      }
+      expect(find.text('MIERCOLES'), findsNothing);
     });
 
     //widgetListaHorarios.dart: onPressed: () {}

@@ -212,9 +212,27 @@ void main() {
       final enviado = conexionHorarios.ultimoAgregado!;
       expect([enviado.categoria, enviado.curso, enviado.anio, enviado.iterable],
           ['Deportes', 'Iniciacion', 2026, 1]);
+      //el dia sale como lo nombra el backend (HO-06)
       expect([enviado.dia, enviado.horaInicio, enviado.horaFin, enviado.escenario],
-          ['Lunes', '08:00', '10:00', 'Coliseo']);
+          ['LUNES', '08:00', '10:00', 'Coliseo']);
       expect(conexionHorarios.llamadasHorarios, 1);
+    });
+
+    //HO-06: el backend compara el dia con equalsIgnoreCase contra MIERCOLES y
+    //SABADO; con tilde el horario no contaba
+    test('$capa - $tipo - Agregar horario - los dias con tilde salen sin tilde y en mayusculas', () async {
+      for (final (dia, esperado) in [('Miércoles', 'MIERCOLES'), ('sábado', 'SABADO'), (' Domingo ', 'DOMINGO')]) {
+        final resultado = await vm.agregarHorario(dia: dia, horaInicio: '08:00', horaFin: '10:00', escenario: 'X');
+        expect(resultado, isA<Exito>());
+        expect(conexionHorarios.ultimoAgregado!.dia, esperado);
+      }
+    });
+
+    test('$capa - $tipo - Agregar horario - un dia que no existe no se envia', () async {
+      final resultado = await vm.agregarHorario(dia: 'Xyz', horaInicio: '08:00', horaFin: '10:00', escenario: 'X');
+
+      expect((resultado as Fallo).mensaje, 'El dia "Xyz" no es valido');
+      expect(conexionHorarios.llamadasAgregar, 0);
     });
 
     test('$capa - $tipo - Agregar horario - reglas del cliente: no envia nada', () async {

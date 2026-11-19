@@ -1,3 +1,4 @@
+import 'package:dpt_movil/domain/entities/diaSemana.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
 import 'package:dpt_movil/domain/entities/horarioEntidad.dart';
@@ -54,7 +55,7 @@ class Widgetlistahorarios extends StatelessWidget {
                 itemBuilder: (BuildContext context, int index) {
                   Horarioentidad horario = lista[index];
                   return MiniTarjeta(
-                    atrTitulo: '${horario.dia} - ${horario.escenario}',
+                    atrTitulo: '${DiaSemana.etiqueta(horario.dia)} - ${horario.escenario}',
                     atrSubTitulo: '${horario.horaInicio} - ${horario.horaFin}',
                     existeBotonCierre: true,
                     alCerrar: () => _eliminar(context, horario),
@@ -90,7 +91,7 @@ class Widgetlistahorarios extends StatelessWidget {
     final vm = context.read<DetalleGrupoViewModel>();
     final confirmado = await Utilidades.mostrarDialogoConfirmacion(
       context,
-      '¿Esta seguro de eliminar el horario ${horario.dia} ${horario.horaInicio} - ${horario.horaFin} en ${horario.escenario}?',
+      '¿Esta seguro de eliminar el horario ${DiaSemana.etiqueta(horario.dia)} ${horario.horaInicio} - ${horario.horaFin} en ${horario.escenario}?',
       'Eliminar horario',
     );
     if (!confirmado || horario.id == null) return;
@@ -130,15 +131,8 @@ class _DialogoHorario extends StatefulWidget {
 }
 
 class _DialogoHorarioState extends State<_DialogoHorario> {
-  static const _dias = [
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado',
-    'Domingo',
-  ];
+  //se elige por la etiqueta y se envia el codigo del backend (HO-06)
+  static const _dias = DiaSemana.codigos;
   final _escenario = TextEditingController();
   String _dia = _dias.first;
   TimeOfDay? _inicio;
@@ -176,7 +170,8 @@ class _DialogoHorarioState extends State<_DialogoHorario> {
               initialValue: _dia,
               decoration: const InputDecoration(labelText: 'Dia'),
               items: [
-                for (final d in _dias) DropdownMenuItem(value: d, child: Text(d)),
+                for (final d in _dias)
+                  DropdownMenuItem(value: d, child: Text(DiaSemana.etiqueta(d))),
               ],
               onChanged: (d) => setState(() => _dia = d ?? _dia),
             ),

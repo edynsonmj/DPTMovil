@@ -1,3 +1,4 @@
+import 'package:dpt_movil/domain/entities/diaSemana.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/domain/entities/alumnoEntidad.dart';
 import 'package:dpt_movil/domain/entities/claseEntidad.dart';
@@ -147,6 +148,11 @@ class DetalleGrupoViewModel with ChangeNotifier, NotificacionSegura {
     if (dia == null || dia.isEmpty) {
       return Fallo(-1, 'Seleccione el dia', origen: 'ViewModel');
     }
+    //el backend compara el dia sin tilde: 'Miércoles' no contaria (HO-06)
+    final codigoDia = DiaSemana.codigo(dia);
+    if (codigoDia == null) {
+      return Fallo(-1, 'El dia "$dia" no es valido', origen: 'ViewModel');
+    }
     if (horaInicio == null || horaFin == null) {
       return Fallo(
         -1,
@@ -171,7 +177,7 @@ class DetalleGrupoViewModel with ChangeNotifier, NotificacionSegura {
           curso: grupo.curso,
           anio: grupo.anio,
           iterable: grupo.iterable,
-          dia: dia,
+          dia: codigoDia,
           horaInicio: horaInicio,
           horaFin: horaFin,
           escenario: escenario.trim(),

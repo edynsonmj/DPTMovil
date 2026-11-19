@@ -1156,13 +1156,13 @@ Con BK-01 cambió una regla de la app: ya no existe "abrir sin fecha límite". `
 
 Ninguna prueba actúa todavía con rol de alumno o instructor. Hay ayudantes (`actuarComoAlumno`, `actuarComoInstructor`), pero los permisos por rol siguen sin probarse. Observado con un token de alumno: `GET /instructores` responde 200.
 
-**HO-06 (confirmado el 2026-11-19, prueba en rojo):** el formulario de horarios (`widgetListaHorarios.dart`) guarda `Miércoles` y `Sábado` con tilde, y el backend (`CalculadoraDuracionClase`) compara el día con `equalsIgnoreCase` contra `MIERCOLES` y `SABADO`. Un horario del miércoles creado desde la app no cuenta: la clase de ese día responde 422 `GC-0021` pidiendo justificación (`El grupo no tiene horario asignado ese dia`). Con `MIERCOLES` sin tilde se registra.
+**HO-06 (confirmado y corregido el 2026-11-19):** el formulario de horarios (`widgetListaHorarios.dart`) guarda `Miércoles` y `Sábado` con tilde, y el backend (`CalculadoraDuracionClase`) compara el día con `equalsIgnoreCase` contra `MIERCOLES` y `SABADO`. Un horario del miércoles creado desde la app no cuenta: la clase de ese día responde 422 `GC-0021` pidiendo justificación (`El grupo no tiene horario asignado ese dia`). Con `MIERCOLES` sin tilde se registra.
 
 - Evidencia: `transversal/remoto_backend_nuevo` · BUG HO-06 (`Fallo 422 ... debe indicar una justificacion`) y su control `control HO-06` (sin tilde) en verde.
 - Efecto inferido, no probado: el instructor no puede registrar la clase de esos días (`DiaFueraDeHorarioExcepcion`) y la duración no sale del horario.
-- Severidad M · responsable app (enviar el día como lo nombra el backend) · `Clasesviewmodel.numeroDia` ya sigue la regla del backend, así que el formulario de clase pide la justificación en esos días.
+- Severidad M · responsable app · **corregido**: `DiaSemana` (`domain/entities/diaSemana.dart`) traduce entre el código del backend (`MIERCOLES`) y la etiqueta (`Miércoles`). `DetalleGrupoViewModel.agregarHorario` envía siempre el código (un día que no existe no se envía), el formulario ofrece las etiquetas y las pantallas muestran la etiqueta, también de los horarios viejos guardados con tilde. Esos horarios viejos **siguen sin contar** para el backend: hay que borrarlos y crearlos de nuevo (o corregirlos en la base). La prueba pasó a la suite remota (`VmClaseDiagnosticoTest.prueba9DiaConTilde`); unitarias en `dominio/diaSemana_test.dart`, `viewModel/detalleGrupoViewModel_test.dart` y `vista/horariosGrupoView_test.dart`.
 
-**Siembras de la suite remota (2026-11-19):** el `setUpAll` de Grupos y Alumnos no fallaba por BK-04 sino porque reusaba un mismo `Inscripcionviewmodel` para varios alumnos: el vm recuerda el estado por grupo y bloquea al segundo (409 de la propia app). Ahora usan un vm por inscripción, como en la app. La suite remota queda en verde: 129.
+**Siembras de la suite remota (2026-11-19):** el `setUpAll` de Grupos y Alumnos no fallaba por BK-04 sino porque reusaba un mismo `Inscripcionviewmodel` para varios alumnos: el vm recuerda el estado por grupo y bloquea al segundo (409 de la propia app). Ahora usan un vm por inscripción, como en la app. La suite remota queda en verde: 129 (130 con HO-06).
 
 ## Seguimiento en Jira (2026-10-29)
 
