@@ -1,0 +1,66 @@
+# CI-01 (SCRUMBAN-133): en cada push y pull request revisa el analizador y
+# corre la suite sin backend. Fuera quedan la suite remota
+# (test/main_test.dart, necesita el backend) y la de diagnostico
+# (test/diagnostico, roja a proposito).
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# un push nuevo a la misma rama cancela la corrida anterior
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analizar-y-probar:
+    name: Analizador y suite sin backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # con shell: bash explicito GitHub agrega pipefail: sin el, el "| tee" del
+    # analizador ocultaria sus errores
+    defaults:
+      run:
+        shell: bash
+    env:
+      # la zona horaria de los equipos de desarrollo: hay pruebas de fechas
+      # que dependen del dia local
+      TZ: America/Bogota
+      # linea base de avisos de flutter analyze. Si una correccion la baja,
+      # bajar tambien este numero; nunca subirlo para que el CI pase
+      LIMITE_AVISOS: 33
+
+    steps:
+      - name: Obtener el codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar Flutter 3.41.3
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.3
+          cache: true
+
+      - name: Dependencias
+        run: flutter pub get
+
+      # falla solo con errores; los avisos se vigilan en el paso siguiente
+      - name: Analizador
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings | tee analisis.txt
+
+      - name: Avisos dentro de la linea base
+        run: |
+          avisos=$(grep -cE '^\s*warning\b' analisis.txt || true)
+          echo "Avisos: $avisos (limite: $LIMITE_AVISOS)"
+          if [ "$avisos" -gt "$LIMITE_AVISOS" ]; then
+            echo "::error::flutter analyze da $avisos avisos; la linea base es $LIMITE_AVISOS"
+            exit 1
+          fi
+
+      - name: Suite sin backend
+        run: flutter test test/unitarias test/raiz_composicion_test.dart test/integracion

@@ -27,9 +27,9 @@ import 'package:dpt_movil/presentation/view/views/grupos/GruposInscripcion.dart'
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/domain/entities/categoriaEntidad.dart';
-import 'package:dpt_movil/presentation/view/views/Categorias/CategoriasView.dart';
+import 'package:dpt_movil/presentation/view/views/categorias/CategoriasView.dart';
 import 'package:dpt_movil/presentation/view/views/alumnos/AlumnoView.dart';
-import 'package:dpt_movil/presentation/view/views/alumnos/alumnosView.dart';
+import 'package:dpt_movil/presentation/view/views/alumnos/AlumnosView.dart';
 import 'package:dpt_movil/presentation/view/views/categorias/CategoriaFormulario.dart';
 import 'package:dpt_movil/presentation/view/views/curso/curso.dart';
 import 'package:dpt_movil/presentation/view/views/curso/cursos.dart';
