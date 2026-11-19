@@ -32,7 +32,6 @@ import '../../remoto/viewModel/estadisticas/vmEstadisticasAsistenciaTest.dart';
 void main() {
   const String capa = "viewModel";
   const String tipo = "diagnostico";
-  final DateTime ayer = DateTime.now().subtract(const Duration(days: 1));
 
   String texto(Resultado<void> r) => switch (r) {
     Exito() => 'Exito',
@@ -98,24 +97,49 @@ void main() {
       expect(vm.atenciones, isNotEmpty);
     });
 
-    test('$capa - $tipo - Registrar clase - control BK-04 - sin horario ese dia y sin justificacion el backend la rechaza', () async {
+    //BK-04 (corregido el 2026-11-18) paso a la suite remota:
+    //VmClaseDiagnosticoTest.prueba8Justificacion
+
+    //HO-06: el formulario de horarios guarda 'Miércoles' con tilde y el
+    //backend compara el dia con equalsIgnoreCase contra 'MIERCOLES'. Un
+    //horario creado desde la app el miercoles deberia contar como horario:
+    //la clase de ese dia no deberia pedir justificacion
+    test('$capa - $tipo - Registrar clase - BUG HO-06 - un horario del miercoles creado desde la app cuenta como horario', () async {
       final g = await grupoVacio();
+      final detalle = crearDetalleGrupoViewModel(g);
+      final h = await detalle.agregarHorario(
+        dia: 'Miércoles',
+        horaInicio: '08:00',
+        horaFin: '10:00',
+        escenario: 'Escenario prueba',
+      );
+      expect(h, isA<Exito>(), reason: texto(h));
 
-      final r = await vmClaseDe(g).registrarClase(fecha: ayer, horasTexto: '2');
+      //el miercoles mas reciente que no sea futuro
+      final hoy = DateTime.now();
+      final atras = (hoy.weekday - DateTime.wednesday) % 7;
+      final miercoles = DateTime(hoy.year, hoy.month, hoy.day - atras);
 
-      expect(r, isA<Fallo>(), reason: texto(r));
-      expect((r as Fallo).codigo, 422);
+      final r = await vmClaseDe(g).registrarClase(fecha: miercoles, horasTexto: '2');
+
+      expect(r, isA<Exito>(), reason: texto(r));
     });
 
-    //la app no tiene como enviar la justificacion: el parametro no existe
-    test('$capa - $tipo - Registrar clase - BUG BK-04 - sin horario ese dia se puede enviar la justificacion', () async {
+    test('$capa - $tipo - Registrar clase - control HO-06 - un horario del miercoles sin tilde si cuenta', () async {
       final g = await grupoVacio();
-
-      final Resultado<void> r = await (vmClaseDe(g) as dynamic).registrarClase(
-        fecha: ayer,
-        horasTexto: '2',
-        justificacion: 'Clase de reposicion acordada con el grupo',
+      final detalle = crearDetalleGrupoViewModel(g);
+      final h = await detalle.agregarHorario(
+        dia: 'MIERCOLES',
+        horaInicio: '08:00',
+        horaFin: '10:00',
+        escenario: 'Escenario prueba',
       );
+      expect(h, isA<Exito>(), reason: texto(h));
+      final hoy = DateTime.now();
+      final atras = (hoy.weekday - DateTime.wednesday) % 7;
+      final miercoles = DateTime(hoy.year, hoy.month, hoy.day - atras);
+
+      final r = await vmClaseDe(g).registrarClase(fecha: miercoles, horasTexto: '2');
 
       expect(r, isA<Exito>(), reason: texto(r));
     });

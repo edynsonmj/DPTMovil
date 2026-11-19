@@ -58,8 +58,10 @@ void main() {
   );
 
   Clasesviewmodel formulario() =>
-      Clasesviewmodel(servicioClase())
-        ..inicializarGrupo(grupo.categoria, grupo.curso, grupo.anio, grupo.iterable, '2');
+      Clasesviewmodel(
+        servicioClase(),
+        Serviciohorario(Horariorepositorio(conexion: Conexionhorariosremoto(dio))),
+      )..inicializarGrupo(grupo.categoria, grupo.curso, grupo.anio, grupo.iterable, '2');
 
   setUp(() {
     adaptador = AdaptadorHttpFalso();
@@ -221,7 +223,8 @@ void main() {
         MaterialPageRoute(
           builder:
               (_) => ChangeNotifierProvider(
-                create: (_) => formulario(),
+                //como la ruta: carga los horarios del grupo al abrir
+                create: (_) => formulario()..cargarHorarios(),
                 child: const Claseformulario(),
               ),
         ),
@@ -231,7 +234,7 @@ void main() {
     }
 
     Future<void> guardar(WidgetTester tester) async {
-      await tester.enterText(find.byType(TextFormField), '2');
+      await tester.enterText(find.byType(TextFormField).first, '2');
       await tester.tap(find.text('GUARDAR'));
       await tester.pumpAndSettle();
     }

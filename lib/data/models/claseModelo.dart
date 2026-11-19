@@ -11,6 +11,7 @@ class Clasemodelo {
   int horas;
   int minutos;
   String? observacion;
+  String? justificacion;
   int eliminado;
 
   Clasemodelo({
@@ -24,6 +25,7 @@ class Clasemodelo {
     required this.horas,
     required this.minutos,
     this.observacion,
+    this.justificacion,
     required this.eliminado,
   });
 
@@ -39,6 +41,7 @@ class Clasemodelo {
       horas: json['horas'],
       minutos: json['minutos'],
       observacion: json['observacion'],
+      justificacion: json['justificacion'],
       eliminado: json['eliminado'],
     );
   }
@@ -67,6 +70,10 @@ class Clasemodelo {
       'observacion': observacion,
 
       'eliminado': eliminado,
+
+      //solo si hay: el backend la exige cuando el grupo no tiene horario ese
+      //dia y la ignora cuando lo tiene (BK-04)
+      if (justificacion != null) 'justificacion': justificacion,
     };
   }
 }

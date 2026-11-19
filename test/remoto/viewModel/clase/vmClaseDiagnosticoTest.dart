@@ -28,6 +28,8 @@ class VmClaseDiagnosticoTest {
 
   late String _idInstructor;
   Grupoentidad? _grupo;
+  //segundo grupo del mismo curso, sin horarios: para BK-04
+  Grupoentidad? _grupoSinHorario;
 
   void preparar({
     required CategoriaViewModel vmCategoria,
@@ -87,6 +89,31 @@ class VmClaseDiagnosticoTest {
         (x) => x.categoria == c.tituloCategoria && x.curso == c.nombreCurso,
       );
       await sembrarHorariosSemana(_grupo!);
+
+      //BK-04: un grupo sin horarios, para las clases que piden justificacion
+      final sin = await crearVmGrupos().insertarGrupo(
+        Grupoentidad(
+          categoria: c.tituloCategoria,
+          curso: c.nombreCurso,
+          anio: DateTime.now().year,
+          iterable: 0,
+          imagen: c.imagen,
+          cupos: 20,
+          idInstructor: _idInstructor,
+          fechaCreacion: FormatDate.fechaACadena(DateTime.now(), '-'),
+          fechaInscripcionCierre: cierreInscripcionPruebas(),
+          fechaInscripcionApertura: aperturaFuturaPruebas(),
+        ),
+      );
+      expect(sin.codigoHttp, 201);
+      final vm2 = crearVmPeriodo();
+      await vm2.cargar();
+      _grupoSinHorario = vm2.grupos.datos.firstWhere(
+        (x) =>
+            x.categoria == c.tituloCategoria &&
+            x.curso == c.nombreCurso &&
+            x.iterable != _grupo!.iterable,
+      );
     });
   }
 
@@ -274,6 +301,53 @@ class VmClaseDiagnosticoTest {
     Exito() => 'Exito',
     Fallo(:final codigo, :final mensaje) => 'Fallo $codigo $mensaje',
   };
+
+  //antes diagnostico de BK-04 (transversal/remoto_backend_nuevo): sin horario
+  //ese dia el backend exige una justificacion. El formulario carga los
+  //horarios, la pide y la envia; sin ella el backend responde 422
+  void prueba8Justificacion(Clasesviewmodel Function() crearVm) {
+    String metodo = "Registrar clase";
+    String caso = "sin horario ese dia la pide y se registra con justificacion; con horario no la pide";
+    test('$capa - $tipo - $metodo - $caso', () async {
+      final ayer = DateTime.now().subtract(const Duration(days: 1));
+      final g = _grupoSinHorario;
+      expect(g, isNotNull, reason: 'el setUpAll no creo el grupo sin horarios');
+
+      Clasesviewmodel formulario(Grupoentidad grupo) =>
+          crearVm()..inicializarGrupo(
+            grupo.categoria,
+            grupo.curso,
+            grupo.anio,
+            grupo.iterable,
+            _idInstructor,
+          );
+
+      //sin cargar los horarios decide el backend: sin justificacion, 422
+      final sinJustificacion = await formulario(g!).registrarClase(
+        fecha: ayer,
+        horasTexto: '2',
+      );
+      expect(sinJustificacion, isA<Fallo>(), reason: _texto(sinJustificacion));
+      expect((sinJustificacion as Fallo).codigo, 422);
+
+      //como la ruta: con los horarios cargados la app sabe que la pide
+      final vm = formulario(g);
+      await vm.cargarHorarios();
+      expect(vm.requiereJustificacion(ayer), isTrue);
+      final r = await vm.registrarClase(
+        fecha: ayer,
+        horasTexto: '2',
+        justificacion: 'Clase de reposicion acordada con el grupo',
+      );
+      expect(r, isA<Exito<bool>>(), reason: _texto(r));
+      expect((r as Exito<bool>).datos, isTrue);
+
+      //el grupo con horario toda la semana no la pide
+      final conHorario = formulario(_grupoCreado());
+      await conHorario.cargarHorarios();
+      expect(conHorario.requiereJustificacion(ayer), isFalse);
+    });
+  }
 
   Grupoentidad _grupoCreado() {
     expect(_grupo, isNotNull, reason: 'el setUpAll no creo el grupo');

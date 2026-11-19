@@ -62,6 +62,33 @@ void main() {
         'eliminado': 0,
       });
     });
+    //BK-04: la justificacion viaja en los dos sentidos y solo sale si hay
+    test('$capa - $tipo - aModelo y aEntidad - la justificacion va y vuelve', () {
+      final entidad = Claseentidad(
+        idGrupoCategoria: 'Categoria Fase 4',
+        idGrupoCurso: 'Curso Categoria Fase 4',
+        idGrupoAnio: 2026,
+        idGrupoIterable: 1,
+        idInstructor: '2',
+        fecha: DateTime(2026, 10, 27),
+        horas: 2,
+        minutos: 0,
+        justificacion: 'Clase de reposicion',
+        eliminado: 0,
+      );
+
+      final json = ClaseMapper.aModelo(entidad).toJson();
+      expect(json['justificacion'], 'Clase de reposicion');
+      expect(
+        ClaseMapper.aEntidad(Clasemodelo.fromJson(json)).justificacion,
+        'Clase de reposicion',
+      );
+      expect(
+        ClaseMapper.aEntidad(Clasemodelo.fromJson(json)..justificacion = null)
+            .justificacion,
+        isNull,
+      );
+    });
     //una entidad sin fecha u horas todavia lanza: CL-04 sigue rojo en
     //test/diagnostico/clases/repositorio_diagnostico_test.dart
   });

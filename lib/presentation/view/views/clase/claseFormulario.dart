@@ -21,6 +21,7 @@ class Claseformulario extends StatefulWidget {
 
 class _ClaseFormularioState extends State<Claseformulario> {
   final _horasController = TextEditingController();
+  final _justificacionController = TextEditingController();
   //valor que el usuario esta eligiendo, como el texto de un controller: se
   //entrega al vm al guardar
   DateTime? fecha = DateTime.now();
@@ -29,6 +30,7 @@ class _ClaseFormularioState extends State<Claseformulario> {
   @override
   void dispose() {
     _horasController.dispose();
+    _justificacionController.dispose();
     super.dispose();
   }
 
@@ -51,7 +53,14 @@ class _ClaseFormularioState extends State<Claseformulario> {
       child: SingleChildScrollView(
         child: Form(
           key: _formKey,
-          child: Column(children: [_inputFecha(), _inputHoras(), _acciones()]),
+          child: Column(
+            children: [
+              _inputFecha(),
+              _inputHoras(),
+              _inputJustificacion(),
+              _acciones(),
+            ],
+          ),
         ),
       ),
     );
@@ -115,6 +124,39 @@ class _ClaseFormularioState extends State<Claseformulario> {
     );
   }
 
+  //BK-04: sin horario ese dia el backend exige la justificacion. Con horario
+  //no se muestra; mientras no se sabe (cargando o sin horarios) es opcional
+  Widget _inputJustificacion() {
+    final bool? requiere = context.select<Clasesviewmodel, bool?>(
+      (vm) => vm.requiereJustificacion(fecha),
+    );
+    if (requiere == false) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 12),
+        child: Text(
+          'El grupo tiene horario ese día: la duración se calcula del horario.',
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: TextFormField(
+        key: const Key('justificacionClase'),
+        controller: _justificacionController,
+        minLines: 2,
+        maxLines: 4,
+        maxLength: Clasesviewmodel.justificacionMaxima,
+        decoration: InputDecoration(
+          label: Text(
+            requiere == true
+                ? 'Justificación (el grupo no tiene horario ese día)'
+                : 'Justificación (si el grupo no tiene horario ese día)',
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _acciones() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -131,6 +173,7 @@ class _ClaseFormularioState extends State<Claseformulario> {
     final resultado = await context.read<Clasesviewmodel>().registrarClase(
       fecha: fecha,
       horasTexto: _horasController.text,
+      justificacion: _justificacionController.text,
     );
     await _mostrarResultado(resultado);
   }

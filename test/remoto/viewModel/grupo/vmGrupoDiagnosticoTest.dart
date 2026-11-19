@@ -132,16 +132,23 @@ class VmGrupoDiagnosticoTest {
           )));
         expect(registro.codigoHttp, 201, reason: 'no se registro $id');
       }
-      final vmInscripcion = crearVmInscripcion();
+      //un vm por inscripcion, como en la app (uno por usuario): el vm recuerda
+      //el estado por grupo y no deja inscribir a otro alumno en el mismo
       for (final ins in [
         _inscripcion(_alumnoA, _grupo!),
         _inscripcion(_alumnoB, _grupo!),
         _inscripcion(_alumnoA, _grupoE!),
       ]) {
-        expect(await vmInscripcion.agregarIncripcion(ins), isA<Exito>());
+        final r = await crearVmInscripcion().agregarIncripcion(ins);
+        expect(
+          r,
+          isA<Exito>(),
+          reason: 'no se inscribio ${ins.alumnoId}: '
+              '${r is Fallo ? '${(r as Fallo).codigo} ${(r as Fallo).mensaje}' : r}',
+        );
       }
       expect(
-        await vmInscripcion.desvincularInscripcion(_inscripcion(_alumnoB, _grupo!)),
+        await crearVmInscripcion().desvincularInscripcion(_inscripcion(_alumnoB, _grupo!)),
         isA<Exito>(),
       );
 

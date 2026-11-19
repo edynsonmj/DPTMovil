@@ -361,6 +361,11 @@ Clasesviewmodel crearClasesViewModel() => Clasesviewmodel(
       cliente: Conexionclasesremoto(crearDioPruebas(baseUrlPruebas)),
     ),
   ),
+  Serviciohorario(
+    Horariorepositorio(
+      conexion: Conexionhorariosremoto(crearDioPruebas(baseUrlPruebas)),
+    ),
+  ),
 );
 DetalleGrupoViewModel crearDetalleGrupoViewModel(Grupoentidad grupo) {
   Dio dio = crearDioPruebas(baseUrlPruebas);
@@ -698,6 +703,7 @@ probarViewModelClaseDiagnostico(){
     test.prueba4ObservacionFuturaYLarga(crearClasesViewModel);
     test.prueba5EliminarInexistente(crearDetalleGrupoViewModel);
     test.prueba6EliminarClase(crearClasesViewModel, crearDetalleGrupoViewModel);
+    test.prueba8Justificacion(crearClasesViewModel);
   });
 }
 //datos de apoyo del diagnostico de clases

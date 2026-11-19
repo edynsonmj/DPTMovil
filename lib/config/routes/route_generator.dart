@@ -183,19 +183,22 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case AppRutas.formularioClase:
       Grupoentidad grupo = settings.arguments as Grupoentidad;
       //vm propio del formulario, inicializado con el grupo que llega como
-      //argumento; al guardar hace pop(true) y la pantalla del grupo recarga
+      //argumento; carga sus horarios para saber que dias piden justificacion
+      //(BK-04). Al guardar hace pop(true) y la pantalla del grupo recarga
       return MaterialPageRoute(
         builder:
             (_) => ChangeNotifierProvider(
               create:
                   (c) =>
-                      Clasesviewmodel(c.read())..inicializarGrupo(
-                        grupo.categoria,
-                        grupo.curso,
-                        grupo.anio,
-                        grupo.iterable,
-                        grupo.idInstructor!,
-                      ),
+                      Clasesviewmodel(c.read(), c.read())
+                        ..inicializarGrupo(
+                          grupo.categoria,
+                          grupo.curso,
+                          grupo.anio,
+                          grupo.iterable,
+                          grupo.idInstructor!,
+                        )
+                        ..cargarHorarios(),
               child: const Claseformulario(),
             ),
       );

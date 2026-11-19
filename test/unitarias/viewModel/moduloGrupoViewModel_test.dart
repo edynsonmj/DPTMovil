@@ -3,12 +3,14 @@ import 'package:dpt_movil/data/models/instructorModelo.dart';
 import 'package:dpt_movil/data/models/respuestaModelo.dart';
 import 'package:dpt_movil/data/repositories/claseRepositorio.dart';
 import 'package:dpt_movil/data/repositories/grupoRepositorio.dart';
+import 'package:dpt_movil/data/repositories/horarioRepositorio.dart';
 import 'package:dpt_movil/data/repositories/instructoresRepositorio.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/domain/servicios/servicioClase.dart';
 import 'package:dpt_movil/domain/servicios/servicioGrupo.dart';
+import 'package:dpt_movil/domain/servicios/servicioHorario.dart';
 import 'package:dpt_movil/domain/servicios/servicio_instructor.dart';
 import 'package:dpt_movil/presentation/viewmodels/clasesViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/gruposViewModel.dart';
@@ -17,6 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../dobles/conexionclasesFalsa.dart';
 import '../../dobles/conexiongruposFalsa.dart';
+import '../../dobles/conexionhorariosFalsa.dart';
 import '../../dobles/conexioninstructoresFalsa.dart';
 
 //los vms del modulo grupo reciben su servicio por constructor desde la fase
@@ -201,6 +204,7 @@ void main() {
       conexion.respuestaAgregar = RespuestaModelo(codigoHttp: 201);
       final vm = Clasesviewmodel(
         Servicioclase(Claserepositorio(cliente: conexion)),
+        Serviciohorario(Horariorepositorio(conexion: ConexionhorariosFalsa())),
       );
       //como lo hace la ruta formularioClase con el grupo que recibe
       vm.inicializarGrupo('Deportes', 'Iniciacion', 2026, 1, 'ins1');

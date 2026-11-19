@@ -16,6 +16,7 @@ class ClaseMapper {
       horas: modelo.horas,
       minutos: modelo.minutos,
       observacion: modelo.observacion,
+      justificacion: modelo.justificacion,
       eliminado: modelo.eliminado,
     );
   }
@@ -34,6 +35,7 @@ class ClaseMapper {
       horas: entidad.horas!,
       minutos: entidad.minutos!,
       observacion: entidad.observacion,
+      justificacion: entidad.justificacion,
       eliminado: entidad.eliminado,
     );
   }
