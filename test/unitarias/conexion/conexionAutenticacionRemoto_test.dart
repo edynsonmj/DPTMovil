@@ -129,5 +129,43 @@ void main() {
       expect(respuesta.codigoHttp, isNot(200));
       expect(respuesta.error, isNotNull);
     });
+
+    //AU-01 (corregido el 2026-11-19): el correo va en queryParameters.
+    //Pegado a la URL, un + llegaba como espacio y un & partia la query
+    for (final correo in ['ana+deporte@unicauca.edu.co', 'ana&b@unicauca.edu.co']) {
+      test('$capa - $tipo - Login - el correo "$correo" llega al backend sin cambios', () async {
+        adaptador.responder('GET', '/login', 200, leerContrato('autenticacion', 'login_200'));
+
+        await conexion.login(correo);
+
+        final peticion = adaptador.peticionesA('GET', '/login').single;
+        expect(peticion.uri.queryParameters, {'email': correo});
+      });
+    }
+
+    //AU-03 (corregido el 2026-11-19): fromJson lanza un TypeError (un Error,
+    //no una Exception) y la conexion ahora lo devuelve
+    test('$capa - $tipo - Login - un perfil con un campo obligatorio nulo se devuelve como error, sin lanzar', () async {
+      adaptador.responder(
+        'GET',
+        '/login',
+        200,
+        Map<String, dynamic>.from(leerContrato('autenticacion', 'login_200'))..['tipoId'] = null,
+      );
+
+      final respuesta = await conexion.login('ana@unicauca.edu.co');
+
+      expect(respuesta.codigoHttp, isNot(200));
+      expect(respuesta.error, isNotNull);
+    });
+
+    test('$capa - $tipo - Registro - un 201 sin cuerpo se devuelve como error, sin lanzar', () async {
+      adaptador.responder('POST', '/RegistroPerfilAlumno', 201);
+
+      final respuesta = await conexion.registro(perfilDelFormulario());
+
+      expect(respuesta.codigoHttp, isNot(201));
+      expect(respuesta.error, isNotNull);
+    });
   });
 }

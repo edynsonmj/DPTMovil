@@ -22,9 +22,15 @@ class Conexionautenticacionremoto implements Conexionautenticacion {
   @override
   Future<RespuestaModelo> login(String email) async {
     String metodo = "GET";
-    String path = "/login?email=$email";
+    String path = "/login";
     try {
-      final response = await _dio.get(path, options: _opcionesAutenticacion);
+      //el correo va como parametro de la query, codificado por Dio: pegado a
+      //la URL, un + llegaba como espacio y un & partia la query (AU-01)
+      final response = await _dio.get(
+        path,
+        queryParameters: {'email': email},
+        options: _opcionesAutenticacion,
+      );
       if (response.statusCode != 200) {
         return RespuestaModelo.fromResponse(response, metodo);
       }
@@ -41,6 +47,10 @@ class Conexionautenticacionremoto implements Conexionautenticacion {
       );
     } on Exception catch (error) {
       return RespuestaModelo.fromException(error, metodo, path, 'conexion');
+    } catch (error) {
+      //un perfil con un campo obligatorio nulo hace lanzar un TypeError a
+      //fromJson: se devuelve en lugar de dejarlo escapar (AU-03)
+      return RespuestaModelo.fromObjectError(error, metodo, path, 'conexion');
     }
   }
 
@@ -72,6 +82,10 @@ class Conexionautenticacionremoto implements Conexionautenticacion {
       return RespuestaModelo.fromFormatException(exception, metodo, path, capa);
     } on Exception catch (exception) {
       return RespuestaModelo.fromException(exception, metodo, path, capa);
+    } catch (error) {
+      //un 201 sin cuerpo o con un perfil incompleto hace fallar fromJson con
+      //un Error (AU-03)
+      return RespuestaModelo.fromObjectError(error, metodo, path, capa);
     }
   }
 
