@@ -459,9 +459,12 @@ class Menulateral extends StatelessWidget {
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Error: ${respuesta.codigoHttp}')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(vm.mensajeErrorLogin(respuesta)),
+        backgroundColor: ColorTheme.error,
+      ),
+    );
   }
 
   Future<_MetodoInicioSesion?> _seleccionarMetodoInicioSesion(

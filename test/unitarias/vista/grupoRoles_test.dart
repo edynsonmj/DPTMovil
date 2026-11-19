@@ -1,6 +1,3 @@
-@Tags(['diagnostico'])
-library;
-
 import 'dart:async';
 
 import 'package:dpt_movil/config/routes/app_rutas.dart';
@@ -35,12 +32,13 @@ import '../../dobles/conexionhorariosFalsa.dart';
 import '../../dobles/googleSignInFalso.dart';
 import 'package:dpt_movil/data/api/sesion/almacenToken.dart';
 
-//pruebas de diagnostico (fase 4) de las pantallas del flujo de asistencia:
-//afirman el comportamiento CORRECTO y se espera que salgan rojas mientras el
-//bug exista. Registro: auditoria-mvvm/registro-bugs.md
+//que ve cada rol en la pantalla del grupo: agregar y eliminar clases y abrir
+//la toma de asistencia son de quien dicta la clase (coordinador e instructor).
+//Nacio como diagnostico de AS-01 (fase 4), corregido el 2026-11-19; la ruta
+//tambien lo comprueba (AccesoRutas, prueba en unitarias/rutas/accesoRutas_test.dart)
 void main() {
   const String capa = "vista";
-  const String tipo = "diagnostico";
+  const String tipo = "unitaria";
 
   final grupo = Grupoentidad(
     categoria: 'Deportes',
@@ -72,7 +70,7 @@ void main() {
     role: rol,
   );
 
-  group('Pantalla del grupo (AS-01, roles):', () {
+  group('Pantalla del grupo (roles):', () {
     //rutas que la pantalla intento abrir: onGenerateRoute las anota y pinta
     //una pagina vacia, asi no hace falta montar las pantallas destino
     late List<String?> rutasAbiertas;
@@ -188,7 +186,7 @@ void main() {
       expect(faltas, isEmpty);
     }
 
-    testWidgets('$capa - $tipo - Grupo - BUG AS-01 - un alumno no accede a la toma de asistencia', (
+    testWidgets('$capa - $tipo - Grupo - un alumno no accede a la toma de asistencia', (
       tester,
     ) async {
       vmSesion.perfilSesion = perfil('alu1', Roles.alumno);
@@ -197,7 +195,7 @@ void main() {
       await comprobarSinAccesoAAsistencia(tester);
     });
 
-    testWidgets('$capa - $tipo - Grupo - BUG AS-01 - sin sesion no se accede a la toma de asistencia', (
+    testWidgets('$capa - $tipo - Grupo - sin sesion no se accede a la toma de asistencia', (
       tester,
     ) async {
       await montarGrupo(tester);
@@ -205,10 +203,11 @@ void main() {
       await comprobarSinAccesoAAsistencia(tester);
     });
 
-    //omitida: espera la regla 3.4-1 del cliente (quien toma asistencia).
+    //omitida: espera la regla 3.4-1 del cliente (que instructor toma la
+    //asistencia de que grupo); sigue abierta como parte de AS-01.
     //testWidgets solo acepta skip booleano, el motivo va en este comentario
     testWidgets(
-      '$capa - $tipo - Grupo - BUG AS-01 - un instructor ajeno al grupo no accede a la toma de asistencia',
+      '$capa - $tipo - Grupo - pendiente AS-01 - un instructor ajeno al grupo no accede a la toma de asistencia',
       (tester) async {
         vmSesion.perfilSesion = perfil('ins2', Roles.instructor);
         await montarGrupo(tester);
@@ -218,7 +217,7 @@ void main() {
       skip: true,
     );
 
-    testWidgets('$capa - $tipo - Grupo - control AS-01 - el instructor del grupo si accede', (
+    testWidgets('$capa - $tipo - Grupo - el instructor del grupo si accede', (
       tester,
     ) async {
       //control positivo: si este caso falla, las pruebas de arriba estan mal
@@ -226,6 +225,16 @@ void main() {
       vmSesion.perfilSesion = perfil('ins1', Roles.instructor);
       await montarGrupo(tester);
 
+      await abrirClase(tester);
+      expect(rutasAbiertas, contains(AppRutas.clase));
+    });
+
+    testWidgets('$capa - $tipo - Grupo - el coordinador ve agregar y eliminar y abre la asistencia', (tester) async {
+      vmSesion.perfilSesion = perfil('coo1', Roles.coordinador);
+      await montarGrupo(tester);
+
+      expect(find.text('AGREGAR CLASE'), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsWidgets);
       await abrirClase(tester);
       expect(rutasAbiertas, contains(AppRutas.clase));
     });

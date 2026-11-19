@@ -1,4 +1,5 @@
 import 'package:dpt_movil/config/formatDate.dart';
+import 'package:dpt_movil/config/routes/accesoRutas.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
 import 'package:dpt_movil/config/theme/tipografia.dart';
@@ -8,6 +9,7 @@ import 'package:dpt_movil/domain/entities/resultado.dart';
 import 'package:dpt_movil/presentation/utils/Utilidades.dart';
 import 'package:dpt_movil/presentation/view/widgets/dialogError.dart';
 import 'package:dpt_movil/presentation/view/widgets/mini_tarjeta.dart';
+import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -35,30 +37,40 @@ class Widgetlistaclases extends StatelessWidget {
         ),
       );
     }
-    return mostrarClases(context, seccion.datos);
+    //agregar, eliminar y tomar asistencia solo para quien dicta la clase
+    //(AS-01); la ruta tambien lo comprueba (AccesoRutas)
+    final dicta = context.select<AutenticacionViewModel, bool>(
+      (vm) => AccesoRutas.dictaClase(vm.perfilSesion?.role),
+    );
+    return mostrarClases(context, seccion.datos, dicta);
   }
 
-  Widget mostrarClases(BuildContext context, List<Claseentidad> lista) {
+  Widget mostrarClases(
+    BuildContext context,
+    List<Claseentidad> lista,
+    bool dicta,
+  ) {
     return Column(
       children: [
         Text('Clases', style: Tipografia.h6()),
-        OutlinedButton.icon(
-          //el formulario es otra ruta con su propio vm: recibe el grupo como
-          //argumento y, si vuelve con true, esta pantalla recarga sus clases
-          onPressed: () async {
-            final vm = context.read<DetalleGrupoViewModel>();
-            final registrada = await Navigator.pushNamed(
-              context,
-              AppRutas.formularioClase,
-              arguments: vm.grupo,
-            );
-            if (registrada == true) {
-              vm.cargarClases();
-            }
-          },
-          label: Text('AGREGAR CLASE'),
-          icon: Icon(Icons.add),
-        ),
+        if (dicta)
+          OutlinedButton.icon(
+            //el formulario es otra ruta con su propio vm: recibe el grupo como
+            //argumento y, si vuelve con true, esta pantalla recarga sus clases
+            onPressed: () async {
+              final vm = context.read<DetalleGrupoViewModel>();
+              final registrada = await Navigator.pushNamed(
+                context,
+                AppRutas.formularioClase,
+                arguments: vm.grupo,
+              );
+              if (registrada == true) {
+                vm.cargarClases();
+              }
+            },
+            label: Text('AGREGAR CLASE'),
+            icon: Icon(Icons.add),
+          ),
         (lista.isEmpty)
             ? Text(
               'No hay clases aún!',
@@ -70,14 +82,14 @@ class Widgetlistaclases extends StatelessWidget {
               itemCount: lista.length,
               itemBuilder: (context, index) {
                 Claseentidad clase = lista[index];
-                return mostrarTarjeta(context, clase);
+                return mostrarTarjeta(context, clase, dicta);
               },
             ),
       ],
     );
   }
 
-  Widget mostrarTarjeta(BuildContext context, Claseentidad clase) {
+  Widget mostrarTarjeta(BuildContext context, Claseentidad clase, bool dicta) {
     return InkWell(
       child: Stack(
         children: [
@@ -88,26 +100,30 @@ class Widgetlistaclases extends StatelessWidget {
             existeBotonCierre: false,
             existeCampoImagen: false,
           ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: IconButton(
-              onPressed: () => _eliminar(context, clase),
-              icon: Icon(Icons.close),
+          if (dicta)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                onPressed: () => _eliminar(context, clase),
+                icon: Icon(Icons.close),
+              ),
             ),
-          ),
         ],
       ),
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          AppRutas.clase,
-          arguments: ClaseGrupoargumentos(
-            clase: clase,
-            grupo: context.read<DetalleGrupoViewModel>().grupo,
-          ),
-        );
-      },
+      onTap:
+          !dicta
+              ? null
+              : () {
+                Navigator.pushNamed(
+                  context,
+                  AppRutas.clase,
+                  arguments: ClaseGrupoargumentos(
+                    clase: clase,
+                    grupo: context.read<DetalleGrupoViewModel>().grupo,
+                  ),
+                );
+              },
     );
   }
 

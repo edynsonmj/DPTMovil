@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
+import 'package:dpt_movil/config/routes/roles.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/grupoEntidad.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/widgetListaAlumnos.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/widgetListaClases.dart';
 import 'package:dpt_movil/presentation/view/views/grupo/widgetListaHorarios.dart';
+import 'package:dpt_movil/presentation/viewmodels/autenticacionViewModel.dart';
 import 'package:dpt_movil/presentation/viewmodels/detalleGrupoViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:dpt_movil/config/theme/color_tema.dart';
@@ -46,7 +48,13 @@ class Grupo extends StatelessWidget {
     );
   }
 
-  Widget contenedor(context) {
+  Widget contenedor(BuildContext context) {
+    //cambiar el instructor es del coordinador: los demas no ven el boton
+    //(AS-01). La tarjeta aun es una maqueta: el nombre es fijo y el boton no
+    //hace nada
+    final esCoordinador = context.select<AutenticacionViewModel, bool>(
+      (vm) => vm.perfilSesion?.role == Roles.coordinador,
+    );
     return Column(
       children: [
         CampoBusqueda(leyenda: 'buscar instructor...'),
@@ -56,7 +64,7 @@ class Grupo extends StatelessWidget {
           atrMargerInferior: 15,
           atrTitulo: 'Edynson Muñoz Jimenez',
           atrSubTitulo: 'Instructor',
-          existeBotonCierre: true,
+          existeBotonCierre: esCoordinador,
           atrDatosImagen: Uint8List(0),
         ),
         informacionCurso(context),

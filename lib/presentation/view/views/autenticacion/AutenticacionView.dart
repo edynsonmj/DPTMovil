@@ -23,12 +23,18 @@ class Autenticacionview extends StatefulWidget {
 class _AutenticacionState extends State<Autenticacionview> {
   String? _tipoId;
   String? _nombre;
+  //true si el nombre llego con la sesion (Google): se muestra como texto. Se
+  //decide una sola vez; con lo escrito a mano el campo sigue editable (AU-05)
+  bool _nombreDeSesion = false;
   String? _correo;
   String? _sexo;
   String? _tipoAlumno;
   String? _facultad;
   String? _programa;
   bool _enviando = false;
+  //motivo del ultimo rechazo del backend: queda escrito sobre los botones
+  //hasta el siguiente intento, no en un SnackBar que se va solo (AU-06)
+  String? _errorRegistro;
   final _formKey = GlobalKey<FormState>();
   final _controllerId = TextEditingController();
   final _controllerNombre = TextEditingController();
@@ -54,6 +60,7 @@ class _AutenticacionState extends State<Autenticacionview> {
       setState(() {
         _correo = _vmAut.correoAutenticado;
         _nombre = _vmAut.nombreAutenticado;
+        _nombreDeSesion = _nombre != null && _nombre!.trim().isNotEmpty;
         _controllerNombre.text = _nombre ?? '';
       });
     });
@@ -103,6 +110,15 @@ class _AutenticacionState extends State<Autenticacionview> {
               if (_pideFacultadYPrograma) _inputFacultad(),
               if (_pideFacultadYPrograma && _facultad != null) _inputPrograma(),
               if (_pideDependencia) _inputDependencia(),
+              if (_errorRegistro != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 15),
+                  child: Text(
+                    _errorRegistro!,
+                    textAlign: TextAlign.center,
+                    style: Tipografia.cuerpo1(color: ColorTheme.error),
+                  ),
+                ),
               _acciones(),
             ],
           ),
@@ -309,15 +325,12 @@ class _AutenticacionState extends State<Autenticacionview> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        if (_nombre == null || _nombre!.trim().isEmpty)
+        if (!_nombreDeSesion)
           Padding(
             padding: EdgeInsets.symmetric(vertical: 15),
             child: TextFormField(
               controller: _controllerNombre,
               decoration: InputDecoration(label: Text('Nombre completo')),
-              onChanged: (value) {
-                _nombre = value.trim();
-              },
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Ingrese su nombre';
@@ -456,25 +469,26 @@ class _AutenticacionState extends State<Autenticacionview> {
           backgroundColor: ColorTheme.primary,
         ),
       );
-      setState(() => _enviando = true);
+      setState(() {
+        _enviando = true;
+        _errorRegistro = null;
+      });
       RespuestaModelo respuesta = await _vmAut.registroAlumno(perfil);
       if (!context.mounted) {
         return;
       }
-      setState(() => _enviando = false);
       if (respuesta.codigoHttp == 201) {
+        setState(() => _enviando = false);
         Navigator.pop(context, true);
         return;
       }
-      //se queda en el formulario para corregir lo que el backend rechazo
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(_vmAut.mensajeErrorRegistro(respuesta)),
-            backgroundColor: ColorTheme.error,
-          ),
-        );
+      //se queda en el formulario, con lo llenado, para corregir lo que el
+      //backend rechazo
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      setState(() {
+        _enviando = false;
+        _errorRegistro = _vmAut.mensajeErrorRegistro(respuesta);
+      });
     }
   }
 

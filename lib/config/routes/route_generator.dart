@@ -1,3 +1,5 @@
+import 'package:dpt_movil/config/routes/accesoRutas.dart';
+import 'package:dpt_movil/presentation/view/widgets/rutaProtegida.dart';
 import 'package:dpt_movil/domain/entities/cursoEntidad.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/clase_grupoArgumentos.dart';
 import 'package:dpt_movil/domain/entities/entidadesRutas/formCursoArgumentos.dart';
@@ -52,7 +54,19 @@ Widget _conCategorias(Widget pantalla) {
   );
 }
 
+//rutas de la app. Las que tienen rol en AccesoRutas abren su pantalla dentro
+//de RutaProtegida: sin el rol muestran "Acceso restringido" (AS-01, AU-10)
 Route<dynamic> generateRoute(RouteSettings settings) {
+  final ruta = _construirRuta(settings);
+  final roles = AccesoRutas.rolesDe(settings.name);
+  if (roles == null || ruta is! MaterialPageRoute) return ruta;
+  return MaterialPageRoute(
+    settings: settings,
+    builder: (c) => RutaProtegida(roles: roles, child: ruta.builder(c)),
+  );
+}
+
+Route<dynamic> _construirRuta(RouteSettings settings) {
   switch (settings.name) {
     case AppRutas.page2:
       const String args = "hola";
@@ -103,7 +117,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
 
     case AppRutas.categorias:
-      return MaterialPageRoute(builder: (_) => _conCategorias(CategoriasView()));
+      return MaterialPageRoute(
+        builder: (_) => _conCategorias(CategoriasView()),
+      );
 
     case AppRutas.InscripcionesGenerales:
       return MaterialPageRoute(
@@ -124,7 +140,8 @@ Route<dynamic> generateRoute(RouteSettings settings) {
                             ..listarYNotificarCategorias(),
                 ),
                 ChangeNotifierProvider(
-                  create: (c) => PeriodoInscripcionViewModel(c.read())..cargar(),
+                  create:
+                      (c) => PeriodoInscripcionViewModel(c.read())..cargar(),
                 ),
               ],
               child: InscripcionesParticularesView(),
@@ -309,6 +326,8 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => Page1());
 
     default:
-      return MaterialPageRoute(builder: (_) => _conCategorias(CategoriasView()));
+      return MaterialPageRoute(
+        builder: (_) => _conCategorias(CategoriasView()),
+      );
   }
 }

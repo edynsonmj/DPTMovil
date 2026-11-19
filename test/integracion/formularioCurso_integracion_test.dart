@@ -1,3 +1,5 @@
+import 'package:dpt_movil/domain/entities/PerfilEntidad.dart';
+import 'package:dpt_movil/config/routes/roles.dart';
 import 'package:dpt_movil/config/routes/app_rutas.dart';
 import 'package:dpt_movil/config/routes/route_generator.dart';
 import 'package:dpt_movil/data/api/conexion/remoto/ConexionCursoRemoto.dart';
@@ -55,6 +57,15 @@ void main() {
         Autenticacionrepositorio(conexion: ConexionautenticacionFalsa(), almacenToken: AlmacenToken()),
       ),
       GoogleSignInFalso(),
+    //la ruta es del coordinador (AccesoRutas): sin su sesion se ve "Acceso
+    //restringido"
+    )..perfilSesion = PerfilEntidad(
+      id: 'coo1',
+      nombre: 'Coordinacion',
+      correo: 'coordinacion@unicauca.edu.co',
+      tipoId: 'CC',
+      sexo: 'F',
+      role: Roles.coordinador,
     );
     await tester.pumpWidget(
       MultiProvider(

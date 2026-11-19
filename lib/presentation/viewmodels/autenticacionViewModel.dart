@@ -203,13 +203,13 @@ class AutenticacionViewModel with ChangeNotifier {
           if (campos.isNotEmpty) return campos.join('\n');
         }
       } on FormatException {
-        if (respuesta.codigoHttp == 400 || respuesta.codigoHttp == 422) {
-          //"Los datos enviados no son validos, <motivo>": se deja el motivo
-          final coma = texto.indexOf(', ');
-          return coma >= 0 && texto.startsWith('Los datos enviados')
-              ? texto.substring(coma + 2)
-              : texto;
-        }
+        //el motivo del backend tal cual, sea cual sea el codigo: un 409 dice
+        //que perfil ya existe (AU-06). "Los datos enviados no son validos,
+        //<motivo>": se deja el motivo
+        final coma = texto.indexOf(', ');
+        return coma >= 0 && texto.startsWith('Los datos enviados')
+            ? texto.substring(coma + 2)
+            : texto;
       }
     }
     switch (respuesta.codigoHttp) {
@@ -222,5 +222,28 @@ class AutenticacionViewModel with ChangeNotifier {
       default:
         return 'No se pudo completar el registro (${respuesta.codigoHttp})';
     }
+  }
+
+  //mensaje legible de un inicio de sesion fallido que no es 404 (AU-08). El
+  //401 sin cuerpo de /login es lo que responde el backend nuevo a quien entra
+  //solo con el correo (BK-11); de /auth/token, que rechazo el ID Token
+  String mensajeErrorLogin(RespuestaModelo respuesta) {
+    switch (respuesta.codigoHttp) {
+      case 401:
+        return cuenta == null
+            ? 'El servidor ya no permite iniciar sesión solo con el correo. Usa «Continuar con Google».'
+            : 'El servidor no aceptó tu cuenta de Google. Intenta iniciar sesión de nuevo.';
+      case 403:
+        return 'Tu cuenta no tiene permiso para entrar a la aplicación.';
+      case 503:
+        return 'No hay conexión con el servidor. Revisa tu red e intenta de nuevo.';
+      case 408:
+        return 'El servidor tardó demasiado en responder. Intenta de nuevo.';
+    }
+    final texto = respuesta.error?.mensaje;
+    if (texto != null && texto.trim().isNotEmpty) {
+      return 'No se pudo iniciar sesión: $texto';
+    }
+    return 'No se pudo iniciar sesión (código ${respuesta.codigoHttp}).';
   }
 }

@@ -189,6 +189,63 @@ void main() {
       expect(find.text('Categorías'), findsWidgets);
     });
 
+    //antes diagnostico de AU-10: solo el menu escondia la opcion; la ruta no
+    //miraba el rol. Ahora AccesoRutas la protege y, sin permiso, el vm de la
+    //pantalla ni se crea: no sale ninguna peticion
+    testWidgets('$capa - $tipo - Rutas - el coordinador abre las inscripciones generales', (tester) async {
+      m.sesion.perfilSesion = PerfilEntidad(
+        id: 'p1',
+        nombre: 'Persona',
+        correo: 'persona@unicauca.edu.co',
+        tipoId: 'CC',
+        sexo: 'F',
+        role: Roles.coordinador,
+      );
+      await m.abrir(tester, ruta: AppRutas.InscripcionesGenerales);
+
+      expect(find.text('configuracion general'), findsOneWidget);
+      expect(find.text('No tienes acceso a esta pantalla'), findsNothing);
+    });
+
+    for (final rol in [Roles.alumno, Roles.instructor, null]) {
+      testWidgets('$capa - $tipo - Rutas - ${rol ?? 'sin sesion'} no abre las inscripciones generales del coordinador', (tester) async {
+        if (rol != null) {
+          m.sesion.perfilSesion = PerfilEntidad(
+            id: 'p1',
+            nombre: 'Persona',
+            correo: 'persona@unicauca.edu.co',
+            tipoId: 'CC',
+            sexo: 'F',
+            role: rol,
+          );
+        }
+        await m.abrir(tester, ruta: AppRutas.InscripcionesGenerales);
+
+        expect(find.text('configuracion general'), findsNothing);
+        expect(find.text('No tienes acceso a esta pantalla'), findsOneWidget);
+        expect(m.adaptador.peticionesA('GET', '/gruposNoEliminados'), isEmpty);
+      });
+    }
+
+    testWidgets('$capa - $tipo - Rutas - sin acceso, ir a categorias deja la pila limpia', (tester) async {
+      m.sesion.perfilSesion = PerfilEntidad(
+        id: 'p1',
+        nombre: 'Persona',
+        correo: 'persona@unicauca.edu.co',
+        tipoId: 'CC',
+        sexo: 'F',
+        role: Roles.alumno,
+      );
+      await m.abrir(tester, ruta: AppRutas.estadisticasGenerales);
+
+      await tester.tap(find.text('Ir a categorías'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No tienes acceso a esta pantalla'), findsNothing);
+      final navegador = tester.state<NavigatorState>(find.byType(Navigator).first);
+      expect(navegador.canPop(), isFalse);
+    });
+
     //antes diagnostico de AU-09: cerrar sesion hacia pushNamed(categorias)
     //encima de lo que habia, y "atras" volvia a la pantalla del coordinador
     testWidgets('$capa - $tipo - Cerrar sesion - no quedan pantallas del rol anterior debajo de categorias', (tester) async {
@@ -271,6 +328,51 @@ void main() {
 
       expect(m.almacenToken.hayToken, isFalse);
       expect(m.google.llamadasSalir, 1);
+    });
+
+    //AU-05 (corregido el 2026-11-19): el campo del nombre ya no se cambiaba
+    //por un Text en el siguiente setState
+    testWidgets('$capa - $tipo - Registro - el nombre sigue editable despues de elegir otro campo', (tester) async {
+      m.adaptador.responder('GET', '/login', 404, {'mensaje': 'Perfil no encontrado'});
+      await m.abrir(tester);
+      await m.iniciarSesionConCorreo(tester, 'beto@unicauca.edu.co');
+
+      await tester.enterText(find.widgetWithText(TextFormField, 'Nombre completo'), 'Bet');
+      await m.elegir(tester, 'Selecciona tu sexo', 'M');
+
+      expect(find.widgetWithText(TextFormField, 'Nombre completo'), findsOneWidget);
+    });
+
+    //AU-06 (corregido el 2026-11-19): el motivo queda escrito en el
+    //formulario, no en un SnackBar que se va a los 4 s
+    testWidgets('$capa - $tipo - Registro - un 409 deja el formulario abierto y muestra el motivo', (tester) async {
+      m.adaptador.responder('GET', '/login', 404, {'mensaje': 'Perfil no encontrado'});
+      m.adaptador.responder('POST', '/RegistroPerfilAlumno', 409, {'mensaje': 'El perfil ya existe'});
+      await m.abrir(tester);
+      await m.iniciarSesionConCorreo(tester, 'beto@unicauca.edu.co');
+
+      await m.llenarRegistro(tester);
+      await tester.tap(find.text('GUARDAR'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Autenticacionview), findsOneWidget);
+      expect(find.text('El perfil ya existe'), findsOneWidget);
+      expect(m.sesion.perfilSesion, isNull);
+    });
+
+    //AU-08 (corregido el 2026-11-19). El 401 sin cuerpo es lo que responde
+    //el backend nuevo a /login sin JWT (AU-B01, BK-11)
+    testWidgets('$capa - $tipo - Login - un 401 del backend muestra un mensaje legible, no solo el codigo', (tester) async {
+      m.adaptador.responder('GET', '/login', 401);
+      await m.abrir(tester);
+
+      await m.iniciarSesionConCorreo(tester, 'ana@unicauca.edu.co');
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('Error: 401'), findsNothing);
+      expect(find.textContaining('Continuar con Google'), findsOneWidget);
     });
   });
 }
